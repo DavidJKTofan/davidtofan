@@ -5,8 +5,9 @@
 	"scripts": {
 		"dev": "astro dev",
 		"build": "wrangler types && astro build",
+		"astro:build": "astro build",
 		"preview": "npm run build && wrangler dev",
-		"deploy": "npm run build && wrangler deploy",
+		"deploy": "wrangler deploy",
 		"astro": "astro",
 		"cf-typegen": "wrangler types"
 	},

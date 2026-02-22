@@ -11,6 +11,15 @@
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
+	/**
+	 * Custom Build
+	 * Runs before deployment. Generates types and builds Astro project.
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#custom-builds
+	 */
+	"build": {
+		"command": "npm run cf-typegen && npm run astro:build",
+		"watch_dir": "src"
+	},
 	"assets": {
 		"binding": "ASSETS",
 		"directory": "./dist"
