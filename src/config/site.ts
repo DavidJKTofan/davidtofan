@@ -13,7 +13,7 @@ export const siteConfig: SiteConfig = {
     github: 'DavidJKTofan',
     linkedin: 'davidtofan',
   },
-  ogImage: '/og-image.png',
+  ogImage: '/website-thumbnail.png',
   locale: 'en-US',
 };
 

@@ -145,22 +145,37 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <!-- View Transitions: Enables smooth page navigation and prefetching -->
     <ClientRouter />
 
-    <!-- Theme Script (prevent flash) -->
+    <!-- Theme Script (prevent flash and persist across View Transitions) -->
     <script is:inline>
-      const theme = (() => {
+      // Get the user's theme preference
+      function getThemePreference() {
         if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
           return localStorage.getItem('theme');
         }
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          return 'dark';
-        }
-        return 'light';
-      })();
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       }
+
+      // Apply the theme to the document
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+
+      // Apply theme immediately on initial load
+      applyTheme(getThemePreference());
+
+      // Persist theme across View Transitions (before the new document swaps in)
+      document.addEventListener('astro:before-swap', (event) => {
+        const theme = getThemePreference();
+        if (theme === 'dark') {
+          event.newDocument.documentElement.classList.add('dark');
+        } else {
+          event.newDocument.documentElement.classList.remove('dark');
+        }
+      });
     </script>
   </head>
   <body class="min-h-screen flex flex-col antialiased">
