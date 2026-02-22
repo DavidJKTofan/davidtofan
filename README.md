@@ -160,6 +160,7 @@ Add to `src/data/certificates.json`:
 | `website`     | string   | No       | Live URL                            |
 | `github`      | string   | No       | Repository URL                      |
 | `tags`        | string[] | No       | Technologies                        |
+| `draft`       | boolean  | No       | Hide from production                |
 | `status`      | enum     | No       | `active`, `completed`, `archived`   |
 | `featured`    | boolean  | No       | Show on homepage                    |
 

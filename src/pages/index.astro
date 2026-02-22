@@ -11,8 +11,8 @@ const recentArticles = articles
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 6);
 
-// Get featured projects
-const projects = await getCollection('projects');
+// Get featured projects (non-draft only)
+const projects = await getCollection('projects', ({ data }) => !data.draft);
 const featuredProjects = projects
   .filter((p) => p.data.featured)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())

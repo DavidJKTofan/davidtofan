@@ -33,6 +33,7 @@ const projects = defineCollection({
     image: z.string().optional(),
     imageAlt: z.string().optional(),
     tags: z.array(z.string()).default([]),
+    draft: z.boolean().default(false),
     featured: z.boolean().default(false),
     status: z.enum(['active', 'completed', 'archived']).default('active'),
     // Hugo compatibility fields (optional)

@@ -5,7 +5,8 @@ import TableOfContents from '../../components/TableOfContents.astro';
 import ReadingProgress from '../../components/ReadingProgress.astro';
 
 export async function getStaticPaths() {
-  const articles = await getCollection('articles');
+  // Only generate pages for non-draft articles
+  const articles = await getCollection('articles', ({ data }) => !data.draft);
   return articles.map((article) => ({
     params: { slug: article.id },
     props: { article },
