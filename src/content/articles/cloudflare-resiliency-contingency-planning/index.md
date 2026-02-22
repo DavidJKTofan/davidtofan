@@ -8,11 +8,8 @@ tags:
     "cloudflare",
     "resources",
     "application performance",
-    "resiliency",
     "resilience",
-    "contingency planning",
-    "backup plan",
-    "emergency exit strategy",
+    "business continuity",
   ]
 type: "article"
 ---

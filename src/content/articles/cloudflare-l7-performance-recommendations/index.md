@@ -8,7 +8,6 @@ tags:
     "cloudflare",
     "resources",
     "application performance",
-    "speed",
   ]
 type: "article"
 ---

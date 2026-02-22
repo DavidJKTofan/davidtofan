@@ -8,6 +8,12 @@ import rehypeExternalLinks from 'rehype-external-links';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://davidtofan.com',
+  // Prefetch configuration for View Transitions
+  // Links are prefetched on hover/focus for faster navigation
+  prefetch: {
+    prefetchAll: false, // Only prefetch links with data-astro-prefetch or on hover
+    defaultStrategy: 'hover', // Prefetch on hover (good balance of speed vs bandwidth)
+  },
   // Redirects for content aliases (Hugo compatibility)
   redirects: {
     // Projects aliases

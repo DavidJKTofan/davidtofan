@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { siteConfig } from '../config/site';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
@@ -41,6 +42,10 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
+
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
 
     <!-- Primary Meta Tags -->
     <title>{pageTitle}</title>
@@ -131,6 +136,9 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     )}
 
     <!-- Fonts: Using system font stack for performance (no external requests) -->
+
+    <!-- View Transitions: Enables smooth page navigation and prefetching -->
+    <ClientRouter />
 
     <!-- Theme Script (prevent flash) -->
     <script is:inline>

@@ -2,7 +2,7 @@
 title: World of Opportunities
 date: 2020-10-06
 description: "Learn more about the World of Opportunities and explore new resources."
-tags: ["opportunity", "resources"]
+tags: ["opportunities", "resources"]
 type: 'article'
 ---
 

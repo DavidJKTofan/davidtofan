@@ -8,7 +8,7 @@ tags:
     "cloudflare",
     "zero trust",
     "application security",
-    "post-quantum cryptography",
+    "cryptography",
   ]
 type: "article"
 ---

@@ -167,7 +167,7 @@ Add to `src/data/certificates.json`:
 
 ## Features
 
-- Dark/Light mode with system detection
+- Dark/Light mode with system detection and `theme-color` meta tag
 - Reading progress bar on articles
 - Dynamic reading time calculation
 - Table of contents with scroll highlighting
@@ -176,6 +176,8 @@ Add to `src/data/certificates.json`:
 - Mobile scroll-to-top button (articles and projects)
 - External links open in new tab with proper rel attributes
 - URL aliases with automatic redirects (Hugo compatibility)
+- **View Transitions**: Smooth page navigation with Astro's ClientRouter
+- **Link Prefetching**: Hover-based prefetch for faster perceived navigation
 - SEO optimized (see below)
 - Image optimization (local compile mode for dev, Cloudflare in production)
 - Custom 404 page with site branding
@@ -222,6 +224,16 @@ The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `publ
 - **Engine**: Shiki with `github-dark-default` theme
 - **Config**: Word wrap enabled, language identifiers on all code blocks
 - All markdown code blocks use explicit language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
+
+### Static Asset Headers (`public/_headers`)
+
+Custom headers for Cloudflare Workers Static Assets:
+
+- **Fingerprinted assets** (`/_astro/*`): `Cache-Control: public, max-age=31536000, immutable` (1 year)
+- **Images & static files**: `Cache-Control: public, max-age=36000` (10 hours)
+- **Security**: `X-Content-Type-Options: nosniff`
+- **Preview protection**: `X-Robots-Tag: noindex` for workers.dev URLs
+- **Early Hints**: CSS preload hints for faster page loads
 
 * * * *
 

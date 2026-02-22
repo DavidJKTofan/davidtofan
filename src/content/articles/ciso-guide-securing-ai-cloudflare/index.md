@@ -8,11 +8,8 @@ tags:
     "cloudflare",
     "zero trust",
     "sase",
-    "ai security",
-    "ciso",
-    "cloudflare workers",
-    "api security",
-    "llm security",
+    "artificial intelligence",
+    "developers",
   ]
 type: "article"
 ---

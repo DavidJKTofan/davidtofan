@@ -2,7 +2,7 @@
 title: Agile Boutique Agency
 date: 2020-11-03
 description: "Introducing an innovative graphic design and consultative marketing agency: Lunalabs."
-tags: ["startups", "opportunity"]
+tags: ["entrepreneurship", "opportunities"]
 type: 'article'
 ---
 

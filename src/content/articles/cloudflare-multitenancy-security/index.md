@@ -7,10 +7,7 @@ tags:
     "cybersecurity",
     "cloudflare",
     "multitenancy",
-    "multi tenancy",
-    "tenants",
     "saas",
-    "platform",
   ]
 type: "article"
 ---

@@ -2,7 +2,7 @@
 title: Cloudflare IPFS Gateway
 date: 2021-12-10
 description: "Exploring the Distributed Web Gateway with Cloudflare."
-tags: ["cybersecurity", "blockchain", "cloudflare"]
+tags: ["cybersecurity", "cloudflare", "web3"]
 type: 'article'
 ---
 

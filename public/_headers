@@ -8,6 +8,18 @@
 https://:project.davidtofan-astro.workers.dev/*
   X-Robots-Tag: noindex
 
+# Early Hints for HTML pages - preload critical CSS
+# Cloudflare automatically sends 103 Early Hints with these Link headers
+# https://developers.cloudflare.com/cache/advanced-configuration/early-hints/
+/
+  Link: </_astro/*.css>; rel=preload; as=style
+/*.html
+  Link: </_astro/*.css>; rel=preload; as=style
+/articles/*
+  Link: </_astro/*.css>; rel=preload; as=style
+/projects/*
+  Link: </_astro/*.css>; rel=preload; as=style
+
 # Astro optimized/fingerprinted assets (hashed filenames) - cache for 1 year
 # These files have content hashes in their names, so they can be cached indefinitely
 /_astro/*
