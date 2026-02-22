@@ -16,7 +16,6 @@ A series of interesting side-projects to showcase a little bit of tech:
 - [Cybersecurity news aggregator](https://github.com/DavidJKTofan/cyberscoops.io).
 - [Cloudflare demo playground](https://automatic-demo.com/).
 - [HTML-to-Markdown converter](https://github.com/DavidJKTofan/cf-convert-html-markdown).
-- [HTML-to-Markdown converter](https://github.com/DavidJKTofan/cf-convert-html-markdown).
 - [Cloudflare Workers HTML Performance Booster](https://github.com/DavidJKTofan/cf-head-html-streaming-performance)
 
 ## Disclaimer

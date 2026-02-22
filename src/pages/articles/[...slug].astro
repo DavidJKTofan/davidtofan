@@ -107,7 +107,8 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
         </header>
 
         <!-- Article content -->
-        <article class="prose prose-lg dark:prose-invert max-w-none">
+        <!-- prose = 16px base, prose-lg = 18px on sm+ screens for better readability -->
+        <article class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
           <Content />
         </article>
 

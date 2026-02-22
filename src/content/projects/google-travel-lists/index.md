@@ -14,7 +14,7 @@ During some of my journeys around the globe I try to remember the places that im
 
 Hope they are useful and feel free to recommend me new places too!
 
-I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/) located in Placencia (South of Belize) at the Caribbean Sea, [Hotel am Markt](https://www.hotel-am-markt.eu/) in the hearth of Munich (Germany), or [Palla](https://www.palla.pe/) in Arequipa (Peru).
+I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/) located in Placencia (South of Belize) at the Caribbean Sea.
 
 <style>
   /* Travel Grid Styles */
@@ -121,14 +121,6 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       CDMX
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/YGVFEnzAQyd8rTt17" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/oaxaca-mexico.webp" alt="Oaxaca" loading="lazy">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Oaxaca
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>

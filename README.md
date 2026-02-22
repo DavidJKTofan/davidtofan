@@ -225,6 +225,40 @@ The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `publ
 - **Config**: Word wrap enabled, language identifiers on all code blocks
 - All markdown code blocks use explicit language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
 
+### Cloudflare Workers Static Assets
+
+This site uses [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/) for optimal cost and performance.
+
+#### Routing & Billing
+
+These are assumptions:
+
+| Request Type | Served By | Cost |
+|:-------------|:----------|:-----|
+| HTML pages (`/`, `/articles/*`, etc.) | Static Assets | **FREE** |
+| Astro assets (`/_astro/*.js`, `*.css`) | Static Assets | **FREE** |
+| Images, fonts, favicons | Static Assets | **FREE** |
+| 404 errors | Static Assets (`404.html`) | **FREE** |
+| Redirects (`/world` → `/projects/...`) | Worker | Paid (minimal) |
+
+**Key points:**
+- All prerendered pages are served as static files (free, unlimited)
+- Worker is only invoked for redirects and unmatched requests
+- No `run_worker_first` = assets served directly without Worker overhead
+- File storage is free; only Worker invocations are billed
+
+#### Configuration (`wrangler.jsonc`)
+
+```jsonc
+{
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"  // Serves nearest 404.html
+  }
+}
+```
+
 ### Static Asset Headers (`public/_headers`)
 
 Custom headers for Cloudflare Workers Static Assets:
@@ -234,15 +268,7 @@ Custom headers for Cloudflare Workers Static Assets:
 - **Security**: `X-Content-Type-Options: nosniff`
 - **Preview protection**: `X-Robots-Tag: noindex` for workers.dev URLs
 
-### Security Headers (Middleware)
-
-SSR-rendered HTML pages include security headers via `src/middleware.ts`:
-
-- **Cache security**: `Cache-Control: no-store` prevents cache deception attacks
-- **X-Content-Type-Options**: `nosniff` prevents MIME sniffing
-- **X-Frame-Options**: `SAMEORIGIN` prevents clickjacking
-- **Referrer-Policy**: `strict-origin-when-cross-origin` for privacy
-- **Permissions-Policy**: Disables camera, microphone, geolocation
+> **Note**: Since all pages are prerendered (no SSR), security headers for HTML are applied via `_headers` file patterns (or via Cloudflare [Transform Rules](https://developers.cloudflare.com/rules/transform/)), not middleware.
 
 ### Robots & Indexing
 

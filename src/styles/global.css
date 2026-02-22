@@ -3,17 +3,21 @@
 @tailwind utilities;
 
 @layer base {
-  /* Smooth scrolling */
+  /* Smooth scrolling and prevent horizontal overflow */
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-surface-50 text-surface-800 dark:bg-surface-950 dark:text-surface-200;
     @apply transition-colors duration-300;
     font-feature-settings: 'ss01' 1, 'ss02' 1, 'cv01' 1;
+    overflow-x: hidden;
+    /* Ensure minimum readable text size on mobile */
+    @apply text-base;
   }
 
   /* Selection colors */
