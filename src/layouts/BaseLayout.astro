@@ -54,7 +54,12 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <meta name="author" content={siteConfig.author.name} />
     <link rel="canonical" href={canonicalURL} />
 
-    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    <!-- Robots: Control search engine indexing -->
+    {noIndex ? (
+      <meta name="robots" content="noindex, nofollow" />
+    ) : (
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    )}
 
     <!-- Keywords -->
     {tags.length > 0 && <meta name="keywords" content={tags.join(', ')} />}

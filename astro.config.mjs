@@ -23,6 +23,8 @@ export default defineConfig({
     '/referrals': '/projects/referrals',
     '/promotions': '/projects/referrals',
     '/perks': '/projects/referrals',
+    // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
+    '/sitemap.xml': '/sitemap-index.xml',
   },
   adapter: cloudflare({
     platformProxy: {
@@ -36,7 +38,40 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: false,
     }),
-    sitemap(),
+    sitemap({
+      // Default change frequency for all pages
+      changefreq: 'monthly',
+      // Default priority
+      priority: 0.7,
+      // Set lastmod to current build time as baseline
+      lastmod: new Date(),
+      // Customize individual pages
+      serialize(item) {
+        // Higher priority for main pages
+        if (item.url === 'https://davidtofan.com/') {
+          item.changefreq = 'yearly';
+          item.priority = 1.0;
+        }
+        // Articles section
+        if (item.url.includes('/articles/') && item.url !== 'https://davidtofan.com/articles/') {
+          item.changefreq = 'monthly';
+          item.priority = 0.8;
+        }
+        // Projects section
+        if (item.url.includes('/projects/') && item.url !== 'https://davidtofan.com/projects/') {
+          item.changefreq = 'yearly';
+          item.priority = 0.6;
+        }
+        // Index pages
+        if (item.url === 'https://davidtofan.com/articles/' || 
+            item.url === 'https://davidtofan.com/projects/' ||
+            item.url === 'https://davidtofan.com/certificates/') {
+          item.changefreq = 'yearly';
+          item.priority = 0.9;
+        }
+        return item;
+      },
+    }),
   ],
   markdown: {
     shikiConfig: {

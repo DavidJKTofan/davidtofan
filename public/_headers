@@ -2,23 +2,16 @@
 # https://developers.cloudflare.com/workers/static-assets/headers/
 #
 # Note: These headers only apply to static assets, not SSR-rendered pages.
-# For HTML pages, headers are set by the Astro/Worker code.
+# For HTML pages rendered by Astro/Workers, set headers via middleware or response.
+#
+# Early Hints: Cloudflare automatically caches and sends 103 Early Hints
+# based on Link headers in origin responses. Enable in Cloudflare Dashboard:
+# Speed > Optimization > Content Optimization > Early Hints
+# https://developers.cloudflare.com/cache/advanced-configuration/early-hints/
 
 # Prevent workers.dev preview URLs from being indexed by search engines
 https://:project.davidtofan-astro.workers.dev/*
   X-Robots-Tag: noindex
-
-# Early Hints for HTML pages - preload critical CSS
-# Cloudflare automatically sends 103 Early Hints with these Link headers
-# https://developers.cloudflare.com/cache/advanced-configuration/early-hints/
-/
-  Link: </_astro/*.css>; rel=preload; as=style
-/*.html
-  Link: </_astro/*.css>; rel=preload; as=style
-/articles/*
-  Link: </_astro/*.css>; rel=preload; as=style
-/projects/*
-  Link: </_astro/*.css>; rel=preload; as=style
 
 # Astro optimized/fingerprinted assets (hashed filenames) - cache for 1 year
 # These files have content hashes in their names, so they can be cached indefinitely

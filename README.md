@@ -233,7 +233,26 @@ Custom headers for Cloudflare Workers Static Assets:
 - **Images & static files**: `Cache-Control: public, max-age=36000` (10 hours)
 - **Security**: `X-Content-Type-Options: nosniff`
 - **Preview protection**: `X-Robots-Tag: noindex` for workers.dev URLs
-- **Early Hints**: CSS preload hints for faster page loads
+
+### Security Headers (Middleware)
+
+SSR-rendered HTML pages include security headers via `src/middleware.ts`:
+
+- **Cache security**: `Cache-Control: no-store` prevents cache deception attacks
+- **X-Content-Type-Options**: `nosniff` prevents MIME sniffing
+- **X-Frame-Options**: `SAMEORIGIN` prevents clickjacking
+- **Referrer-Policy**: `strict-origin-when-cross-origin` for privacy
+- **Permissions-Policy**: Disables camera, microphone, geolocation
+
+### Robots & Indexing
+
+- **Default**: All pages have `<meta name="robots" content="index, follow, max-image-preview:large">` for full search engine indexing
+- **noIndex option**: Pages with `noIndex: true` prop get `noindex, nofollow`
+- **Preview URLs**: workers.dev URLs have `X-Robots-Tag: noindex` header
+
+### Early Hints
+
+Enable in Cloudflare Dashboard: **Speed > Optimization > Content Optimization > Early Hints**. Cloudflare automatically caches and sends 103 Early Hints based on Link headers.
 
 * * * *
 
