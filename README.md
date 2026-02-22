@@ -215,18 +215,22 @@ All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 - **robots.txt**: Located at `public/robots.txt` with sitemap reference
 - **Sitemap link**: Added to `<head>` for discovery
 
-### Article Thumbnail Images
+### Featured Thumbnail Images
 
-Each article can have a `featured.png` image in its folder for SEO link previews:
+Articles and projects can have a `featured.png` image in their folder for SEO link previews (og:image, twitter:image):
 
 ```
 src/content/articles/my-article/
 ├── index.md
 ├── featured.png    # Used for og:image, twitter:image
 └── img/            # Other article images
+
+src/content/projects/my-project/
+├── index.md
+└── featured.png    # Used for og:image, twitter:image
 ```
 
-The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `public/articles/[slug]/featured.png` during build. This folder is gitignored since the images are regenerated.
+The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `public/articles/` and `public/projects/` during build. These folders are gitignored since the images are regenerated.
 
 ### Code Syntax Highlighting
 

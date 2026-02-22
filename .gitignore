@@ -1,8 +1,9 @@
 # build output
 dist/
 
-# generated article images (copied from src/content/articles during prebuild)
+# generated featured images (copied from src/content during prebuild)
 public/articles/
+public/projects/
 
 # generated types
 .astro/
