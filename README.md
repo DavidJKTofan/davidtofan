@@ -5,10 +5,14 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 ## Tech Stack
 
 - **Framework**: [Astro 5](https://astro.build) with TypeScript
-- **Styling**: [Tailwind CSS 4](https://tailwindcss.com) with Typography plugin
-- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com)
+- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with Typography plugin
+  - Note: Tailwind 4 requires different setup (Vite plugin vs Astro integration). Current setup is stable.
+- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with Static Assets
 - **Content**: Markdown with Zod validation (Content Collections)
 - **Fonts**: System font stack (no external CDN dependencies)
+- **Design**: [Canva](https://www.canva.com)
+- **Stock Images**: [Unsplash](https://unsplash.com) (Travel project)
+- **AI Coding**: [Anthropic Claude](https://anthropic.com)
 
 ## Project Structure
 
@@ -167,19 +171,24 @@ Add to `src/data/certificates.json`:
 
 ## Features
 
-- Dark/Light mode with system detection and `theme-color` meta tag
-- Reading progress bar on articles
-- Dynamic reading time calculation
-- Table of contents with scroll highlighting
-- Tag filtering on articles
-- Responsive mobile-first design
-- Mobile scroll-to-top button (articles and projects)
-- External links open in new tab with proper rel attributes
-- URL aliases with automatic redirects (Hugo compatibility)
+### UI/UX
+- **Fixed header**: Always visible navigation bar on all devices
+- **Dark/Light mode**: System detection with manual toggle, persists across page navigations
 - **View Transitions**: Smooth page navigation with Astro's ClientRouter
 - **Link Prefetching**: Hover-based prefetch for faster perceived navigation
-- SEO optimized (see below)
-- Image optimization (local compile mode for dev, Cloudflare in production)
+- **Mobile scroll-to-top button**: Floating button on articles/projects (hidden on desktop)
+- **Responsive design**: Mobile-first with optimized text sizes (`prose-base` on mobile, `prose-lg` on desktop)
+
+### Articles
+- Reading progress bar
+- Dynamic reading time calculation
+- Sticky table of contents with scroll highlighting (desktop)
+- Tag filtering
+
+### Content
+- External links open in new tab with proper rel attributes
+- URL aliases with automatic redirects (Hugo compatibility)
+- Image optimization (compile mode for dev, Cloudflare in production)
 - Custom 404 page with site branding
 - Dark blue accent color (#1e3a8a) with accent borders on article images
 
@@ -265,10 +274,13 @@ Custom headers for Cloudflare Workers Static Assets:
 
 - **Fingerprinted assets** (`/_astro/*`): `Cache-Control: public, max-age=31536000, immutable` (1 year)
 - **Images & static files**: `Cache-Control: public, max-age=36000` (10 hours)
-- **Security**: `X-Content-Type-Options: nosniff`
+- **Security headers** (all HTML pages):
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: SAMEORIGIN`
+  - `Referrer-Policy: strict-origin-when-cross-origin`
 - **Preview protection**: `X-Robots-Tag: noindex` for workers.dev URLs
 
-> **Note**: Since all pages are prerendered (no SSR), security headers for HTML are applied via `_headers` file patterns (or via Cloudflare [Transform Rules](https://developers.cloudflare.com/rules/transform/)), not middleware.
+> **Note**: All pages are prerendered (no SSR), so security headers are applied via `_headers` file, not middleware. For additional headers, use Cloudflare [Transform Rules](https://developers.cloudflare.com/rules/transform/).
 
 ### Robots & Indexing
 

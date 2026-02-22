@@ -184,6 +184,9 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     
     <Header />
     
+    <!-- Spacer for fixed header (h-16 on mobile, h-18 on md+) -->
+    <div class="h-16 md:h-18 flex-shrink-0" aria-hidden="true"></div>
+    
     <main class="flex-1">
       <slot />
     </main>
