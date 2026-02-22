@@ -1,0 +1,50 @@
+---
+// Reading progress bar component
+---
+
+<div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
+
+<script>
+  function setupReadingProgress() {
+    const progressBar = document.getElementById('reading-progress');
+    const article = document.querySelector('article');
+    
+    if (!progressBar || !article) return;
+
+    function updateProgress() {
+      const articleRect = article!.getBoundingClientRect();
+      const articleTop = articleRect.top + window.scrollY;
+      const articleHeight = articleRect.height;
+      const windowHeight = window.innerHeight;
+      const scrollY = window.scrollY;
+
+      // Calculate progress based on article position
+      const start = articleTop - windowHeight;
+      const end = articleTop + articleHeight - windowHeight;
+      const current = scrollY - start;
+      const total = end - start;
+
+      let progress = Math.max(0, Math.min(1, current / total));
+      
+      progressBar!.style.transform = `scaleX(${progress})`;
+    }
+
+    // Use requestAnimationFrame for smooth updates
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateProgress();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    // Initial update
+    updateProgress();
+  }
+
+  document.addEventListener('astro:page-load', setupReadingProgress);
+  setupReadingProgress();
+</script>

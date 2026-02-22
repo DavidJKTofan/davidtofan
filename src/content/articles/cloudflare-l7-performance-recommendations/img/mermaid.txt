@@ -1,0 +1,50 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#F6821F','primaryTextColor':'#fff','primaryBorderColor':'#E55D00','lineColor':'#2C5282','secondaryColor':'#3B82F6','tertiaryColor':'#10B981','noteBkgColor':'#FEF3C7','noteTextColor':'#92400E','noteBorderColor':'#F59E0B','actorBkg':'#DBEAFE','actorBorder':'#3B82F6','actorTextColor':'#1E3A8A','signalColor':'#2C5282','signalTextColor':'#1E3A8A','labelBoxBkgColor':'#FEF3C7','labelBoxBorderColor':'#F59E0B'}}}%%
+sequenceDiagram
+    participant User as 👤 User (Eyeball)
+    participant Edge as ☁️ Cloudflare Edge
+    participant Cache as 💾 Tiered Cache / Cache Reserve / R2
+    participant Origin as 🖥️ Origin Server
+
+    rect rgb(254, 243, 199)
+    Note over User, Edge: 📦 REDUCE SIZE<br/>- Modern Compression (Brotli, Gzip)<br/>- Cloudflare Images (Polish, Image Transformations)<br/>- Zaraz (Third-party script offload)
+    end
+
+    rect rgb(219, 234, 254)
+    Note over User, Edge: ⚡ REDUCE LATENCY (Connection)<br/>- Global DNS<br/>- HTTP/3 (QUIC)<br/>- TLS 1.3 (0-RTT, Cipher Suites)<br/>- HSTS<br/>- Speed Brain (Prefetch)<br/>- Early Hints<br/>- Cloudflare Fonts
+    end
+
+    rect rgb(232, 240, 254)
+    Note over User, Edge: 🔀 URL & TRAFFIC HANDLING<br/>- URL Normalization<br/>- URL Rewrite / Redirect Rules<br/>- Waiting Room (Queue Management)<br/>- Custom Errors (Fallback)
+    end
+
+    User->>+Edge: 1️⃣ Request (e.g., GET /page)
+
+    rect rgb(249, 250, 251)
+    Note over Edge: 🌍 CDN NETWORK FOOTPRINT<br/>(Request lands at nearest Colo)<br/>- Anycast Routing
+    end
+
+    rect rgb(240, 253, 244)
+    Note over Edge: ⚙️ EDGE PROCESSING<br/>- Cache Rules<br/>- Prefetch URLs (Pre-populate Cache)<br/>- Google Tag Gateway
+    end
+
+    Edge->>+Cache: 2️⃣ Check for cached asset
+
+    rect rgb(220, 252, 231)
+    Note over Edge, Cache: 💚 REDUCE LATENCY (Caching)<br/>- Smart Tiered Caching<br/>- Cache Reserve (30-day retention)<br/>- R2 Object Storage<br/>- Cloud Connector Rules
+    end
+
+    alt 🟢 Asset in Tiered Cache/R2
+        Cache-->>-Edge: 3️⃣ Response (HIT from Cache)
+    else 🔴 Asset not in Cache (MISS)
+        Cache-->>Edge: 3️⃣ Asset MISS
+        Edge->>+Origin: 4️⃣ Request to Origin
+        
+        rect rgb(254, 242, 242)
+        Note over Edge, Origin: 🚀 REDUCE ORIGIN LATENCY<br/>- Argo Smart Routing<br/>- HTTP/2 to Origin<br/>- Connection Reuse<br/>- Load Balancing<br/>- Aegis (Dedicated Egress IPs)
+        end
+
+        Origin-->>-Edge: 5️⃣ Response from Origin
+        Edge->>Cache: 6️⃣ Store in Cache/R2
+    end
+
+    Edge-->>-User: 7️⃣ Response to User

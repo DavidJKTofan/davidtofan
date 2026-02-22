@@ -1,0 +1,141 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// Filter to only h2 and h3
+const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filteredHeadings.length > 0 && (
+  <nav class="toc" aria-label="Table of Contents">
+    <div class="flex items-center gap-2 mb-4">
+      <svg class="w-4 h-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+      </svg>
+      <span class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide">
+        On this page
+      </span>
+    </div>
+    <ul class="space-y-0.5">
+      {filteredHeadings.map((heading) => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class:list={[
+              'toc-link block py-1.5 text-sm text-surface-500 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors border-l-2 border-transparent hover:border-accent-500',
+              heading.depth === 2 ? 'pl-4' : 'pl-8',
+            ]}
+            data-toc-link
+            data-heading={heading.slug}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc-link.active {
+    color: var(--color-accent-600);
+    border-left-color: var(--color-accent-500);
+    font-weight: 500;
+  }
+  
+  :global(.dark) .toc-link.active {
+    color: var(--color-accent-400);
+  }
+</style>
+
+<script>
+  function initTableOfContents() {
+    const tocLinks = document.querySelectorAll('[data-toc-link]');
+    const headings = document.querySelectorAll('article h2[id], article h3[id]');
+    
+    if (!tocLinks.length || !headings.length) return;
+
+    // Scroll to heading on click
+    tocLinks.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        if (!href) return;
+        
+        const targetId = href.substring(1);
+        const target = document.getElementById(targetId);
+        
+        if (target) {
+          const headerOffset = 100;
+          const elementPosition = target.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.scrollY - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth',
+          });
+          
+          // Update URL hash without jumping
+          history.pushState(null, '', href);
+        }
+      });
+    });
+
+    // Highlight current section on scroll
+    let currentActive: Element | null = null;
+
+    const observerOptions = {
+      rootMargin: '-100px 0px -66%',
+      threshold: 0,
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          if (!id) return;
+          
+          // Remove active from previous
+          if (currentActive) {
+            currentActive.classList.remove('active');
+          }
+          
+          // Add active to matching link
+          const matchingLink = document.querySelector(`[data-toc-link][data-heading="${id}"]`);
+          if (matchingLink) {
+            matchingLink.classList.add('active');
+            currentActive = matchingLink;
+          }
+        }
+      });
+    }, observerOptions);
+
+    headings.forEach((heading) => {
+      observer.observe(heading);
+    });
+
+    // Clean up on page change
+    document.addEventListener('astro:before-swap', () => {
+      observer.disconnect();
+    }, { once: true });
+  }
+
+  // Initialize on page load
+  document.addEventListener('astro:page-load', initTableOfContents);
+  
+  // Also run immediately for initial page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTableOfContents);
+  } else {
+    initTableOfContents();
+  }
+</script>

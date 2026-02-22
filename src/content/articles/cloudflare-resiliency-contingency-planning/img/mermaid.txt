@@ -1,0 +1,78 @@
+graph TB
+    subgraph Config["<b>DNS Traffic Routing Configuration</b>"]
+        direction TB
+        ConfigText["<b>Common traffic steering configurations:</b><br/>• 50/50 split<br/>• Geographic split<br/>• Availability-based routing"]
+    end
+    
+    subgraph Normal["<b>Normal Operations</b>"]
+        direction LR
+        User1[("👤<br/>User")]
+        DNS1["🔄<br/>DNS Traffic<br/>Steering"]
+        
+        subgraph Vendors1["Vendors"]
+            direction TB
+            Vendor1A["📦<br/>Vendor A<br/>example.com.edgekey.net"]
+            Mon1A["✅ HEALTHY"]
+            Vendor1B["🟠<br/>Cloudflare<br/>example.com.cdn.cloudflare.net"]
+            Mon1B["✅ HEALTHY"]
+            
+            Mon1A -.-> Vendor1A
+            Mon1B -.-> Vendor1B
+        end
+        
+        Origin1["🖥️<br/>Origin<br/>Server"]
+        
+        User1 -->|"DNS Query"| DNS1
+        DNS1 -->|"50%"| Vendor1A
+        DNS1 -->|"50%"| Vendor1B
+        Vendor1A --> Origin1
+        Vendor1B --> Origin1
+    end
+    
+    subgraph Failover["<b>Failover Event</b>"]
+        direction LR
+        User2[("👤<br/>User")]
+        DNS2["🔄<br/>DNS Traffic<br/>Steering"]
+        
+        subgraph Vendors2["Vendors"]
+            direction TB
+            Vendor2A["📦<br/>Vendor A<br/>example.com.edgekey.net"]
+            Mon2A["❌ UNHEALTHY"]
+            Vendor2B["🟠<br/>Cloudflare<br/>example.com.cdn.cloudflare.net"]
+            Mon2B["✅ HEALTHY"]
+            
+            Mon2A -.-> Vendor2A
+            Mon2B -.-> Vendor2B
+        end
+        
+        Origin2["🖥️<br/>Origin<br/>Server"]
+        
+        User2 -->|"DNS Query"| DNS2
+        DNS2 -->|"0%"| Vendor2A
+        DNS2 -->|"100%"| Vendor2B
+        Vendor2A -.->|"No Traffic"| Origin2
+        Vendor2B --> Origin2
+    end
+    
+    Config ~~~ Normal
+    Normal ~~~ Failover
+    
+    style Config fill:#ff8c00,stroke:#ff6347,stroke-width:3px,color:#000
+    style ConfigText fill:#ff8c00,stroke:none,color:#fff
+    
+    style Normal fill:#f0f8ff,stroke:#4682b4,stroke-width:3px
+    style Failover fill:#fff5f5,stroke:#dc143c,stroke-width:3px
+    
+    style Vendors1 fill:#e6f3ff,stroke:#4682b4,stroke-width:2px
+    style Vendors2 fill:#ffe6e6,stroke:#dc143c,stroke-width:2px
+    
+    style Mon1A fill:#90ee90,stroke:#228b22,stroke-width:2px
+    style Mon1B fill:#90ee90,stroke:#228b22,stroke-width:2px
+    style Mon2A fill:#ffcccb,stroke:#dc143c,stroke-width:2px
+    style Mon2B fill:#90ee90,stroke:#228b22,stroke-width:2px
+    
+    style Vendor1B fill:#ff8c00,stroke:#ff6347,stroke-width:2px
+    style Vendor2B fill:#ff8c00,stroke:#ff6347,stroke-width:2px
+    style Vendor2A fill:#d3d3d3,stroke:#808080,stroke-width:2px,stroke-dasharray: 5 5
+    
+    linkStyle 9 stroke:#d3d3d3,stroke-width:2px,stroke-dasharray: 5 5

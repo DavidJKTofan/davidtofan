@@ -1,0 +1,238 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+
+// Get all articles (non-draft)
+const articles = await getCollection('articles', ({ data }) => !data.draft);
+
+// Sort by date (newest first)
+const sortedArticles = articles.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Extract unique tags
+const allTags = [...new Set(sortedArticles.flatMap((article) => article.data.tags))].sort();
+
+// Separate featured articles
+const featuredArticles = sortedArticles.filter((a) => a.data.featured);
+const regularArticles = sortedArticles.filter((a) => !a.data.featured);
+---
+
+<BaseLayout
+  title="Articles"
+  description="Technical articles on cybersecurity, cloud architecture, and web development by David Tofan."
+>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <!-- Page Header -->
+    <div class="max-w-2xl mb-12">
+      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 mb-4">
+        Articles
+      </h1>
+      <p class="text-lg text-surface-600 dark:text-surface-400">
+        Thoughts, tutorials, and insights on cybersecurity, cloud infrastructure, and modern web development.
+      </p>
+    </div>
+
+    <!-- Tag Filter -->
+    <div class="mb-10" x-data="{ selectedTag: '' }">
+      <div class="flex items-center gap-2 mb-4">
+        <svg class="w-4 h-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <span class="text-sm font-medium text-surface-600 dark:text-surface-400">Filter by topic:</span>
+      </div>
+      
+      <div class="flex flex-wrap gap-2" id="tag-filters">
+        <button
+          class="tag-filter active"
+          data-tag=""
+        >
+          All ({sortedArticles.length})
+        </button>
+        {allTags.map((tag) => {
+          const count = sortedArticles.filter((a) => a.data.tags.includes(tag)).length;
+          return (
+            <button
+              class="tag-filter"
+              data-tag={tag}
+            >
+              {tag} ({count})
+            </button>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- Featured Articles -->
+    {featuredArticles.length > 0 && (
+      <div class="mb-12" id="featured-section">
+        <h2 class="text-lg font-semibold text-surface-800 dark:text-surface-200 mb-6 flex items-center gap-2">
+          <svg class="w-5 h-5 text-accent-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          Featured
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="featured-grid">
+          {featuredArticles.map((article) => (
+            <div class="article-item" data-tags={article.data.tags.join(',')}>
+              <ArticleCard
+                title={article.data.title}
+                description={article.data.description}
+                date={article.data.date}
+                slug={article.id}
+                tags={article.data.tags}
+                featured={true}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- All Articles -->
+    <div id="articles-section">
+      <h2 class="text-lg font-semibold text-surface-800 dark:text-surface-200 mb-6">
+        All Articles
+        <span class="text-surface-400 font-normal" id="article-count">
+          ({regularArticles.length})
+        </span>
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="articles-grid">
+        {regularArticles.map((article) => (
+          <div class="article-item" data-tags={article.data.tags.join(',')}>
+            <ArticleCard
+              title={article.data.title}
+              description={article.data.description}
+              date={article.data.date}
+              slug={article.id}
+              tags={article.data.tags}
+              featured={false}
+            />
+          </div>
+        ))}
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden py-16 text-center">
+        <svg class="w-16 h-16 mx-auto text-surface-300 dark:text-surface-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-surface-500 dark:text-surface-400">No articles found with this tag.</p>
+        <button class="mt-4 text-accent-600 dark:text-accent-400 font-medium hover:underline" id="clear-filter">
+          Clear filter
+        </button>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .tag-filter {
+    @apply px-3 py-1.5 rounded-full text-sm font-medium;
+    @apply bg-surface-100 dark:bg-surface-800;
+    @apply text-surface-600 dark:text-surface-400;
+    @apply transition-all duration-200;
+    @apply hover:bg-surface-200 dark:hover:bg-surface-700;
+    @apply border border-transparent;
+  }
+
+  .tag-filter.active {
+    @apply bg-accent-100 dark:bg-accent-900/30;
+    @apply text-accent-700 dark:text-accent-400;
+    @apply border-accent-200 dark:border-accent-800;
+  }
+
+  .article-item {
+    @apply transition-opacity duration-300;
+  }
+
+  .article-item.is-hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  function setupTagFilters() {
+    const filterContainer = document.getElementById('tag-filters');
+    const articlesGrid = document.getElementById('articles-grid');
+    const featuredGrid = document.getElementById('featured-grid');
+    const emptyState = document.getElementById('empty-state');
+    const articleCount = document.getElementById('article-count');
+    const clearFilter = document.getElementById('clear-filter');
+
+    if (!filterContainer) return;
+
+    let currentTag = '';
+
+    function filterArticles(selectedTag: string) {
+      currentTag = selectedTag;
+      let visibleCount = 0;
+
+      // Get all article items from both grids
+      const allArticles = document.querySelectorAll('.article-item');
+
+      allArticles.forEach((article) => {
+        const element = article as HTMLElement;
+        const tagsAttr = element.getAttribute('data-tags') || '';
+        const tags = tagsAttr.split(',').map(t => t.trim()).filter(t => t);
+        
+        const shouldShow = selectedTag === '' || tags.includes(selectedTag);
+
+        if (shouldShow) {
+          element.style.display = '';
+          visibleCount++;
+        } else {
+          element.style.display = 'none';
+        }
+      });
+
+      // Update active state on filter buttons
+      const filters = filterContainer.querySelectorAll('.tag-filter');
+      filters.forEach((filter) => {
+        const filterTag = (filter as HTMLElement).getAttribute('data-tag') || '';
+        if (filterTag === selectedTag) {
+          filter.classList.add('active');
+        } else {
+          filter.classList.remove('active');
+        }
+      });
+
+      // Show/hide empty state
+      if (emptyState) {
+        if (visibleCount === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      }
+
+      // Update count
+      if (articleCount) {
+        articleCount.textContent = `(${visibleCount})`;
+      }
+    }
+
+    // Add click handlers to filter buttons
+    filterContainer.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains('tag-filter')) {
+        const tag = target.getAttribute('data-tag') || '';
+        filterArticles(tag);
+      }
+    });
+
+    // Clear filter button
+    if (clearFilter) {
+      clearFilter.addEventListener('click', () => {
+        filterArticles('');
+      });
+    }
+  }
+
+  // Run on page load and Astro page transitions
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupTagFilters);
+  } else {
+    setupTagFilters();
+  }
+  document.addEventListener('astro:page-load', setupTagFilters);
+</script>
