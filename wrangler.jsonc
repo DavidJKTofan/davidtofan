@@ -13,16 +13,20 @@
 	],
 	/**
 	 * Custom Build
-	 * Runs before deployment. Generates types and builds Astro project.
+	 * Runs before deployment. Builds the Astro project.
+	 * Note: Don't include `wrangler types` here - it causes recursive loops.
+	 * Run `npm run cf-typegen` separately if you need updated types.
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#custom-builds
 	 */
 	"build": {
-		"command": "npm run cf-typegen && npm run astro:build",
+		"command": "npm run astro:build",
 		"watch_dir": "src"
 	},
 	"assets": {
 		"binding": "ASSETS",
-		"directory": "./dist"
+		"directory": "./dist",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
 	},
 	"observability": {
 		"enabled": true

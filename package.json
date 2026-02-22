@@ -7,7 +7,7 @@
 		"build": "wrangler types && astro build",
 		"astro:build": "astro build",
 		"preview": "npm run build && wrangler dev",
-		"deploy": "wrangler deploy",
+		"deploy": "npm run cf-typegen && wrangler deploy",
 		"astro": "astro",
 		"cf-typegen": "wrangler types"
 	},
