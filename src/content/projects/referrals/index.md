@@ -1,12 +1,14 @@
 ---
 title: Referrals
 date: 2024-09-25
-description: Webinars and webcasts David participated in or contributed to.
+description: A curated collection of referral links for services David personally uses, including cybersecurity tools, travel apps, and finance platforms.
 showTableOfContents: true
 aliases:
   - /referrals/
   - /promotions/
   - /perks/
+status: active
+tags: ["Referrals", "Tools", "Services", "Perks"]
 ---
 
 ## Referrals & Perks

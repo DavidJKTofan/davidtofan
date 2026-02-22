@@ -5,6 +5,8 @@ description: Cybersecurity learnings, news, resources and more, for educational 
 website: "https://cyberscoops.io/"
 showTableOfContents: false
 draft: true
+status: archived
+tags: ["Cybersecurity", "Learning", "Resources", "News"]
 ---
 
 Everyone deservers a private and secure online experience. CyberScoops.io wants to help you learn and navigate the world of the Internet.

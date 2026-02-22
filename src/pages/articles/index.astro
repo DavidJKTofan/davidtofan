@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
+import { calculateReadingTime } from '../../lib/readingTime';
 
 // Get all articles (non-draft)
 const articles = await getCollection('articles', ({ data }) => !data.draft);
@@ -28,7 +29,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
         Articles
       </h1>
       <p class="text-lg text-surface-600 dark:text-surface-400">
-        Thoughts, tutorials, and insights on cybersecurity, cloud infrastructure, and modern web development.
+        Thoughts, tutorials, and insights on cybersecurity, cloud infrastructure, and anything and everything.
       </p>
     </div>
 
@@ -81,6 +82,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
                 slug={article.id}
                 tags={article.data.tags}
                 featured={true}
+                readingTime={calculateReadingTime(article.body)}
               />
             </div>
           ))}
@@ -106,6 +108,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
               slug={article.id}
               tags={article.data.tags}
               featured={false}
+              readingTime={calculateReadingTime(article.body)}
             />
           </div>
         ))}
@@ -163,7 +166,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
 
     let currentTag = '';
 
-    function filterArticles(selectedTag: string) {
+    function filterArticles(selectedTag: string, updateUrl = true) {
       currentTag = selectedTag;
       let visibleCount = 0;
 
@@ -209,6 +212,17 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
       if (articleCount) {
         articleCount.textContent = `(${visibleCount})`;
       }
+
+      // Update URL without reloading
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        if (selectedTag) {
+          url.searchParams.set('tag', selectedTag);
+        } else {
+          url.searchParams.delete('tag');
+        }
+        window.history.replaceState({}, '', url.toString());
+      }
     }
 
     // Add click handlers to filter buttons
@@ -225,6 +239,13 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
       clearFilter.addEventListener('click', () => {
         filterArticles('');
       });
+    }
+
+    // Check for tag in URL query parameter on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagFromUrl = urlParams.get('tag');
+    if (tagFromUrl) {
+      filterArticles(tagFromUrl, false);
     }
   }
 

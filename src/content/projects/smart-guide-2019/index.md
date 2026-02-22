@@ -2,15 +2,17 @@
 title: Smart Guide 2019
 date: 2019-03-28
 description: A collection of different smart use cases – ranging from Business Innovation Architecture to Hybrid Cloud –, serving as references for innovations based on platforms for corporate applications and related services.
-website: "https://issuu.com/teknowlogy/docs/smart_guide_2019"
+website: "/docs/Smart-Guide-2019.pdf"
 showTableOfContents: false
+status: archived
+tags: ["Publication", "Business Innovation", "Hybrid Cloud", "Research"]
 ---
 
 The Smart Guide provides companies with a valuable guide: they can make initial decisions based on best practices from _smart_ projects from different providers as well as analyst assessments.
 
 In the DACH region, the Smart Guide is _THE_ reference for innovations based on platforms for business applications and corresponding services.
 
-Check out the [Smart Guide 2019](https://issuu.com/teknowlogy/docs/smart_guide_2019).
+Check out the [Smart Guide 2019](/docs/Smart-Guide-2019.pdf).
 
 ## Disclaimer
 

@@ -35,16 +35,18 @@ One of the most basic and easiest things you can do on your browser's settings i
 
 If you are using Firefox, here is a good [guide on privacy settings](https://restoreprivacy.com/firefox-privacy/) you might be interested in.
 
-Additionally, another important thing to take into account is the tracking through Favicons – yes, the little icons on your browser tabs can be used to track you. In order to prevent this, periodically remove the favicon (F-cache) file of your browser. On Google Chrome, delete the following file:
+Additionally, another important thing to take into account is the tracking through Favicons – yes, the little icons on your browser tabs can be used to track you. In order to prevent this, periodically remove the favicon (F-cache) file of your browser. On Google Chrome, delete the following file:
 
-    ~/Library/Application Support/Google/Chrome/Default/Favicons         # On MacOS
-    ~/Library/Application Support/Google/Chrome/Default/Favicons-journal
+```text
+~/Library/Application Support/Google/Chrome/Default/Favicons         # On MacOS
+~/Library/Application Support/Google/Chrome/Default/Favicons-journal
 
-    ~/Library/Application Support/Google/Chrome/Default/Favicons         # On Windows
+~/Library/Application Support/Google/Chrome/Default/Favicons         # On Windows
+```
 
 On Safari, delete the content of the following file:
 
-```
+```text
 ~/Library/Safari/Favicon Cache
 ```
 

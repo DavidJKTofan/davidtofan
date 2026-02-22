@@ -4,6 +4,7 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "astro dev",
+		"prebuild": "node scripts/copy-featured-images.mjs",
 		"build": "wrangler types && astro build",
 		"astro:build": "astro build",
 		"preview": "npm run build && wrangler dev",
@@ -17,6 +18,7 @@
 		"@astrojs/tailwind": "^6.0.2",
 		"@tailwindcss/typography": "^0.5.19",
 		"astro": "^5.17.1",
+		"rehype-external-links": "^3.0.0",
 		"tailwindcss": "^3.4.19"
 	},
 	"devDependencies": {

@@ -48,7 +48,7 @@ After you have chosen your favorite Domain Registration Provider, you should sta
 "_SPF is an email authentication method designed to detect forging sender addresses during the delivery of the email._"
 
 Normally, SPF (TXT record) looks like this:
-```
+```text
 v=spf1 include:_spf.google.com ~all
 ```
 
@@ -64,7 +64,7 @@ _"DKIM is an email authentication method designed to detect forged sender addres
 Go to `Apps > Google Workspace > Settings for Gmail > Authenticate email` and you'll find DKIM authentication configuration. Select your email domain and generate a new record. Select your DKIM key bit length (usually the higher, the more secure), and leave the prefix selector as is.
 
 Normally, DKIM (TXT record) looks like this:
-```
+```text
 k=rsa; t=s; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGMjj8MVaESl30KSPYdLaEreSYzvOVh15u9YKAmTLgk1ecr4BCRq3Vkg3Xa2QrEQWbIvQj9FNqBYOr3XIczzU8gkK5Kh42P4C3DgNiBvlNNk2BlA5ITN/EvVAn/ImjoGq5IrcO+hAj2iSAozYTEpJAKe0NTrj49CIkj5JI6ibyJwIDAQAB
 ```
 
@@ -79,7 +79,7 @@ _Note: You might have to wait a few hours for the DNS to update._
 "_DMARC is an email authentication protocol. It is designed to give email domain owners the ability to protect their domain from unauthorized use, commonly known as email spoofing._"
 
 An example of a DMARC (TXT record) looks like this:
-```
+```text
 v=DMARC1; p=quarantine; pct=100; rua=mailto:EMAIL@DOMAIN.com; ruf=mailto:EMAIL@DOMAIN.com; rf=afrf; fo=1
 ```
 

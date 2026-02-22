@@ -30,12 +30,12 @@ However, for this specific migration and my personal website, I used [Hugo](http
 First, I created a FREE account on Cloudflare, and connected my [GitHub repository](https://github.com/DavidJKTofan/davidtofan.com) with Cloudflare Pages.
 
 I had to tweak the deployment a little by adding the build command:
-```
+```bash
 hugo --gc --minify -b https://YOUR_DOMAIN.com/
 ```
 
 Additionally, I had to set an Environment Variable to use the right version:
-```
+```text
 HUGO_VERSION   0.80.0
 ```
 
@@ -46,7 +46,7 @@ After that, the page deployed and worked just fine.
 Now, go to `dash.cloudflare.com` and add your custom domain. Choose the FREE plan for starters, and simply follow the next steps – which will be to change your domain's Nameservers to Cloudflare's in order to do a Full Setup and enjoy the full range of solutions and features; (alternatively, it's also possible to do a [CNAME Setup](https://support.cloudflare.com/hc/en-us/articles/360020348832-Understanding-a-CNAME-Setup) or Partial Setup).
 
 On the DNS tab, add the following DNS records in order to connect to the page on Cloudflare Pages:
-```
+```text
 CNAME   davidtofan.com    CLOUDFLARE-PAGES.pages.dev   Auto
 CNAME   www               CLOUDFLARE-PAGES.pages.dev   Auto
 ```
@@ -63,7 +63,7 @@ Some other benefits of the orange cloud DNS records are:
 _NOTE: only A, AAAA and CNAME records should have the orange cloud / be proxied. For non web traffic, such as TCP or UDP protocols, solutions such as [Spectrum](https://www.cloudflare.com/products/cloudflare-spectrum/) can help. Alternatively, a gray-cloud icon (DNS-only) does not proxy traffic._
 
 Furthermore, I also added an empty MX record because I do not use this domain for emails nor do I want to receive emails, which is set to DNS-only:
-```
+```text
 MX      davidtofan.com    .                            Auto
 ```
 
@@ -72,12 +72,12 @@ MX      davidtofan.com    .                            Auto
 In order to redirect www to davidtofan.com, go to Page Rules > Forwarding URL and set up the following Permanent Redirect Rule 301:
 
 Matching URL:
-```
+```text
 www.davidtofan.com/*
 ```
 
 Destination URL:
-```
+```text
 https://davidtofan.com/$1
 ```
 
@@ -90,7 +90,7 @@ Then, I activated the DNSSEC function to add an extra layer of protection to my 
 Now on to Workers – it's simply amazing! You can deploy serverless code instantly across the globe.
 
 I used this JavaScript template to create HTTP Security Headers for my website by using Workers:
-```
+```javascript
 let securityHeaders = {
     "Content-Security-Policy": "default-src 'self'; upgrade-insecure-requests; script-src 'self' https://static.cloudflareinsights.com; img-src 'self'; object-src 'none'; form-action 'none'; base-uri 'self'; worker-src 'none'; connect-src 'self' https://static.cloudflareinsights.com/ https://cloudflareinsights.com/; child-src 'none'; frame-src 'none'; frame-ancestors 'none';",
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
@@ -157,7 +157,7 @@ _Alternative code: [Set security headers - Workers](https://developers.cloudflar
 **OCTOBER 2021 UPDATE:** Cloudflare announced support for ```_headers``` and ```_redirects``` files. Simply create the files in the build directory of your project and within it, define the rules you want to apply.
 
 For example, to prevent your ```pages.dev``` deployment from being indexed and improve SEO, add the following to your `_headers` file: 
-```
+```text
 https://:project.pages.dev/*
   X-Robots-Tag: noindex
 ```
@@ -168,7 +168,7 @@ More information here: [Custom Headers for Cloudflare Pages](https://blog.cloudf
 ### Step 4: Firewall
 
 Now we set up a Firewall Rule on the Firewall Tab > Firewall Rules, such as for example to block some python requests on my website:
-```
+```text
 (http.user_agent contains "python")
 ```
 

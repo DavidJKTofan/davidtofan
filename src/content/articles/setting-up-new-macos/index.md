@@ -34,7 +34,7 @@ Install [Warp](https://www.warp.dev/) terminal. Disable telemetry.
 
 ## Xcode & Command Line Tools
 
-```
+```bash
 xcode-select --install
 ```
 
@@ -44,19 +44,19 @@ First start by installing Homebrew. Go to [brew.sh](https://brew.sh/).
 
 Opt out of [analytics](https://docs.brew.sh/Analytics):
 
-```
+```bash
 brew analytics off
 ```
 
 ### Install cURL
 
-```
+```bash
 brew install curl
 ```
 
 Use cURL from Homebrew instead of system:
 
-```
+```bash
 echo 'export PATH="/opt/homebrew/opt/curl/bin:$PATH"' >> ~/.zshrc
 ```
 
@@ -64,19 +64,19 @@ echo 'export PATH="/opt/homebrew/opt/curl/bin:$PATH"' >> ~/.zshrc
 
 Force Homebrew to use the brewed version of cURL instead of the system version:
 
-```
+```bash
 export HOMEBREW_FORCE_BREWED_CURL=1
 ```
 
 Reload `zsh`:
 
-```
+```bash
 source ~/.zshrc
 ```
 
 ### Install Visual Studio Code (VS Code)
 
-```
+```bash
 brew install --cask visual-studio-code
 ```
 
@@ -84,23 +84,23 @@ brew install --cask visual-studio-code
 
 ### Install Wireshark
 
-```
+```bash
 brew install --cask wireshark
 ```
 
-```
+```bash
 brew install --cask wireshark-chmodbpf
 ```
 
 ### Install git
 
-```
+```bash
 brew install git
 ```
 
 ### Install Python
 
-```
+```bash
 brew install python@3.13
 ```
 
@@ -110,19 +110,19 @@ brew install python@3.13
 
 ### Install npm
 
-```
+```bash
 brew install node
 ```
 
 Update npm:
 
-```
+```bash
 npm install -g npm@latest
 ```
 
 Update Node.js:
 
-```
+```bash
 sudo n stable
 ```
 
@@ -130,7 +130,7 @@ sudo n stable
 
 Fully automatic checks of firmware and security systems:
 
-```
+```text
 https://formulae.brew.sh/cask/silentknight
 ```
 
@@ -138,7 +138,7 @@ Reference: [SilentKnight, Skint, silnite, LockRattler, SystHist & Scrub](https:/
 
 ### How `zsh` should look like
 
-```
+```bash
 $ nano ~/.zshrc
 
 export PATH="/opt/homebrew/bin:/opt/homebrew/opt/curl/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin:$PATH"
@@ -151,7 +151,7 @@ export PATH="/opt/homebrew/bin:/opt/homebrew/opt/curl/bin:/usr/local/bin:/usr/sb
 
 Updating `brew`, `npm`, `nvm` and their packages:
 
-```
+```bash
 brew update && brew upgrade && brew autoremove && brew cleanup && brew doctor && npm install -g npm@latest && npm update -g && nvm install --lts --latest-npm && nvm alias default $(nvm version --lts) && npm cache clean
 ```
 

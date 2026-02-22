@@ -293,13 +293,13 @@ Do not use `CF-Worker` in WAF Custom Rules, as it is added after rule evaluation
 
 **Block a specific Worker:**
 
-```
+```text
 cf.worker.upstream_zone eq "example.com"
 ```
 
 **Block all Worker subrequests except from your own Worker:**
 
-```
+```text
 not (cf.worker.upstream_zone in {"" "your-zone.com"})
 ```
 

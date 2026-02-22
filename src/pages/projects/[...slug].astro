@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ScrollToTop from '../../components/ScrollToTop.astro';
 
 export async function getStaticPaths() {
   // Only generate pages for non-draft projects
@@ -31,6 +32,7 @@ const statusColors = {
   description={project.data.description}
   image={project.data.image}
 >
+  <ScrollToTop />
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
     <!-- Back link -->
     <a

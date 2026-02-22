@@ -54,6 +54,9 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <!-- Keywords -->
     {tags.length > 0 && <meta name="keywords" content={tags.join(', ')} />}
 
+    <!-- Sitemap -->
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
     <meta property="og:url" content={canonicalURL} />
@@ -80,6 +83,52 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <meta property="twitter:description" content={description} />
     <meta property="twitter:image" content={ogImageURL} />
     <meta property="twitter:creator" content={siteConfig.author.twitter} />
+
+    <!-- JSON-LD Structured Data -->
+    {type === 'article' ? (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": title,
+        "description": description,
+        "image": ogImageURL.toString(),
+        "datePublished": publishedTime?.toISOString(),
+        "dateModified": modifiedTime?.toISOString() || publishedTime?.toISOString(),
+        "author": {
+          "@type": "Person",
+          "name": siteConfig.author.name,
+          "url": siteConfig.url,
+        },
+        "publisher": {
+          "@type": "Person",
+          "name": siteConfig.author.name,
+          "url": siteConfig.url,
+        },
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": canonicalURL.toString(),
+        },
+        "keywords": tags.join(", "),
+      })} />
+    ) : (
+      <script type="application/ld+json" set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": siteConfig.name,
+        "description": siteConfig.description,
+        "url": siteConfig.url,
+        "author": {
+          "@type": "Person",
+          "name": siteConfig.author.name,
+          "url": siteConfig.url,
+          "sameAs": [
+            `https://github.com/${siteConfig.author.github}`,
+            `https://linkedin.com/in/${siteConfig.author.linkedin}`,
+            `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+          ],
+        },
+      })} />
+    )}
 
     <!-- Fonts: Using system font stack for performance (no external requests) -->
 

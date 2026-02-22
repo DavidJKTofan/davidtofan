@@ -7,6 +7,8 @@ showTableOfContents: false
 aliases:
   - /projects/world-of-opportunities/
   - /world/
+status: archived
+tags: ["Resources", "Education", "Entrepreneurship", "Tools"]
 ---
 
 The World of Opportunities is a free resource platform for entrepreneurs and students who are eager to discover useful links, gaining access to resources, tools and opportunities to reach their goals. This is a personal pet project... Hope it is useful to someone! 🤓

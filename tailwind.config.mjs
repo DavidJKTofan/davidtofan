@@ -19,18 +19,19 @@ export default {
           900: '#1c1917',
           950: '#0c0a09',
         },
-        // Cloudflare orange accent
+        // Dark blue accent (#1e3a8a base)
         accent: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+          950: '#172554',
         },
       },
       fontFamily: {
@@ -158,7 +159,7 @@ export default {
               fontStyle: 'normal',
               color: theme('colors.surface.600'),
             },
-            // Orange border around images in articles
+            // Blue border around images in articles
             img: {
               borderRadius: '0.5rem',
               border: `2px solid ${theme('colors.accent.300')}`,
@@ -170,7 +171,7 @@ export default {
             code: {
               backgroundColor: theme('colors.surface.800'),
             },
-            // Brighter orange border in dark mode
+            // Brighter blue border in dark mode
             img: {
               borderColor: theme('colors.accent.500'),
             },

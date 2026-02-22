@@ -35,7 +35,7 @@ Here an interesting read: [Cloudflare Zaraz launches new privacy features in res
 _The [Web Font Loader](https://github.com/typekit/webfontloader) is a JavaScript library that gives you more control over font loading than the Google Fonts API provides._
 
 An example for a **Custom HTML** Tool Action with PageView Trigger to load **Google Fonts** is the following:
-```
+```html
 <script>
   console.log("Google Fonts injected via Zaraz!");
 
@@ -83,7 +83,7 @@ In order to prevent Zaraz to be loaded on specific pages, one can use [Page Rule
 Additionally, one can define [Blocking Triggers](https://developers.cloudflare.com/zaraz/advanced/blocking-triggers/) to define when to _not_ start an action.
 
 Alternatively, one can decide to turn off the [Auto-inject script](https://developers.cloudflare.com/zaraz/reference/settings/#auto-inject-script) and only [load Zaraz manually](https://developers.cloudflare.com/zaraz/advanced/load-zaraz-manually/) on specific sites by adding the following `<script>` tag to your header:
-```
+```html
 <html>
   <head>
     ...

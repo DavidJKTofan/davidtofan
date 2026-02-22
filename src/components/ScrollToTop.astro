@@ -1,0 +1,98 @@
+---
+/**
+ * ScrollToTop - Mobile scroll-to-top button
+ * 
+ * A floating button that appears on smaller screens/mobile devices
+ * when the user scrolls down, allowing them to quickly jump back to the top.
+ * 
+ * Features:
+ * - Only visible on mobile/tablet (hidden on lg: screens)
+ * - Appears after scrolling down 300px
+ * - Transparent, semi-opaque design
+ * - Smooth scroll animation
+ */
+---
+
+<button
+  id="scroll-to-top"
+  type="button"
+  aria-label="Scroll to top"
+  class="fixed bottom-6 right-6 z-40 lg:hidden
+         w-12 h-12 rounded-full
+         flex items-center justify-center
+         bg-surface-900/40 dark:bg-surface-100/30
+         backdrop-blur-sm
+         text-white dark:text-surface-900
+         opacity-0 pointer-events-none
+         transition-all duration-300 ease-out
+         hover:bg-surface-900/60 dark:hover:bg-surface-100/50
+         hover:scale-110
+         focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
+>
+  <svg 
+    class="w-5 h-5" 
+    fill="none" 
+    viewBox="0 0 24 24" 
+    stroke="currentColor" 
+    stroke-width="2.5"
+    aria-hidden="true"
+  >
+    <path d="M5 15l7-7 7 7" />
+  </svg>
+</button>
+
+<script>
+  function setupScrollToTop() {
+    const button = document.getElementById('scroll-to-top');
+    if (!button) return;
+
+    const showThreshold = 300; // pixels scrolled before showing button
+    let isVisible = false;
+
+    function updateVisibility() {
+      const shouldShow = window.scrollY > showThreshold;
+      
+      if (shouldShow !== isVisible) {
+        isVisible = shouldShow;
+        if (isVisible) {
+          button.classList.remove('opacity-0', 'pointer-events-none');
+          button.classList.add('opacity-100', 'pointer-events-auto');
+        } else {
+          button.classList.remove('opacity-100', 'pointer-events-auto');
+          button.classList.add('opacity-0', 'pointer-events-none');
+        }
+      }
+    }
+
+    // Scroll handler with throttling for performance
+    let ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateVisibility();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+
+    // Click handler
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+
+    // Set up event listeners
+    window.addEventListener('scroll', onScroll, { passive: true });
+    button.addEventListener('click', scrollToTop);
+
+    // Initial check
+    updateVisibility();
+  }
+
+  // Handle both initial load and Astro page transitions
+  document.addEventListener('astro:page-load', setupScrollToTop);
+  setupScrollToTop();
+</script>

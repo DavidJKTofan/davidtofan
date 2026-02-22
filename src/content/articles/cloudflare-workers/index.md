@@ -36,34 +36,34 @@ And below, the steps to follow:
 ### Setup
 
 Install and/or update `npm` on your computer:
-```
+```bash
 npm install -g npm
 ```    
 
 Install Cloudflare Command-line (Wrangler):
-```
+```bash
 npm install -g @cloudflare/wrangler
 ```
 
 Check if Wrangler has been installed and it is the latest version:
-```
+```bash
 wrangler --version
 ```
 
 Connect Wrangler with your Cloudflare account (option 1):
-```
+```bash
 wrangler login
 ```
 
 _NOTE: if you don't have a Cloudflare account yet, [click here](https://dash.cloudflare.com/sign-up) – it's FREE!_
 
 If the login process does not proceed as intended, you can manually add your API Token here (option 2):
-```
+```bash
 wrangler config
 ```
 
 Alternatively, go into the Wrangler CONFIG file and add your `account_id` (option 3):
-```
+```bash
 cd PROJECT_NAME
 sudo nano wrangler.toml
 ```
@@ -71,14 +71,14 @@ sudo nano wrangler.toml
 _NOTE: you can find your API Tokens and Keys [here](https://support.cloudflare.com/hc/en-us/articles/200167836-Managing-API-Tokens-and-Keys)._
 
 Make sure you are logged in:
-```
+```bash
 wrangler whoami
 ```
 
 ### Generate Project
 
 Generate first project (which will generate a folder with some files inside):
-```
+```bash
 wrangler generate PROJECT_NAME
 ```
 
@@ -87,7 +87,7 @@ Now the fun part is that we will create a [`template.js`](https://github.com/Dav
 In the main `index.js` file we will have to call `import template from './template'` – in order to call our `template.js` –, as well as set `template(request.cf)` as the new Response body. Additionally, change the `content-type` to `text/html;charset=UTF-8`.
 
 The `index.js` file should look like this:
-```
+```javascript
 import template from './template'
 
 addEventListener('fetch', event => {
@@ -102,17 +102,17 @@ async function handleRequest(request) {
 ```
 
 Allow import other modules and `npm` packages on Workers by changing the type in the `wrangler.toml` file:
-```
+```toml
 type = "webpack"
 ```
 
 In order to use country code emojis, install this package:
-```
+```bash
 npm i country-code-emoji
 ```
 
 The `template.js` file should look like this:
-```
+```javascript
 import flag from 'country-code-emoji'
 
 const template = cf => {
@@ -158,17 +158,17 @@ export default template
 _NOTE: you can choose different [IncomingRequestCfProperties](https://developers.cloudflare.com/workers/runtime-apis/request#incomingrequestcfproperties) instead of `cf.country`, such as `cf.colo`, `cf.asn`, or `cf.city`._
 
 Preview the project:
-```
+```bash
 wrangler preview
 ```
 
 Production:
-```
+```bash
 wrangler dev
 ```
 
 Publish our project to Cloudflare:
-```
+```bash
 wrangler publish
 ```
 
@@ -208,7 +208,7 @@ Discover more [Case Studies with Workers](https://www.cloudflare.com/case-studie
 In order to automate our work, we can have this project on our GitHub repository, and use [GitHub Action](https://github.com/marketplace/actions/deploy-to-cloudflare-workers-with-wrangler) to automatically deploy the main branch into the production environment.
 
 We can add a new `.github/workflows/buildAndDeploy.yml` file to our repository, adding the following content:
-```
+```yaml
 name: buildAndDeployWorker
 on: push
 jobs:

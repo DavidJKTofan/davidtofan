@@ -87,7 +87,7 @@ The primary mechanism for circumventing [Cloudflare reverse proxy](https://devel
 
 ### Diagram: Emergency Bypass Flow
 
-```
+```text
 ┌────────────────────────────────────────────────────────────────────┐
 │                        DNS RESOLUTION LAYER                        │
 ├────────────────────────────────────────────────────────────────────┤
@@ -167,7 +167,7 @@ DECISION POINT: Switch occurs at the Authoritative DNS layer
 
 For organizations with resources to maintain parallel infrastructure:
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │                    MULTI-VENDOR DNS LOAD BALANCING                   │
 ├──────────────────────────────────────────────────────────────────────┤
@@ -221,7 +221,7 @@ For Zero Trust ([WARP Device Client](https://developers.cloudflare.com/cloudflar
 
 ### Diagram: SASE Failover Logic
 
-```
+```text
 ┌───────────────────────────────────────────────────────────────────────┐
 │                     ZERO TRUST FAILOVER DECISION TREE                 │
 ├───────────────────────────────────────────────────────────────────────┤
@@ -308,7 +308,7 @@ For Zero Trust ([WARP Device Client](https://developers.cloudflare.com/cloudflar
 
 **Via Dashboard**:
 
-```
+```text
 DNS → Select Record → Toggle Proxy Status → Save
 ```
 

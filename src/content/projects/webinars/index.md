@@ -6,6 +6,8 @@ showTableOfContents: true
 aliases:
   - /projects/webinars/
   - /webinars/
+status: active
+tags: ["Webinars", "Speaking", "Cloudflare", "Cybersecurity"]
 ---
 
 Here is a list of webinars I was involved in:

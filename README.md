@@ -22,6 +22,7 @@ src/
 │   ├── Header.astro
 │   ├── ProjectCard.astro
 │   ├── ReadingProgress.astro
+│   ├── ScrollToTop.astro
 │   └── TableOfContents.astro
 ├── config/
 │   └── site.ts           # Site config (name, URLs, nav)
@@ -168,14 +169,62 @@ Add to `src/data/certificates.json`:
 
 - Dark/Light mode with system detection
 - Reading progress bar on articles
+- Dynamic reading time calculation
 - Table of contents with scroll highlighting
 - Tag filtering on articles
 - Responsive mobile-first design
-- SEO optimized (Open Graph, Twitter Cards)
+- Mobile scroll-to-top button (articles and projects)
+- External links open in new tab with proper rel attributes
+- URL aliases with automatic redirects (Hugo compatibility)
+- SEO optimized (see below)
 - Image optimization (local compile mode for dev, Cloudflare in production)
 - Custom 404 page with site branding
-- Orange accent borders on article images
+- Dark blue accent color (#1e3a8a) with accent borders on article images
 
-## License
+## SEO & Performance
 
-MIT
+### Metatags
+
+All pages include comprehensive SEO metatags via `BaseLayout.astro`:
+
+- **Primary**: `<title>`, `<meta name="description">`, canonical URL
+- **Open Graph**: `og:type`, `og:title`, `og:description`, `og:image`, `og:site_name`, `og:locale`
+- **Twitter Cards**: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:creator`
+- **Article-specific**: `article:published_time`, `article:modified_time`, `article:tag`
+- **Keywords**: Generated from article tags
+
+### Structured Data (JSON-LD)
+
+- **Articles**: `Article` schema with headline, description, author, publisher, datePublished, dateModified
+- **Other pages**: `WebSite` schema with author `Person` and social `sameAs` links
+
+### Sitemap & Robots
+
+- **Sitemap**: Auto-generated via `@astrojs/sitemap` integration (`/sitemap-index.xml`)
+- **robots.txt**: Located at `public/robots.txt` with sitemap reference
+- **Sitemap link**: Added to `<head>` for discovery
+
+### Article Thumbnail Images
+
+Each article can have a `featured.png` image in its folder for SEO link previews:
+
+```
+src/content/articles/my-article/
+├── index.md
+├── featured.png    # Used for og:image, twitter:image
+└── img/            # Other article images
+```
+
+The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `public/articles/[slug]/featured.png` during build. This folder is gitignored since the images are regenerated.
+
+### Code Syntax Highlighting
+
+- **Engine**: Shiki with `github-dark-default` theme
+- **Config**: Word wrap enabled, language identifiers on all code blocks
+- All markdown code blocks use explicit language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
+
+* * * *
+
+## Disclaimer
+
+All trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for identification and/or educational purposes only. Use of these names, trademarks and brands does not imply endorsement. 📚

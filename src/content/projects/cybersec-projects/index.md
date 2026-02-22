@@ -4,6 +4,8 @@ date: 2021-12-18
 description: Cybersecurity projects, resources and more for educational purposes.
 website: "https://github.com/DavidJKTofan/CyberSec-resources/tree/master/Projects"
 showTableOfContents: false
+status: archived
+tags: ["Cybersecurity", "OSINT", "Linux", "Resources", "Open Source"]
 ---
 
 A repository of useful CyberSec tools, urls, OSINT, Linux security resources, and much more.

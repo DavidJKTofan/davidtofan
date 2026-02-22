@@ -19,7 +19,7 @@ More information on the [Dev Docs](https://developers.cloudflare.com/distributed
 
 See it in action on [Cloudflare Playground](https://dweb.cf-testing.com/ipfs-gateway.html).
 
-```
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,7 +61,7 @@ See it in action on [Cloudflare Playground](https://dweb.cf-testing.com/ipfs-gat
 
 Choose which [IPFS Release](https://github.com/ipfs/go-ipfs/releases) you want to download and install:
 
-```
+```bash
 wget -q https://github.com/ipfs/go-ipfs/releases/download/v0.4.21/go-ipfs_v0.4.21_linux-amd64.tar.gz
 
 tar xf go-ipfs_v0.4.21_linux-amd64.tar.gz
@@ -72,14 +72,14 @@ rm -rf go-ipfs go-ipfs_v0.4.21_linux-amd64.tar.gz
 ```
 
 Run this to set up IPFS:
-```
+```bash
 ipfs init
 ```
 
 ### Adding the Service
 
 Create a file with `sudo nano /etc/systemd/system/ipfs.service` with the following content, in order to allow this new service/daemon to run in the background and on boot:
-```
+```ini
 [Unit]
 Description=IPFS Daemon
 
@@ -96,14 +96,14 @@ WantedBy=multi-user.target
 _Note: Change `User=root` if you're not running the daemon as root._
 
 Run the new daemon and enable/start it:
-```
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable ipfs
 sudo systemctl start ipfs
 ```
 
 In order to check on its status:
-```
+```bash
 systemctl status ipfs
 ```
 
@@ -116,19 +116,19 @@ The node should be running on an Internet-facing server/VPS, and direct connecti
 ### Connecting to Cloudflare's Gateway
 
 Connect your IPFS node to the network:
-```
+```bash
 ipfs daemon
 ```
 
 Add your content to IPFS:
-```
+```bash
 ipfs add -r /path/to/folder-with-your-content/index.html
 ```
 
 _Note: This will add your content to IPFS and give you back the hash of the directory._
 
 To ensure that the content stays pinned, we need to pin it to our node, essentially caching it on our node:
-```
+```bash
 ipfs pin add -r /ipfs/<hash_of_folder>
 ```
 
