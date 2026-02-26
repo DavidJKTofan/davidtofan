@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ScrollToTop from '../../components/ScrollToTop.astro';
+import { siteConfig } from '../../config/site';
 
 export async function getStaticPaths() {
   // Only generate pages for non-draft projects
@@ -136,4 +137,31 @@ const projectImage = project.data.image || `/projects/${project.id}/featured.png
       </footer>
     )}
   </div>
+
+<!-- JSON-LD Project Structured Data -->
+<script type="application/ld+json">
+{JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Project",
+  "name": project.data.title,
+  "description": project.data.description,
+  "image": projectImage,
+  "url": `${siteConfig.url}/projects/${project.id}`,
+  "keywords": project.data.tags?.join(", ") || undefined,
+  "dateCreated": project.data.date?.toISOString(),
+  "author": {
+    "@type": "Person",
+    "name": siteConfig.author.name,
+    "url": siteConfig.url,
+    "sameAs": [
+      `https://github.com/${siteConfig.author.github}`,
+      `https://linkedin.com/in/${siteConfig.author.linkedin}`,
+      `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+    ],
+  },
+  ...(project.data.website && { "website": project.data.website }),
+  ...(project.data.github && { "codeRepository": project.data.github }),
+  ...(project.data.status && { "status": project.data.status }),
+})}
+</script>
 </BaseLayout>

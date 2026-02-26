@@ -8,7 +8,6 @@ export const siteConfig: SiteConfig = {
   url: 'https://davidtofan.com',
   author: {
     name: 'David Tofan',
-    email: 'hello@davidtofan.com',
     twitter: '@davidjktofan',
     github: 'DavidJKTofan',
     linkedin: 'davidtofan',

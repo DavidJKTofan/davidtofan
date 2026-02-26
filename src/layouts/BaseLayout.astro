@@ -98,7 +98,7 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     {type === 'article' ? (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "Article",
+        "@type": "BlogPosting",
         "headline": title,
         "description": description,
         "image": ogImageURL.toString(),
@@ -108,11 +108,12 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
           "@type": "Person",
           "name": siteConfig.author.name,
           "url": siteConfig.url,
-        },
-        "publisher": {
-          "@type": "Person",
-          "name": siteConfig.author.name,
-          "url": siteConfig.url,
+          "jobTitle": "Solutions Engineer",
+          "sameAs": [
+            `https://github.com/${siteConfig.author.github}`,
+            `https://linkedin.com/in/${siteConfig.author.linkedin}`,
+            `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+          ],
         },
         "mainEntityOfPage": {
           "@type": "WebPage",
@@ -123,20 +124,25 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     ) : (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": siteConfig.name,
-        "description": siteConfig.description,
+        "@type": "Person",
+        "name": siteConfig.author.name,
         "url": siteConfig.url,
-        "author": {
-          "@type": "Person",
-          "name": siteConfig.author.name,
-          "url": siteConfig.url,
-          "sameAs": [
-            `https://github.com/${siteConfig.author.github}`,
-            `https://linkedin.com/in/${siteConfig.author.linkedin}`,
-            `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
-          ],
-        },
+        "jobTitle": "Solutions Engineer",
+        "description": siteConfig.description,
+        "image": new URL("/website-thumbnail.png", siteConfig.url).toString(),
+        "sameAs": [
+          `https://github.com/${siteConfig.author.github}`,
+          `https://linkedin.com/in/${siteConfig.author.linkedin}`,
+          `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+        ],
+        "knowsAbout": [
+          "Cybersecurity",
+          "Cloud Computing",
+          "Cloudflare",
+          "Data Science",
+          "Web Security",
+          "Infrastructure Security",
+        ],
       })} />
     )}
 

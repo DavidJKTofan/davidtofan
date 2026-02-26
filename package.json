@@ -6,11 +6,8 @@
 		"dev": "astro dev",
 		"prebuild": "node scripts/copy-featured-images.mjs",
 		"build": "wrangler types && astro build",
-		"astro:build": "astro build",
 		"preview": "npm run build && wrangler dev",
-		"deploy": "npm run cf-typegen && wrangler deploy",
-		"astro": "astro",
-		"cf-typegen": "wrangler types"
+		"deploy": "npm run build && wrangler deploy"
 	},
 	"dependencies": {
 		"@astrojs/cloudflare": "^12.6.12",
@@ -24,6 +21,6 @@
 	"devDependencies": {
 		"@types/node": "^25.3.0",
 		"lightningcss": "^1.31.1",
-		"wrangler": "^4.67.0"
+		"wrangler": "^4.69.0"
 	}
 }
