@@ -139,13 +139,12 @@ const projectImage = project.data.image || `/projects/${project.id}/featured.png
   </div>
 
 <!-- JSON-LD Project Structured Data -->
-<script type="application/ld+json">
-{JSON.stringify({
+<script type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "Project",
+  "@type": "CreativeWork",
   "name": project.data.title,
   "description": project.data.description,
-  "image": projectImage,
+  "image": new URL(projectImage, siteConfig.url).toString(),
   "url": `${siteConfig.url}/projects/${project.id}`,
   "keywords": project.data.tags?.join(", ") || undefined,
   "dateCreated": project.data.date?.toISOString(),
@@ -159,9 +158,8 @@ const projectImage = project.data.image || `/projects/${project.id}/featured.png
       `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
     ],
   },
-  ...(project.data.website && { "website": project.data.website }),
+  ...(project.data.website && { "mainEntityOfPage": project.data.website }),
   ...(project.data.github && { "codeRepository": project.data.github }),
-  ...(project.data.status && { "status": project.data.status }),
-})}
-</script>
+  ...(project.data.status && { "creativeWorkStatus": project.data.status }),
+})} />
 </BaseLayout>
