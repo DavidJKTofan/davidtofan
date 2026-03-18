@@ -263,47 +263,80 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
 
   // ── Fixed TOC positioning ─────────────────────────────────────────────────
   //
-  // Strategy: read the invisible grid placeholder's bounding rect, then apply
-  // its left + width to the fixed sidebar. Re-run on every resize so the TOC
-  // tracks the centred container correctly at all viewport widths.
+  // Two separate concerns, handled together on every frame:
   //
-  function positionTOCSidebar() {
+  //  1. HORIZONTAL  — read #toc-anchor's getBoundingClientRect() and mirror its
+  //                   left + width onto the fixed sidebar. The CSS Grid handles
+  //                   all centering math; we just copy the result.
+  //
+  //  2. VERTICAL    — clamp the sidebar's max-height so it never overlaps the
+  //                   footer. We compute:
+  //
+  //       available = footerTop(viewport-relative) - TOC_TOP - BOTTOM_GAP
+  //
+  //     where TOC_TOP = 96px (top: 6rem, the value set in the HTML style attr)
+  //     and BOTTOM_GAP = 16px of breathing room above the footer.
+  //     When the footer scrolls into view, available shrinks smoothly and the
+  //     TOC content becomes internally scrollable before it would ever overlap.
+  //
+  const TOC_TOP    = 96; // matches `top: 6rem` on #toc-sidebar
+  const BOTTOM_GAP = 16; // px of breathing room above the footer
+
+  function updateTOCSidebar() {
     const anchor  = document.getElementById('toc-anchor');
     const sidebar = document.getElementById('toc-sidebar');
+    const footer  = document.querySelector('footer') as HTMLElement | null;
     if (!anchor || !sidebar) return;
 
-    // Below the lg breakpoint the sidebar is hidden via CSS; clear any
-    // previously set inline styles so it doesn't interfere on mobile.
+    // On mobile / tablet the sidebar is hidden via CSS — clear inline styles.
     if (window.innerWidth < 1024) {
-      sidebar.style.left  = '';
-      sidebar.style.width = '';
+      sidebar.style.left      = '';
+      sidebar.style.width     = '';
+      sidebar.style.maxHeight = '';
       return;
     }
 
-    // getBoundingClientRect gives viewport-relative coordinates.
-    // Since the anchor is in normal flow and we only care about its horizontal
-    // position, scrollY doesn't affect left/width — safe to read at any time.
+    // 1. Horizontal placement — copy the anchor column's viewport position.
     const rect = anchor.getBoundingClientRect();
     sidebar.style.left  = `${rect.left}px`;
     sidebar.style.width = `${rect.width}px`;
+
+    // 2. Vertical clamping — shrink max-height once the footer enters view.
+    //    footer.getBoundingClientRect().top is the footer's distance from the
+    //    top of the viewport (negative when scrolled past it).
+    const viewportHeight = window.innerHeight;
+    let maxH: number;
+    if (footer) {
+      const footerTop = footer.getBoundingClientRect().top;
+      // How much vertical space is available between the TOC top and the footer.
+      const available = footerTop - TOC_TOP - BOTTOM_GAP;
+      // Never exceed the viewport minus header; never go below 0.
+      const viewportBound = viewportHeight - TOC_TOP - BOTTOM_GAP;
+      maxH = Math.max(0, Math.min(available, viewportBound));
+    } else {
+      maxH = viewportHeight - TOC_TOP - BOTTOM_GAP;
+    }
+    sidebar.style.maxHeight = `${maxH}px`;
   }
 
-  // Debounce resize to avoid excessive layout reads during drag-resize.
+  // Debounce resize; scroll runs every frame so no debounce needed there.
   let resizeTimer: ReturnType<typeof setTimeout>;
   function onResize() {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(positionTOCSidebar, 60);
+    resizeTimer = setTimeout(updateTOCSidebar, 60);
   }
 
   function setup() {
     setupCopyLink();
-    positionTOCSidebar();
+    updateTOCSidebar();
+    // Scroll: recalculate max-height on every scroll tick (cheap DOM read).
+    window.addEventListener('scroll', updateTOCSidebar, { passive: true });
     window.addEventListener('resize', onResize);
   }
 
   // Run immediately on first load and after every Astro View Transition swap.
   document.addEventListener('astro:page-load', () => {
-    // Remove any stale resize listener from the previous page before re-adding.
+    window.removeEventListener('scroll', updateTOCSidebar);
     window.removeEventListener('resize', onResize);
     setup();
   });
@@ -315,8 +348,9 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
     setup();
   }
 
-  // Clean up the resize listener before the page swaps out.
+  // Clean up all listeners before the page swaps out.
   document.addEventListener('astro:before-swap', () => {
+    window.removeEventListener('scroll', updateTOCSidebar);
     window.removeEventListener('resize', onResize);
     clearTimeout(resizeTimer);
   });
