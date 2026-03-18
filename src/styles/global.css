@@ -157,6 +157,7 @@
     @apply block py-1.5 pl-4 border-l-2;
     @apply border-surface-200 dark:border-surface-700;
     @apply text-surface-500 dark:text-surface-500;
+    /* Use relative units so TOC text scales with user font preferences */
     @apply text-sm leading-relaxed;
     @apply transition-all duration-200;
     @apply hover:text-surface-900 dark:hover:text-surface-100;

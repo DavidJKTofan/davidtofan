@@ -103,6 +103,12 @@ export default {
           '50%': { opacity: '0.7' },
         },
       },
+      // Add a custom 2xl container breakpoint so the article page can use max-w-6xl
+      // (72rem) as a comfortable reading width cap on wide monitors.
+      // The default Tailwind 2xl breakpoint is 1536px.
+      screens: {
+        '3xl': '1920px',
+      },
       typography: (theme) => ({
         DEFAULT: {
           css: {
