@@ -30,6 +30,80 @@ If you are looking for FREE-tier services, check out this older blog post [Cloud
 
 In a typical hospitality setup, Cloudflare operates as the edge layer between guests, partners, and the organization's backend systems. Traffic flows through Cloudflare before reaching any origin server, enabling security inspection, caching, and routing decisions at the network edge.
 
+<figure style="margin: 2rem 0; overflow-x: auto;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:880px;height:auto;font-family:system-ui,sans-serif;display:block;margin:0 auto;" role="img" aria-label="High-level architecture diagram showing traffic sources flowing through Cloudflare's edge layer to hospitality origin systems.">
+<title>Cloudflare Architecture in a Hospitality Environment</title>
+<style>
+  .box-stroke { stroke: currentColor; stroke-width: 1.5; fill: none; }
+  .cf-box { stroke: #f6821f; stroke-width: 2; fill: #f6821f; fill-opacity: 0.08; }
+  .label { fill: currentColor; font-size: 13px; font-weight: 500; }
+  .label-sm { fill: currentColor; font-size: 11px; opacity: 0.7; }
+  .cf-label { fill: #f6821f; font-size: 15px; font-weight: 700; }
+  .cf-sub { fill: currentColor; font-size: 11px; opacity: 0.65; }
+  .arrow { stroke: currentColor; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead); }
+  .arrow-cf { stroke: #f6821f; stroke-width: 1.5; fill: none; marker-end: url(#arrowhead-cf); }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="currentColor"/></marker>
+  <marker id="arrowhead-cf" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f6821f"/></marker>
+</defs>
+<!-- Traffic Sources (left) -->
+<rect x="20" y="20" width="170" height="40" rx="6" class="box-stroke"/>
+<text x="105" y="45" text-anchor="middle" class="label">Guests / Travelers</text>
+<rect x="20" y="80" width="170" height="40" rx="6" class="box-stroke"/>
+<text x="105" y="105" text-anchor="middle" class="label">Mobile Apps</text>
+<rect x="20" y="140" width="170" height="40" rx="6" class="box-stroke"/>
+<text x="105" y="165" text-anchor="middle" class="label">OTA Partners</text>
+<rect x="20" y="200" width="170" height="40" rx="6" class="box-stroke"/>
+<text x="105" y="225" text-anchor="middle" class="label">Hotel Staff</text>
+<rect x="20" y="260" width="170" height="40" rx="6" class="box-stroke"/>
+<text x="105" y="285" text-anchor="middle" class="label">AI Crawlers / Bots</text>
+<!-- Arrows: sources → Cloudflare -->
+<line x1="190" y1="40" x2="295" y2="180" class="arrow"/>
+<line x1="190" y1="100" x2="295" y2="185" class="arrow"/>
+<line x1="190" y1="160" x2="295" y2="195" class="arrow"/>
+<line x1="190" y1="220" x2="295" y2="205" class="arrow"/>
+<line x1="190" y1="280" x2="295" y2="210" class="arrow"/>
+<!-- Cloudflare Edge (center) -->
+<rect x="300" y="30" width="260" height="335" rx="10" class="cf-box"/>
+<text x="430" y="60" text-anchor="middle" class="cf-label">Cloudflare Edge</text>
+<line x1="320" y1="72" x2="540" y2="72" stroke="#f6821f" stroke-width="1" opacity="0.4"/>
+<text x="340" y="96" class="cf-sub">SSL / TLS Encryption</text>
+<text x="340" y="118" class="cf-sub">DDoS Protection</text>
+<text x="340" y="140" class="cf-sub">Waiting Room</text>
+<text x="340" y="162" class="cf-sub">API Shield</text>
+<text x="340" y="184" class="cf-sub">Bot Management / WAF</text>
+<text x="340" y="206" class="cf-sub">AI Crawl Control</text>
+<text x="340" y="228" class="cf-sub">Rate Limiting</text>
+<text x="340" y="250" class="cf-sub">Zero Trust Access</text>
+<text x="340" y="272" class="cf-sub">CDN / Cache / Tiered Cache</text>
+<text x="340" y="294" class="cf-sub">Image Optimization</text>
+<text x="340" y="316" class="cf-sub">Gateway DNS Filtering</text>
+<text x="340" y="338" class="cf-sub">Workers (Custom Logic)</text>
+<!-- Arrows: Cloudflare → Origins  -->
+<line x1="560" y1="105" x2="650" y2="60" class="arrow-cf"/>
+<line x1="560" y1="140" x2="650" y2="120" class="arrow-cf"/>
+<line x1="560" y1="185" x2="650" y2="180" class="arrow-cf"/>
+<line x1="560" y1="225" x2="650" y2="242" class="arrow-cf"/>
+<line x1="560" y1="270" x2="650" y2="302" class="arrow-cf"/>
+<!-- Origin Systems (right) -->
+<rect x="655" y="35" width="200" height="40" rx="6" class="box-stroke"/>
+<text x="755" y="60" text-anchor="middle" class="label">Booking Engine</text>
+<rect x="655" y="95" width="200" height="40" rx="6" class="box-stroke"/>
+<text x="755" y="120" text-anchor="middle" class="label">PMS / Internal Apps</text>
+<rect x="655" y="155" width="200" height="40" rx="6" class="box-stroke"/>
+<text x="755" y="180" text-anchor="middle" class="label">APIs (Reservations, etc.)</text>
+<rect x="655" y="217" width="200" height="40" rx="6" class="box-stroke"/>
+<text x="755" y="242" text-anchor="middle" class="label">Guest Wi-Fi Network</text>
+<rect x="655" y="277" width="200" height="40" rx="6" class="box-stroke"/>
+<text x="755" y="302" text-anchor="middle" class="label">Loyalty / Payment DB</text>
+<!-- Column labels -->
+<text x="105" y="385" text-anchor="middle" class="label-sm">Traffic Sources</text>
+<text x="755" y="385" text-anchor="middle" class="label-sm">Origin Systems</text>
+</svg>
+<figcaption style="text-align:center;font-size:0.85rem;opacity:0.65;margin-top:0.5rem;">High-level view: all traffic flows through Cloudflare before reaching origin systems. Capabilities are listed roughly in <a href="https://developers.cloudflare.com/ruleset-engine/reference/phases-list/" target="_blank" rel="nofollow noopener external" style="color:inherit;text-decoration:underline;">request processing order</a>.</figcaption>
+</figure>
+
 The main integration points include:
 
 - **Booking websites** — Public-facing marketing and reservation sites proxied through Cloudflare, using WAF, DDoS protection, and caching.
@@ -101,6 +175,12 @@ Combined with [Rate Limiting](https://developers.cloudflare.com/waf/rate-limitin
 **How Cloudflare mitigates this:** [API Shield](https://developers.cloudflare.com/api-shield/) enforces schema validation, rejecting requests that do not conform to the expected OpenAPI specification before they reach the origin. This blocks entire categories of injection and fuzzing attacks at the edge. More details on API security [here](https://www.cloudflare.com/application-services/solutions/api-security/).
 
 [Mutual TLS (mTLS)](https://developers.cloudflare.com/api-shield/security/mtls/) ensures that only known clients with valid certificates can communicate with these APIs — useful for partner integrations where both parties can manage certificates. [WAF custom rules](https://developers.cloudflare.com/waf/custom-rules/) add further protection against common attack payloads.
+
+### Beyond Built-in Features: Cloudflare Developer Platform
+
+The use cases above rely on Cloudflare's declarative, configuration-driven products. When hospitality platforms need custom logic at the edge — dynamic A/B testing of booking flows, geo-based pricing, personalized response headers, request signing for partner APIs, or any behavior that does not fit neatly into WAF rules or cache configuration — [Cloudflare Workers](https://developers.cloudflare.com/workers/reference/how-workers-works/) provides a programmable runtime on the same global network.
+
+Workers execute JavaScript (or TypeScript, Rust, Python, etc.) in lightweight V8 isolates at every Cloudflare data center, with sub-millisecond cold starts and no containers to manage. They sit in the request pipeline alongside the phases described above, and can interact with [storage primitives](https://developers.cloudflare.com/workers/platform/storage-options/) for stateful use cases such as session management or real-time inventory counters. The broader [Developer Platform](https://developers.cloudflare.com/directory/?product-group=Developer+platform) also includes [Queues](https://developers.cloudflare.com/queues/), [Workflows](https://developers.cloudflare.com/workflows/), and [AI inference](https://developers.cloudflare.com/workers-ai/) — building blocks for hospitality teams that want to move application logic closer to users without managing origin infrastructure. For a deeper dive, see: [Fullstack Applications](https://developers.cloudflare.com/reference-architecture/diagrams/serverless/fullstack-application/).
 
 ---
 
