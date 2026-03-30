@@ -1,7 +1,174 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
+/* Dark mode using class strategy */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   Theme: colors, fonts, spacing, animations
+   ============================================================ */
+@theme {
+  /* Surface colors (warm neutral palette) */
+  --color-surface-50: #fafaf9;
+  --color-surface-100: #f5f5f4;
+  --color-surface-200: #e7e5e4;
+  --color-surface-300: #d6d3d1;
+  --color-surface-400: #a8a29e;
+  --color-surface-500: #78716c;
+  --color-surface-600: #57534e;
+  --color-surface-700: #44403c;
+  --color-surface-800: #292524;
+  --color-surface-900: #1c1917;
+  --color-surface-950: #0c0a09;
+
+  /* Accent colors (dark blue #1e3a8a base) */
+  --color-accent-50: #eff6ff;
+  --color-accent-100: #dbeafe;
+  --color-accent-200: #bfdbfe;
+  --color-accent-300: #93c5fd;
+  --color-accent-400: #60a5fa;
+  --color-accent-500: #3b82f6;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-accent-800: #1e40af;
+  --color-accent-900: #1e3a8a;
+  --color-accent-950: #172554;
+
+  /* Font families (no external requests, better performance) */
+  --font-sans: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+
+  /* Custom font size */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  /* Spacing */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+
+  /* Breakpoints */
+  --breakpoint-3xl: 1920px;
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.6s ease-out forwards;
+  --animate-fade-up: fadeUp 0.6s ease-out forwards;
+  --animate-slide-in: slideIn 0.4s ease-out forwards;
+  --animate-progress: progress 1s ease-out forwards;
+  --animate-pulse-subtle: pulseSubtle 2s ease-in-out infinite;
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================================
+   Typography plugin overrides
+   ============================================================ */
+.prose {
+  --tw-prose-body: var(--color-surface-700);
+  --tw-prose-headings: var(--color-surface-900);
+  --tw-prose-links: var(--color-accent-600);
+  --tw-prose-bold: var(--color-surface-900);
+  --tw-prose-code: var(--color-surface-800);
+  --tw-prose-pre-bg: var(--color-surface-900);
+  --tw-prose-pre-code: var(--color-surface-100);
+  --tw-prose-invert-body: var(--color-surface-300);
+  --tw-prose-invert-headings: var(--color-surface-50);
+  --tw-prose-invert-links: var(--color-accent-400);
+  --tw-prose-invert-bold: var(--color-surface-100);
+  --tw-prose-invert-code: var(--color-surface-200);
+  --tw-prose-invert-pre-bg: var(--color-surface-800);
+  --tw-prose-invert-pre-code: var(--color-surface-200);
+}
+
+.prose :is(h1, h2, h3, h4) {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.prose a {
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid var(--color-accent-300);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.prose a:hover {
+  border-color: var(--color-accent-500);
+}
+
+.prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  background-color: var(--color-surface-100);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.prose :not(pre) > code::before,
+.prose :not(pre) > code::after {
+  content: '';
+}
+
+.prose pre {
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.prose blockquote {
+  border-left-color: var(--color-accent-400);
+  font-style: normal;
+  color: var(--color-surface-600);
+}
+
+.prose img {
+  border-radius: 0.5rem;
+  border: 2px solid var(--color-accent-300);
+}
+
+.prose-invert :not(pre) > code {
+  background-color: var(--color-surface-800);
+}
+
+.prose-invert img {
+  border-color: var(--color-accent-500);
+}
+
+/* ============================================================
+   Base layer
+   ============================================================ */
 @layer base {
   /* Smooth scrolling and prevent horizontal overflow */
   html {
@@ -58,80 +225,75 @@
   }
 }
 
-@layer components {
-  /* Card hover effect */
-  .card {
-    @apply bg-white dark:bg-surface-900;
-    @apply border border-surface-200 dark:border-surface-800;
-    @apply rounded-xl;
-    @apply transition-all duration-300 ease-out;
-    @apply hover:border-surface-300 dark:hover:border-surface-700;
-    @apply hover:shadow-lg hover:shadow-surface-200/50 dark:hover:shadow-surface-900/50;
-    @apply hover:-translate-y-0.5;
-  }
+/* ============================================================
+   Component utilities
+   ============================================================ */
+@utility card {
+  @apply bg-white dark:bg-surface-900;
+  @apply border border-surface-200 dark:border-surface-800;
+  @apply rounded-xl;
+  @apply transition-all duration-300 ease-out;
+  @apply hover:border-surface-300 dark:hover:border-surface-700;
+  @apply hover:shadow-lg hover:shadow-surface-200/50 dark:hover:shadow-surface-900/50;
+  @apply hover:-translate-y-0.5;
+}
 
-  /* Button styles */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-lg font-medium;
-    @apply transition-all duration-200;
-    @apply focus:ring-2 focus:ring-offset-2;
-  }
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-4 py-2 rounded-lg font-medium;
+  @apply transition-all duration-200;
+  @apply focus:ring-2 focus:ring-offset-2;
+}
 
-  .btn-primary {
-    @apply btn bg-accent-500 text-white;
-    @apply hover:bg-accent-600;
-    @apply focus:ring-accent-500;
-  }
+@utility btn-primary {
+  @apply btn bg-accent-500 text-white;
+  @apply hover:bg-accent-600;
+  @apply focus:ring-accent-500;
+}
 
-  .btn-secondary {
-    @apply btn bg-surface-100 dark:bg-surface-800;
-    @apply text-surface-700 dark:text-surface-200;
-    @apply hover:bg-surface-200 dark:hover:bg-surface-700;
-    @apply focus:ring-surface-400;
-  }
+@utility btn-secondary {
+  @apply btn bg-surface-100 dark:bg-surface-800;
+  @apply text-surface-700 dark:text-surface-200;
+  @apply hover:bg-surface-200 dark:hover:bg-surface-700;
+  @apply focus:ring-surface-400;
+}
 
-  .btn-ghost {
-    @apply btn text-surface-600 dark:text-surface-400;
-    @apply hover:bg-surface-100 dark:hover:bg-surface-800;
-    @apply focus:ring-surface-400;
-  }
+@utility btn-ghost {
+  @apply btn text-surface-600 dark:text-surface-400;
+  @apply hover:bg-surface-100 dark:hover:bg-surface-800;
+  @apply focus:ring-surface-400;
+}
 
-  /* Tag/badge styles */
-  .tag {
-    @apply inline-flex items-center;
-    @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
-    @apply bg-surface-100 dark:bg-surface-800;
-    @apply text-surface-600 dark:text-surface-400;
-    @apply transition-colors duration-200;
-    @apply hover:bg-surface-200 dark:hover:bg-surface-700;
-  }
+@utility tag {
+  @apply inline-flex items-center;
+  @apply px-2.5 py-0.5 rounded-full text-xs font-medium;
+  @apply bg-surface-100 dark:bg-surface-800;
+  @apply text-surface-600 dark:text-surface-400;
+  @apply transition-colors duration-200;
+  @apply hover:bg-surface-200 dark:hover:bg-surface-700;
+}
 
-  .tag-accent {
-    @apply bg-accent-100 dark:bg-accent-900/30;
-    @apply text-accent-700 dark:text-accent-400;
-    @apply hover:bg-accent-200 dark:hover:bg-accent-800/40;
-  }
+@utility tag-accent {
+  @apply bg-accent-100 dark:bg-accent-900/30;
+  @apply text-accent-700 dark:text-accent-400;
+  @apply hover:bg-accent-200 dark:hover:bg-accent-800/40;
+}
 
-  /* Glass effect */
-  .glass {
-    @apply bg-white/80 dark:bg-surface-900/80;
-    @apply backdrop-blur-xl backdrop-saturate-150;
-    @apply border border-surface-200/50 dark:border-surface-700/50;
-  }
+@utility glass {
+  @apply bg-white/80 dark:bg-surface-900/80;
+  @apply backdrop-blur-xl backdrop-saturate-150;
+  @apply border border-surface-200/50 dark:border-surface-700/50;
+}
 
-  /* Gradient text */
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    @apply bg-gradient-to-r from-accent-500 via-accent-600 to-accent-500;
-  }
+@utility gradient-text {
+  @apply bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-accent-500 via-accent-600 to-accent-500;
+}
 
-  /* Animated underline */
-  .link-underline {
-    @apply relative;
-  }
+@utility link-underline {
+  @apply relative;
 
-  .link-underline::after {
+  &::after {
     content: '';
     @apply absolute bottom-0 left-0 w-full h-px;
     @apply bg-current opacity-30;
@@ -139,69 +301,66 @@
     @apply scale-x-0 origin-left;
   }
 
-  .link-underline:hover::after {
+  &:hover::after {
     @apply scale-x-100;
   }
+}
 
-  /* Progress bar */
-  .reading-progress {
-    @apply fixed top-0 left-0 right-0 h-0.5 z-50;
-    @apply bg-accent-500;
-    @apply origin-left;
-    transform: scaleX(0);
-    transition: transform 0.1s ease-out;
-  }
+@utility reading-progress {
+  @apply fixed top-0 left-0 right-0 h-0.5 z-50;
+  @apply bg-accent-500;
+  @apply origin-left;
+  transform: scaleX(0);
+  transition: transform 0.1s ease-out;
+}
 
-  /* TOC active state */
-  .toc-link {
-    @apply block py-1.5 pl-4 border-l-2;
-    @apply border-surface-200 dark:border-surface-700;
-    @apply text-surface-500 dark:text-surface-500;
-    /* Use relative units so TOC text scales with user font preferences */
-    @apply text-sm leading-relaxed;
-    @apply transition-all duration-200;
-    @apply hover:text-surface-900 dark:hover:text-surface-100;
-    @apply hover:border-surface-400 dark:hover:border-surface-500;
-  }
+@utility toc-link {
+  @apply block py-1.5 pl-4 border-l-2;
+  @apply border-surface-200 dark:border-surface-700;
+  @apply text-surface-500 dark:text-surface-500;
+  /* Use relative units so TOC text scales with user font preferences */
+  @apply text-sm leading-relaxed;
+  @apply transition-all duration-200;
+  @apply hover:text-surface-900 dark:hover:text-surface-100;
+  @apply hover:border-surface-400 dark:hover:border-surface-500;
 
-  .toc-link.active {
+  &.active {
     @apply border-accent-500 dark:border-accent-400;
     @apply text-accent-600 dark:text-accent-400;
     @apply font-medium;
   }
+}
 
-  /* Stagger animations */
-  .stagger-animation > * {
+@utility stagger-animation {
+  & > * {
     @apply opacity-0 animate-fade-up;
   }
 
-  .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
-  .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
-  .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
-  .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
-  .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
-  .stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }
+  & > *:nth-child(1) { animation-delay: 0.1s; }
+  & > *:nth-child(2) { animation-delay: 0.2s; }
+  & > *:nth-child(3) { animation-delay: 0.3s; }
+  & > *:nth-child(4) { animation-delay: 0.4s; }
+  & > *:nth-child(5) { animation-delay: 0.5s; }
+  & > *:nth-child(6) { animation-delay: 0.6s; }
 }
 
-@layer utilities {
-  /* Text balance for headings */
-  .text-balance {
-    text-wrap: balance;
-  }
+/* ============================================================
+   Custom utilities
+   ============================================================ */
+@utility text-balance {
+  text-wrap: balance;
+}
 
-  /* Hide scrollbar but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 
-  .scrollbar-hide::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
+}
 
-  /* Noise texture overlay */
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-  }
+@utility noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
 }

@@ -1,6 +1,2 @@
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
+// PostCSS config intentionally empty — Tailwind v4 runs via @tailwindcss/vite Vite plugin.
+export default {};
