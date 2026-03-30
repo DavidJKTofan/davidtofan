@@ -2,5 +2,8 @@
 User-agent: *
 Allow: /
 
+# https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/#recommended-exclusions
+Disallow: /cdn-cgi/
+
 # Sitemap
 Sitemap: https://davidtofan.com/sitemap-index.xml
