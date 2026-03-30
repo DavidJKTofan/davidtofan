@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import rehypeExternalLinks from 'rehype-external-links';
 
@@ -26,18 +25,8 @@ export default defineConfig({
     // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
     '/sitemap.xml': '/sitemap-index.xml',
   },
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
-    // Use 'compile' for local dev compatibility (sharp at build time)
-    // Images are optimized at build, works both locally and in production
-    imageService: 'compile',
-  }),
+  adapter: cloudflare(),  // v13+ uses workerd runtime for dev, preview, and production
   integrations: [
-    tailwind({
-      applyBaseStyles: false,
-    }),
     sitemap({
       // Default change frequency for all pages
       changefreq: 'monthly',
@@ -49,16 +38,19 @@ export default defineConfig({
       serialize(item) {
         // Higher priority for main pages
         if (item.url === 'https://davidtofan.com/') {
+          // @ts-ignore - EnumChangefreq string enum accepts these string literals at runtime
           item.changefreq = 'yearly';
           item.priority = 1.0;
         }
         // Articles section
         if (item.url.includes('/articles/') && item.url !== 'https://davidtofan.com/articles/') {
+          // @ts-ignore
           item.changefreq = 'monthly';
           item.priority = 0.8;
         }
         // Projects section
         if (item.url.includes('/projects/') && item.url !== 'https://davidtofan.com/projects/') {
+          // @ts-ignore
           item.changefreq = 'yearly';
           item.priority = 0.6;
         }
@@ -66,6 +58,7 @@ export default defineConfig({
         if (item.url === 'https://davidtofan.com/articles/' || 
             item.url === 'https://davidtofan.com/projects/' ||
             item.url === 'https://davidtofan.com/certificates/') {
+          // @ts-ignore
           item.changefreq = 'yearly';
           item.priority = 0.9;
         }
@@ -92,10 +85,5 @@ export default defineConfig({
   compressHTML: true,
   build: {
     inlineStylesheets: 'auto',
-  },
-  vite: {
-    build: {
-      cssMinify: 'lightningcss',
-    },
   },
 });

@@ -141,7 +141,7 @@ const projectImage = project.data.image || `/projects/${project.id}/featured.png
   </div>
 
 <!-- JSON-LD Project Structured Data -->
-<script type="application/ld+json" set:html={JSON.stringify({
+<script is:inline type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
   "@type": "CreativeWork",
   "name": project.data.title,

@@ -155,19 +155,14 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
 
 <script>
   function setupTagFilters() {
-    const filterContainer = document.getElementById('tag-filters');
-    const articlesGrid = document.getElementById('articles-grid');
-    const featuredGrid = document.getElementById('featured-grid');
+    const filterContainer = document.getElementById('tag-filters') as HTMLElement;
     const emptyState = document.getElementById('empty-state');
     const articleCount = document.getElementById('article-count');
     const clearFilter = document.getElementById('clear-filter');
 
     if (!filterContainer) return;
 
-    let currentTag = '';
-
     function filterArticles(selectedTag: string, updateUrl = true) {
-      currentTag = selectedTag;
       let visibleCount = 0;
 
       // Get all article items from both grids

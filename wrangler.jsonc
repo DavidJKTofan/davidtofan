@@ -5,22 +5,12 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "davidtofan-astro",
-	"main": "./dist/_worker.js/index.js",
+	"main": "@astrojs/cloudflare/entrypoints/server",
 	"compatibility_date": "2026-02-19",
 	"compatibility_flags": [
 		"nodejs_compat",
 		"global_fetch_strictly_public"
 	],
-	/**
-	 * Custom Build
-	 * Runs before deployment. Builds the Astro project.
-	 * Includes prebuild to copy featured images.
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#custom-builds
-	 */
-	"build": {
-		"command": "npm run prebuild && astro build",
-		"watch_dir": "src"
-	},
 	"assets": {
 		"binding": "ASSETS",
 		"directory": "./dist",

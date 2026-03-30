@@ -4,11 +4,12 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 
 ## Tech Stack
 
-- **Framework**: [Astro 5](https://astro.build) with TypeScript
-- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with Typography plugin
-  - Note: Tailwind 4 requires different setup (Vite plugin vs Astro integration). Current setup is stable.
+- **Framework**: [Astro 6](https://astro.build) with TypeScript
+- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with Typography plugin (via PostCSS)
+  - Note: Tailwind 4 requires the Vite plugin. Current Tailwind 3 setup uses PostCSS directly.
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with Static Assets
-- **Content**: Markdown with Zod validation (Content Collections)
+- **Content**: Markdown with Zod 4 validation (Content Layer API)
+- **Build**: [Vite 7](https://vite.dev) with workerd runtime for dev/preview/production
 - **Fonts**: System font stack (no external CDN dependencies)
 - **Design**: [Canva](https://www.canva.com)
 - **Stock Images**: [Unsplash](https://unsplash.com) (Travel project)
@@ -65,20 +66,20 @@ src/
 
 ```bash
 npm install      # Install dependencies
-npm run dev      # Start Astro dev server (localhost:4321)
+npm run dev      # Start dev server with workerd runtime (localhost:4321)
 npm run build    # Generate types + build for production
-npm run preview  # Build + run with Wrangler locally
+npm run preview  # Build + preview with astro preview (workerd)
 npm run deploy   # Build + deploy to Cloudflare Workers
 ```
 
 ### Development Workflow
 
-1. **Local development** (fast refresh, no Workers):
+1. **Local development** (workerd runtime, matches production):
    ```bash
    npm run dev
    ```
 
-2. **Test with Workers locally** (full production simulation):
+2. **Test production build locally** (full workerd simulation):
    ```bash
    npm run preview
    ```
@@ -88,7 +89,7 @@ npm run deploy   # Build + deploy to Cloudflare Workers
    npm run deploy
    ```
 
-> **Note**: `npm run build` automatically runs `wrangler types` first to ensure TypeScript types are up-to-date with your `wrangler.jsonc` configuration.
+> **Note**: `npm run build` automatically runs `wrangler types` first to ensure TypeScript types are up-to-date with your `wrangler.jsonc` configuration. In Astro 6, both `astro dev` and `astro preview` use Cloudflare's `workerd` runtime, so the development environment closely mirrors production.
 
 ## Adding Content
 
@@ -188,7 +189,7 @@ Add to `src/data/certificates.json`:
 ### Content
 - External links open in new tab with proper rel attributes
 - URL aliases with automatic redirects (Hugo compatibility)
-- Image optimization (compile mode for dev, Cloudflare in production)
+- Image optimization (Cloudflare Images binding in production, compile mode at build time)
 - Custom 404 page with site branding
 - Dark blue accent color (#1e3a8a) with accent borders on article images
 
@@ -234,7 +235,7 @@ The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `publ
 
 ### Code Syntax Highlighting
 
-- **Engine**: Shiki with `github-dark-default` theme
+- **Engine**: Shiki 4 with `github-dark-default` theme
 - **Config**: Word wrap enabled, language identifiers on all code blocks
 - All markdown code blocks use explicit language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
 
@@ -264,6 +265,7 @@ These are assumptions:
 
 ```jsonc
 {
+  "main": "@astrojs/cloudflare/entrypoints/server",  // Astro 6 unified entrypoint
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash",
@@ -271,6 +273,8 @@ These are assumptions:
   }
 }
 ```
+
+> **Note**: With Astro 6 and `@astrojs/cloudflare` v13, the Wrangler config is largely optional. Astro auto-generates defaults. The `build` block is no longer needed since Astro uses the Cloudflare Vite plugin internally.
 
 ### Static Asset Headers (`public/_headers`)
 

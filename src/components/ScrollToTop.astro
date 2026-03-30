@@ -44,7 +44,7 @@
 
 <script>
   function setupScrollToTop() {
-    const button = document.getElementById('scroll-to-top');
+    const button = document.getElementById('scroll-to-top') as HTMLElement;
     if (!button) return;
 
     const showThreshold = 300; // pixels scrolled before showing button
