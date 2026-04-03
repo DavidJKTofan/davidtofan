@@ -280,7 +280,7 @@ These are assumptions:
 - Astro 6 requires Node `22.12.0+`
 - The Cloudflare adapter now uses the unified Worker entrypoint `@astrojs/cloudflare/entrypoints/server`
 - `npm run dev` runs against Cloudflare's local runtime, so development behavior is closer to production than in older Astro versions
-- Tailwind is wired through `postcss.config.cjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
+- Tailwind is wired through the `@tailwindcss/vite` plugin in `astro.config.mjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
 
 ### Static Asset Headers (`public/_headers`)
 

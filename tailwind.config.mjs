@@ -1,9 +1,39 @@
 /** @type {import('tailwindcss').Config} */
 import typography from '@tailwindcss/typography';
 
+const sansFontStack = [
+  'Inter',
+  'SF Pro Display',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  'Segoe UI',
+  'Roboto',
+  'Helvetica Neue',
+  'Arial',
+  'sans-serif',
+];
+
+const displayFontStack = [
+  'Inter',
+  'SF Pro Display',
+  '-apple-system',
+  'BlinkMacSystemFont',
+  'Segoe UI',
+  'sans-serif',
+];
+
+const monoFontStack = [
+  'SF Mono',
+  'Fira Code',
+  'Consolas',
+  'Monaco',
+  'Andale Mono',
+  'Ubuntu Mono',
+  'monospace',
+];
+
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -38,34 +68,9 @@ export default {
       },
       fontFamily: {
         // Modern system font stack (no external requests, better performance)
-        sans: [
-          'Inter',
-          'SF Pro Display',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif',
-        ],
-        display: [
-          'Inter',
-          'SF Pro Display',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'sans-serif',
-        ],
-        mono: [
-          'SF Mono',
-          'Fira Code',
-          'Consolas',
-          'Monaco',
-          'Andale Mono',
-          'Ubuntu Mono',
-          'monospace',
-        ],
+        sans: sansFontStack,
+        display: displayFontStack,
+        mono: monoFontStack,
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
@@ -127,7 +132,7 @@ export default {
             '--tw-prose-invert-pre-bg': theme('colors.surface.800'),
             '--tw-prose-invert-pre-code': theme('colors.surface.200'),
             'h1, h2, h3, h4': {
-              fontFamily: theme('fontFamily.display').join(', '),
+              fontFamily: displayFontStack.join(', '),
               fontWeight: '600',
               letterSpacing: '-0.02em',
             },
@@ -141,7 +146,7 @@ export default {
               },
             },
             code: {
-              fontFamily: theme('fontFamily.mono').join(', '),
+              fontFamily: monoFontStack.join(', '),
               fontWeight: '400',
               backgroundColor: theme('colors.surface.100'),
               padding: '0.125rem 0.375rem',

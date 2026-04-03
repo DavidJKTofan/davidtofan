@@ -148,7 +148,7 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
                 {article.data.tags.map((tag: string) => (
                   <a
                     href={`/articles?tag=${encodeURIComponent(tag)}`}
-                    class="tag hover:tag-accent"
+                    class="tag hover:bg-accent-100 hover:text-accent-700 dark:hover:bg-accent-900/30 dark:hover:text-accent-400"
                   >
                     {tag}
                   </a>
