@@ -5,7 +5,7 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 ## Tech Stack
 
 - **Framework**: [Astro 6](https://astro.build) with TypeScript
-- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with PostCSS and Typography plugin
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com) via `@tailwindcss/vite` with the Typography plugin
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with the official `@astrojs/cloudflare` adapter
 - **Content**: Markdown with Zod validation (Content Collections)
 - **Fonts**: System font stack (no external CDN dependencies)
@@ -175,6 +175,7 @@ Add to `src/data/certificates.json`:
 ### UI/UX
 - **Fixed header**: Always visible navigation bar on all devices
 - **Dark/Light mode**: System detection with manual toggle, persists across page navigations
+- **Theme-aware browser chrome**: `html`-level `color-scheme` and custom scrollbar variables keep the right-edge gutter aligned with light/dark mode
 - **View Transitions**: Smooth page navigation with Astro's ClientRouter
 - **Link Prefetching**: Hover-based prefetch for faster perceived navigation
 - **Mobile scroll-to-top button**: Floating button on articles/projects (hidden on desktop)
@@ -281,6 +282,9 @@ These are assumptions:
 - The Cloudflare adapter now uses the unified Worker entrypoint `@astrojs/cloudflare/entrypoints/server`
 - `npm run dev` runs against Cloudflare's local runtime, so development behavior is closer to production than in older Astro versions
 - Tailwind is wired through the `@tailwindcss/vite` plugin in `astro.config.mjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
+- Tailwind's CSS entrypoint is `src/styles/global.css`, which uses `@import "tailwindcss"` and explicitly loads `tailwind.config.mjs` with `@config`
+- The old `postcss.config.cjs` file was removed as part of the Tailwind v4 migration
+- Astro-scoped `<style>` blocks that use Tailwind utilities via `@apply` should add an `@reference` to `src/styles/global.css`
 
 ### Static Asset Headers (`public/_headers`)
 
