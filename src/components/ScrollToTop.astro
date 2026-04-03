@@ -43,9 +43,16 @@
 </button>
 
 <script>
+  let cleanupScrollToTop = () => {};
+
   function setupScrollToTop() {
+    cleanupScrollToTop();
+
     const button = document.getElementById('scroll-to-top');
-    if (!button) return;
+    if (!(button instanceof HTMLButtonElement)) {
+      cleanupScrollToTop = () => {};
+      return;
+    }
 
     const showThreshold = 300; // pixels scrolled before showing button
     let isVisible = false;
@@ -91,9 +98,23 @@
 
     // Initial check
     updateVisibility();
+
+    cleanupScrollToTop = () => {
+      window.removeEventListener('scroll', onScroll);
+      button.removeEventListener('click', scrollToTop);
+    };
+  }
+
+  function initScrollToTop() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupScrollToTop, { once: true });
+    } else {
+      setupScrollToTop();
+    }
   }
 
   // Handle both initial load and Astro page transitions
   document.addEventListener('astro:page-load', setupScrollToTop);
-  setupScrollToTop();
+  document.addEventListener('astro:before-swap', () => cleanupScrollToTop());
+  initScrollToTop();
 </script>

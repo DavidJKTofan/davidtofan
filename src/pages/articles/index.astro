@@ -162,7 +162,10 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
     const articleCount = document.getElementById('article-count');
     const clearFilter = document.getElementById('clear-filter');
 
-    if (!filterContainer) return;
+    if (!(filterContainer instanceof HTMLElement)) return;
+    if (filterContainer.dataset.tagFiltersBound === 'true') return;
+
+    filterContainer.dataset.tagFiltersBound = 'true';
 
     let currentTag = '';
 
@@ -249,11 +252,15 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
     }
   }
 
-  // Run on page load and Astro page transitions
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupTagFilters);
-  } else {
-    setupTagFilters();
+  function initTagFilters() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupTagFilters, { once: true });
+    } else {
+      setupTagFilters();
+    }
   }
+
+  // Run on page load and Astro page transitions
   document.addEventListener('astro:page-load', setupTagFilters);
+  initTagFilters();
 </script>

@@ -63,7 +63,7 @@ Cloudflare serves as a robust [reverse proxy](https://developers.cloudflare.com/
 
 When a client makes a standard request to the origin server, Cloudflare sits in-between, ensuring a layer of security and configuration checks.
 
-```goat
+```text
    +-------------------+         +-------------------+         +---------------------+
    |       Client      |         |    Cloudflare     |         |    Origin Server    |
    +-------------------+         +-------------------+         +---------------------+
@@ -82,7 +82,7 @@ My personal favorite approach involves deploying the **[Cloudflare Tunnel](https
 
 Bear in mind that it is possible to configure [Static IPs or Bringing Your Own IPs (BYOIP)](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/#customize-cloudflare-ip-addresses) as **Ingress IPs** for the client, enabling the allowlisting of these IPs for access. Moreover, by leveraging [Aegis](https://blog.cloudflare.com/cloudflare-aegis), you can establish dedicated **Egress IPs** connecting from Cloudflare to the Origin Server. This enables the allowlisting of these specific IPs on the Origin Server, allowing for the imposition of network Access Control Lists (ACLs) to exclusively permit traffic originating from these IPs into the network.
 
-```goat
+```text
    +-------------------+         +-------------------+         +---------------------+
    |       Client      |         |    Cloudflare     |         |    Origin Server    |
    +-------------------+         +-------------------+         +---------------------+
@@ -292,7 +292,7 @@ _**IP Access Rules & Network-layer DDoS Protection**_
 
 As TCP/UDP operates at Layer 4, it's important to note that the WAF does not apply to this type of traffic. In such cases, the use of **[IP Access Rules](https://developers.cloudflare.com/waf/tools/ip-access-rules/)** is recommended. In addition, one can overwrite the [Network-layer DDoS Attack Protection managed ruleset](https://developers.cloudflare.com/ddos-protection/managed-rulesets/network/). It's worth mentioning that future plans might include extending support for Spectrum to incorporate the capabilities of **[Magic Firewall](https://developers.cloudflare.com/magic-firewall/)**, a global network firewall.
 
-```goat
+```text
 +-----------------+      +------------------------------+
 |  HTTP requests  | ---> |   WAF & L7 DDoS Protection   |
 +-----------------+      +------------------------------+ 

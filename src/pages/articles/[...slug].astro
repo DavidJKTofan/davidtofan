@@ -236,12 +236,14 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
 </BaseLayout>
 
 <script>
+  let cleanupArticlePage = () => {};
+
   // ── Copy-link button ──────────────────────────────────────────────────────
   function setupCopyLink() {
     const copyBtn = document.getElementById('copy-link-btn');
-    if (!copyBtn) return;
+    if (!(copyBtn instanceof HTMLButtonElement)) return () => {};
 
-    copyBtn.addEventListener('click', async () => {
+    const onClick = async () => {
       const url = (copyBtn as HTMLElement).dataset.url;
       if (!url) return;
 
@@ -258,7 +260,13 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
       } catch (err) {
         console.error('Failed to copy:', err);
       }
-    });
+    };
+
+    copyBtn.addEventListener('click', onClick);
+
+    return () => {
+      copyBtn.removeEventListener('click', onClick);
+    };
   }
 
   // ── Fixed TOC positioning ─────────────────────────────────────────────────
@@ -327,31 +335,34 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
   }
 
   function setup() {
-    setupCopyLink();
+    cleanupArticlePage();
+
+    const cleanupCopyLink = setupCopyLink();
     updateTOCSidebar();
     // Scroll: recalculate max-height on every scroll tick (cheap DOM read).
     window.addEventListener('scroll', updateTOCSidebar, { passive: true });
     window.addEventListener('resize', onResize);
+
+    cleanupArticlePage = () => {
+      cleanupCopyLink();
+      window.removeEventListener('scroll', updateTOCSidebar);
+      window.removeEventListener('resize', onResize);
+      clearTimeout(resizeTimer);
+    };
+  }
+
+  function initArticlePage() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup, { once: true });
+    } else {
+      setup();
+    }
   }
 
   // Run immediately on first load and after every Astro View Transition swap.
-  document.addEventListener('astro:page-load', () => {
-    window.removeEventListener('scroll', updateTOCSidebar);
-    window.removeEventListener('resize', onResize);
-    setup();
-  });
-
-  // Also run on initial synchronous load (no View Transition on first visit).
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setup);
-  } else {
-    setup();
-  }
+  document.addEventListener('astro:page-load', setup);
+  initArticlePage();
 
   // Clean up all listeners before the page swaps out.
-  document.addEventListener('astro:before-swap', () => {
-    window.removeEventListener('scroll', updateTOCSidebar);
-    window.removeEventListener('resize', onResize);
-    clearTimeout(resizeTimer);
-  });
+  document.addEventListener('astro:before-swap', () => cleanupArticlePage());
 </script>

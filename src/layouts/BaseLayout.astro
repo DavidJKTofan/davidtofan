@@ -203,7 +203,10 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <script>
       function setupThemeToggle() {
         const themeToggle = document.getElementById('theme-toggle');
-        if (!themeToggle) return;
+        if (!(themeToggle instanceof HTMLButtonElement)) return;
+        if (themeToggle.dataset.themeToggleBound === 'true') return;
+
+        themeToggle.dataset.themeToggleBound = 'true';
 
         themeToggle.addEventListener('click', () => {
           const isDark = document.documentElement.classList.toggle('dark');
@@ -211,8 +214,16 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
         });
       }
 
+      function initThemeToggle() {
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setupThemeToggle, { once: true });
+        } else {
+          setupThemeToggle();
+        }
+      }
+
       document.addEventListener('astro:page-load', setupThemeToggle);
-      setupThemeToggle();
+      initThemeToggle();
     </script>
   </body>
 </html>

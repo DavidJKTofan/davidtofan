@@ -132,7 +132,10 @@ const currentPath = Astro.url.pathname;
     const menuIcon = toggle?.querySelector('.menu-icon');
     const closeIcon = toggle?.querySelector('.close-icon');
 
-    if (!toggle || !menu || !menuIcon || !closeIcon) return;
+    if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement) || !menuIcon || !closeIcon) return;
+    if (toggle.dataset.mobileMenuBound === 'true') return;
+
+    toggle.dataset.mobileMenuBound = 'true';
 
     toggle.addEventListener('click', () => {
       const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
@@ -153,6 +156,14 @@ const currentPath = Astro.url.pathname;
     });
   }
 
+  function initMobileMenu() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupMobileMenu, { once: true });
+    } else {
+      setupMobileMenu();
+    }
+  }
+
   document.addEventListener('astro:page-load', setupMobileMenu);
-  setupMobileMenu();
+  initMobileMenu();
 </script>

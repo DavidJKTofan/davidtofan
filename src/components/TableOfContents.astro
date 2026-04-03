@@ -57,15 +57,24 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 </style>
 
 <script>
+  let cleanupTableOfContents = () => {};
+
   function initTableOfContents() {
+    cleanupTableOfContents();
+
     const tocLinks = document.querySelectorAll('[data-toc-link]');
     const headings = document.querySelectorAll('article h2[id], article h3[id]');
     
-    if (!tocLinks.length || !headings.length) return;
+    if (!tocLinks.length || !headings.length) {
+      cleanupTableOfContents = () => {};
+      return;
+    }
+
+    const removeLinkListeners: Array<() => void> = [];
 
     // Scroll to heading on click
     tocLinks.forEach((link) => {
-      link.addEventListener('click', (e) => {
+      const onClick = (e: Event) => {
         e.preventDefault();
         const href = link.getAttribute('href');
         if (!href) return;
@@ -86,7 +95,10 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
           // Update URL hash without jumping
           history.pushState(null, '', href);
         }
-      });
+      };
+
+      link.addEventListener('click', onClick);
+      removeLinkListeners.push(() => link.removeEventListener('click', onClick));
     });
 
     // Highlight current section on scroll
@@ -122,19 +134,22 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
       observer.observe(heading);
     });
 
-    // Clean up on page change
-    document.addEventListener('astro:before-swap', () => {
+    cleanupTableOfContents = () => {
       observer.disconnect();
-    }, { once: true });
+      removeLinkListeners.forEach((removeListener) => removeListener());
+    };
+  }
+
+  function setupTableOfContents() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTableOfContents, { once: true });
+    } else {
+      initTableOfContents();
+    }
   }
 
   // Initialize on page load
   document.addEventListener('astro:page-load', initTableOfContents);
-  
-  // Also run immediately for initial page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTableOfContents);
-  } else {
-    initTableOfContents();
-  }
+  document.addEventListener('astro:before-swap', () => cleanupTableOfContents());
+  setupTableOfContents();
 </script>

@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import rehypeExternalLinks from 'rehype-external-links';
 
@@ -35,9 +34,6 @@ export default defineConfig({
     imageService: 'compile',
   }),
   integrations: [
-    tailwind({
-      applyBaseStyles: false,
-    }),
     sitemap({
       // Default change frequency for all pages
       changefreq: 'monthly',
@@ -92,10 +88,5 @@ export default defineConfig({
   compressHTML: true,
   build: {
     inlineStylesheets: 'auto',
-  },
-  vite: {
-    build: {
-      cssMinify: 'lightningcss',
-    },
   },
 });

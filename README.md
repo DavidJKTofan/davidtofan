@@ -4,10 +4,9 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 
 ## Tech Stack
 
-- **Framework**: [Astro 5](https://astro.build) with TypeScript
-- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with Typography plugin
-  - Note: Tailwind 4 requires different setup (Vite plugin vs Astro integration). Current setup is stable.
-- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with Static Assets
+- **Framework**: [Astro 6](https://astro.build) with TypeScript
+- **Styling**: [Tailwind CSS 3](https://tailwindcss.com) with PostCSS and Typography plugin
+- **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with the official `@astrojs/cloudflare` adapter
 - **Content**: Markdown with Zod validation (Content Collections)
 - **Fonts**: System font stack (no external CDN dependencies)
 - **Design**: [Canva](https://www.canva.com)
@@ -67,18 +66,18 @@ src/
 npm install      # Install dependencies
 npm run dev      # Start Astro dev server (localhost:4321)
 npm run build    # Generate types + build for production
-npm run preview  # Build + run with Wrangler locally
+npm run preview  # Build + run Astro preview locally
 npm run deploy   # Build + deploy to Cloudflare Workers
 ```
 
 ### Development Workflow
 
-1. **Local development** (fast refresh, no Workers):
+1. **Local development** (Astro dev with Cloudflare's local runtime):
    ```bash
    npm run dev
    ```
 
-2. **Test with Workers locally** (full production simulation):
+2. **Preview the production build locally**:
    ```bash
    npm run preview
    ```
@@ -89,6 +88,8 @@ npm run deploy   # Build + deploy to Cloudflare Workers
    ```
 
 > **Note**: `npm run build` automatically runs `wrangler types` first to ensure TypeScript types are up-to-date with your `wrangler.jsonc` configuration.
+>
+> **Note**: On the first `npm run dev` after dependency or config changes, Vite may re-optimize dependencies and trigger a couple of automatic reloads. That is expected.
 
 ## Adding Content
 
@@ -236,7 +237,8 @@ The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `publ
 
 - **Engine**: Shiki with `github-dark-default` theme
 - **Config**: Word wrap enabled, language identifiers on all code blocks
-- All markdown code blocks use explicit language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
+- All markdown code blocks use explicit supported language identifiers (e.g., `bash`, `javascript`, `html`, `text`)
+- For plain ASCII diagrams, prefer `text` instead of unsupported fence labels so Shiki does not warn and fall back to plaintext
 
 ### Cloudflare Workers Static Assets
 
@@ -264,6 +266,7 @@ These are assumptions:
 
 ```jsonc
 {
+  "main": "@astrojs/cloudflare/entrypoints/server",
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash",
@@ -271,6 +274,13 @@ These are assumptions:
   }
 }
 ```
+
+#### Astro 6 / Cloudflare Notes
+
+- Astro 6 requires Node `22.12.0+`
+- The Cloudflare adapter now uses the unified Worker entrypoint `@astrojs/cloudflare/entrypoints/server`
+- `npm run dev` runs against Cloudflare's local runtime, so development behavior is closer to production than in older Astro versions
+- Tailwind is wired through `postcss.config.cjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
 
 ### Static Asset Headers (`public/_headers`)
 

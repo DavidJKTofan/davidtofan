@@ -5,14 +5,21 @@
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 
 <script>
+  let cleanupReadingProgress = () => {};
+
   function setupReadingProgress() {
+    cleanupReadingProgress();
+
     const progressBar = document.getElementById('reading-progress');
     const article = document.querySelector('article');
     
-    if (!progressBar || !article) return;
+    if (!(progressBar instanceof HTMLElement) || !(article instanceof HTMLElement)) {
+      cleanupReadingProgress = () => {};
+      return;
+    }
 
     function updateProgress() {
-      const articleRect = article!.getBoundingClientRect();
+      const articleRect = article.getBoundingClientRect();
       const articleTop = articleRect.top + window.scrollY;
       const articleHeight = articleRect.height;
       const windowHeight = window.innerHeight;
@@ -26,12 +33,12 @@
 
       let progress = Math.max(0, Math.min(1, current / total));
       
-      progressBar!.style.transform = `scaleX(${progress})`;
+      progressBar.style.transform = `scaleX(${progress})`;
     }
 
     // Use requestAnimationFrame for smooth updates
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    const onScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
           updateProgress();
@@ -39,12 +46,27 @@
         });
         ticking = true;
       }
-    }, { passive: true });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     // Initial update
     updateProgress();
+
+    cleanupReadingProgress = () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }
+
+  function initReadingProgress() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupReadingProgress, { once: true });
+    } else {
+      setupReadingProgress();
+    }
   }
 
   document.addEventListener('astro:page-load', setupReadingProgress);
-  setupReadingProgress();
+  document.addEventListener('astro:before-swap', () => cleanupReadingProgress());
+  initReadingProgress();
 </script>
