@@ -13,15 +13,79 @@ tags:
 type: "article"
 ---
 
-<script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ 
-        startOnLoad: true,
-        flowchart: {
-            htmlLabels: true,
-            curve: 'basis'
+<script data-astro-rerun>
+(() => {
+  const MERMAID_CDN_URL = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  const mermaidState = window.__pqcMermaidState || (window.__pqcMermaidState = {});
+
+  async function ensureMermaid() {
+    if (mermaidState.instancePromise) {
+      return mermaidState.instancePromise;
+    }
+
+    mermaidState.instancePromise = import(MERMAID_CDN_URL)
+      .then(({ default: mermaid }) => {
+        if (!mermaidState.initialized) {
+          mermaid.initialize({
+            startOnLoad: false,
+            flowchart: {
+              htmlLabels: true,
+              curve: 'basis',
+            },
+          });
+          mermaidState.initialized = true;
         }
-    });
+
+        return mermaid;
+      })
+      .catch((error) => {
+        mermaidState.instancePromise = undefined;
+        throw error;
+      });
+
+    return mermaidState.instancePromise;
+  }
+
+  async function renderMermaidDiagrams() {
+    const nodes = Array.from(
+      document.querySelectorAll('pre.mermaid:not([data-processed="true"]):not([data-mermaid-pending="true"])'),
+    );
+
+    if (nodes.length === 0) return;
+
+    for (const node of nodes) {
+      node.setAttribute('data-mermaid-pending', 'true');
+    }
+
+    try {
+      const mermaid = await ensureMermaid();
+      await mermaid.run({ nodes });
+    } catch (error) {
+      console.error('Failed to render Mermaid diagrams:', error);
+    } finally {
+      for (const node of nodes) {
+        if (node.isConnected) {
+          node.removeAttribute('data-mermaid-pending');
+        }
+      }
+    }
+  }
+
+  let didRun = false;
+  function renderOnce() {
+    if (didRun) return;
+    didRun = true;
+    renderMermaidDiagrams();
+  }
+
+  document.addEventListener('astro:page-load', renderOnce, { once: true });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderOnce, { once: true });
+  } else {
+    renderOnce();
+  }
+})();
 </script>
 
 ## What is Post-Quantum Cryptography (PQC)?
