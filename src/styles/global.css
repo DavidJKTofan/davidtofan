@@ -154,8 +154,16 @@
 
   /* Gradient text */
   .gradient-text {
-    @apply bg-clip-text text-transparent;
-    @apply bg-gradient-to-r from-accent-500 via-accent-600 to-accent-500;
+    @apply inline-block text-accent-600;
+
+    /* Only make text transparent when clipping support is available. */
+    @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+      @apply bg-gradient-to-r from-accent-500 via-accent-600 to-accent-500;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
   }
 
   /* Animated underline */
