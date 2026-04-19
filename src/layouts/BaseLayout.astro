@@ -40,6 +40,10 @@ const {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImageURL = new URL(image, Astro.site);
 const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.name}`;
+const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null;
+const aiSearchSnippetURL = aiSearchConfig
+  ? new URL(`/assets/${aiSearchConfig.snippetVersion}/search-snippet.es.js`, aiSearchConfig.apiUrl).toString()
+  : null;
 const structuredDataItems = structuredData
   ? (Array.isArray(structuredData) ? structuredData : [structuredData])
   : [];
@@ -176,6 +180,10 @@ const structuredDataItems = structuredData
     <!-- View Transitions: Enables smooth page navigation and prefetching -->
     <ClientRouter />
 
+    {aiSearchSnippetURL && (
+      <script type="module" src={aiSearchSnippetURL}></script>
+    )}
+
     <!-- Theme Script (prevent flash and persist across View Transitions) -->
     <script is:inline>
       // Get the user's theme preference
@@ -226,8 +234,18 @@ const structuredDataItems = structuredData
 
     <!-- Theme toggle script -->
     <script>
+      function syncAISearchTheme() {
+        const modal = document.getElementById('site-search-modal');
+        if (!(modal instanceof HTMLElement)) return;
+
+        const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        modal.setAttribute('theme', theme);
+      }
+
       function setupThemeToggle() {
         const themeToggle = document.getElementById('theme-toggle');
+        syncAISearchTheme();
+
         if (!(themeToggle instanceof HTMLButtonElement)) return;
         if (themeToggle.dataset.themeToggleBound === 'true') return;
 
@@ -236,6 +254,7 @@ const structuredDataItems = structuredData
         themeToggle.addEventListener('click', () => {
           const isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          syncAISearchTheme();
         });
       }
 
@@ -247,7 +266,14 @@ const structuredDataItems = structuredData
         }
       }
 
-      document.addEventListener('astro:page-load', setupThemeToggle);
+      function bindThemeTogglePageLoad() {
+        if (document.documentElement.dataset.themeTogglePageLoadBound === 'true') return;
+
+        document.documentElement.dataset.themeTogglePageLoadBound = 'true';
+        document.addEventListener('astro:page-load', setupThemeToggle);
+      }
+
+      bindThemeTogglePageLoad();
       initThemeToggle();
     </script>
   </body>

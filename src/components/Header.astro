@@ -2,6 +2,7 @@
 import { navigation, siteConfig } from '../config/site';
 
 const currentPath = Astro.url.pathname;
+const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null;
 ---
 
 <header class="fixed top-0 left-0 right-0 z-40">
@@ -11,7 +12,7 @@ const currentPath = Astro.url.pathname;
         <!-- Logo -->
         <a
           href="/"
-          class="flex items-center gap-3 group"
+          class="header-hit-area inline-flex min-h-11 items-center gap-3 rounded-xl px-1.5 group"
           aria-label="DT — Home"
         >
           <div class="relative w-9 h-9 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/25 group-hover:shadow-accent-500/40 transition-shadow duration-300">
@@ -31,14 +32,14 @@ const currentPath = Astro.url.pathname;
               <a
                 href={item.href}
                 class:list={[
-                  'relative px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                  'header-hit-area inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
                   isActive
                     ? 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20'
                     : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800',
                 ]}
                 aria-current={isActive ? 'page' : undefined}
               >
-                {item.label}
+                <span>{item.label}</span>
               </a>
             );
           })}
@@ -46,31 +47,56 @@ const currentPath = Astro.url.pathname;
 
         <!-- Right side actions -->
         <div class="flex items-center gap-2">
+          {aiSearchConfig && (
+            <button
+              id="search-modal-trigger"
+              type="button"
+              class="header-hit-area inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+              aria-label="Search David Tofan's site"
+              aria-haspopup="dialog"
+              title="Search David Tofan's site (Cmd/Ctrl+K)"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
+            </button>
+          )}
+
           <!-- Theme toggle -->
           <button
             id="theme-toggle"
             type="button"
-            class="inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+            class="header-hit-area inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
             aria-label="Toggle theme"
           >
             <!-- Sun icon (shown in dark mode) -->
             <svg
-              class="w-5 h-5 hidden dark:block"
+              class="hidden w-5 h-5 dark:block"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               stroke-width="2"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
             <!-- Moon icon (shown in light mode) -->
             <svg
-              class="w-5 h-5 block dark:hidden"
+              class="block w-5 h-5 dark:hidden"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
               stroke-width="2"
+              aria-hidden="true"
             >
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
@@ -80,15 +106,15 @@ const currentPath = Astro.url.pathname;
           <button
             id="mobile-menu-toggle"
             type="button"
-            class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+            class="header-hit-area md:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
             aria-label="Toggle menu"
             aria-expanded="false"
             aria-controls="mobile-menu"
           >
-            <svg class="w-5 h-5 menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5 menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg class="w-5 h-5 hidden close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5 hidden close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -110,20 +136,34 @@ const currentPath = Astro.url.pathname;
           <a
             href={item.href}
             class:list={[
-              'block px-4 py-3 rounded-lg text-base font-medium transition-all duration-200',
+              'header-hit-area block rounded-lg px-4 py-3 text-base font-medium transition-all duration-200',
               isActive
                 ? 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20'
                 : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800',
             ]}
             aria-current={isActive ? 'page' : undefined}
           >
-            {item.label}
+            <span>{item.label}</span>
           </a>
         );
       })}
     </nav>
   </div>
 </header>
+
+{aiSearchConfig && (
+  <search-modal-snippet
+    id="site-search-modal"
+    api-url={aiSearchConfig.apiUrl}
+    placeholder={aiSearchConfig.placeholder}
+    shortcut={aiSearchConfig.shortcut}
+    max-results={aiSearchConfig.maxResults ? String(aiSearchConfig.maxResults) : undefined}
+    show-url={aiSearchConfig.showUrl ? 'true' : undefined}
+    show-date={aiSearchConfig.showDate ? 'true' : undefined}
+    hide-branding={String(aiSearchConfig.hideBranding ?? false)}
+    theme="light"
+  ></search-modal-snippet>
+)}
 
 <script>
   function setupMobileMenu() {
@@ -164,6 +204,59 @@ const currentPath = Astro.url.pathname;
     }
   }
 
-  document.addEventListener('astro:page-load', setupMobileMenu);
-  initMobileMenu();
+  function syncSearchModalTheme() {
+    const modal = document.getElementById('site-search-modal');
+    if (!(modal instanceof HTMLElement)) return;
+
+    const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    modal.setAttribute('theme', theme);
+  }
+
+  function setupSearchModal() {
+    const trigger = document.getElementById('search-modal-trigger');
+    const modal = document.getElementById('site-search-modal');
+
+    syncSearchModalTheme();
+
+    if (!(trigger instanceof HTMLButtonElement) || !(modal instanceof HTMLElement)) return;
+    if (trigger.dataset.searchModalBound === 'true') return;
+
+    trigger.dataset.searchModalBound = 'true';
+
+    trigger.addEventListener('click', async () => {
+      if (typeof customElements !== 'undefined') {
+        await customElements.whenDefined('search-modal-snippet');
+      }
+
+      syncSearchModalTheme();
+
+      const searchModal = modal as HTMLElement & { open?: () => void };
+      searchModal.open?.();
+    });
+  }
+
+  function initHeaderActions() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setupMobileMenu();
+        setupSearchModal();
+      }, { once: true });
+    } else {
+      setupMobileMenu();
+      setupSearchModal();
+    }
+  }
+
+  function bindHeaderActionsPageLoad() {
+    if (document.documentElement.dataset.headerActionsPageLoadBound === 'true') return;
+
+    document.documentElement.dataset.headerActionsPageLoadBound = 'true';
+    document.addEventListener('astro:page-load', () => {
+      setupMobileMenu();
+      setupSearchModal();
+    });
+  }
+
+  bindHeaderActionsPageLoad();
+  initHeaderActions();
 </script>

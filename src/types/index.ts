@@ -3,6 +3,17 @@ export interface SiteConfig {
   title: string;
   description: string;
   url: string;
+  aiSearch?: {
+    enabled: boolean;
+    apiUrl: string;
+    snippetVersion: string;
+    placeholder?: string;
+    shortcut?: string;
+    maxResults?: number;
+    showUrl?: boolean;
+    showDate?: boolean;
+    hideBranding?: boolean;
+  };
   author: {
     name: string;
     // email: string;

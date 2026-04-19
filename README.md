@@ -7,6 +7,7 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 - **Framework**: [Astro 6](https://astro.build) with TypeScript
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com) via `@tailwindcss/vite` with the Typography plugin
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with the official `@astrojs/cloudflare` adapter
+- **Search**: [Cloudflare AI Search](https://developers.cloudflare.com/ai-search/) modal via Web Components
 - **Content**: Markdown with Zod validation (Content Collections)
 - **Fonts**: System font stack (no external CDN dependencies)
 - **Design**: [Canva](https://www.canva.com)
@@ -58,6 +59,8 @@ src/
 ├── types/
 │   └── index.ts          # Shared TypeScript types
 └── content.config.ts     # Content collection schemas
+
+src/config/site.ts also contains the AI Search feature flag and endpoint configuration.
 ```
 
 ## Commands
@@ -86,6 +89,36 @@ npm run deploy   # Build + deploy to Cloudflare Workers
    ```bash
    npm run deploy
    ```
+
+## AI Search Configuration
+
+Cloudflare AI Search is configured in `src/config/site.ts` through the exported `aiSearchConfig` object.
+
+The current implementation follows Cloudflare's `search-modal-snippet` Component API Reference, especially the common props (`api-url`, `placeholder`, `theme`, `hide-branding`) and the modal-specific props (`max-results`, `show-url`, `show-date`, `shortcut`).
+
+```ts
+export const aiSearchConfig = {
+  enabled: true,
+  apiUrl: 'https://<id>.search.ai.cloudflare.com/',
+  snippetVersion: 'v0.0.36',
+  placeholder: "Search David's articles, projects, certificates, and Cloudflare guides...",
+  shortcut: 'k',
+  maxResults: 5,
+  showUrl: true,
+  showDate: true,
+  hideBranding: false,
+};
+```
+
+- **Enable / disable the feature**: set `enabled` to `true` or `false`.
+- **Change the Cloudflare AI Search ID**: update the `apiUrl` value. The current ID is the UUID in `https://<id>.search.ai.cloudflare.com/`.
+- **Change the search prompt text**: update `placeholder` to better match the site's content focus.
+- **Change result count**: update `maxResults`.
+- **Show content dates**: set `showDate` to `true` or `false`.
+- **Show Cloudflare branding**: keep `hideBranding: false` if you want the default “Powered by Cloudflare” attribution visible.
+- **Change snippet version**: update `snippetVersion` if Cloudflare releases a newer embed asset version.
+
+The search button, modal markup, and snippet loader all read from this config, so no edits are needed in the header or layout when toggling the feature or changing the AI Search endpoint.
 
 > **Note**: `npm run build` automatically runs `wrangler types` first to ensure TypeScript types are up-to-date with your `wrangler.jsonc` configuration.
 >
@@ -185,6 +218,7 @@ Add to `src/data/certificates.json`:
 ### UI/UX
 - **Fixed header**: Always visible navigation bar on all devices
 - **Dark/Light mode**: System detection with manual toggle, persists across page navigations
+- **AI Search modal**: Cloudflare AI Search button in the header with Cmd/Ctrl+K shortcut support
 - **Theme-aware browser chrome**: `html`-level `color-scheme` and custom scrollbar variables keep the right-edge gutter aligned with light/dark mode
 - **View Transitions**: Smooth page navigation with Astro's ClientRouter
 - **Link Prefetching**: Hover-based prefetch for faster perceived navigation
