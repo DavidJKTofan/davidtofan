@@ -20,6 +20,7 @@ import PerformanceFlow from '../../../components/agent-ready-guide/p6-Performanc
 import SecurityRisksGrid from '../../../components/agent-ready-guide/p7-SecurityRisksGrid.astro';
 import ChecklistTable from '../../../components/agent-ready-guide/p8-ChecklistTable.astro';
 import { getContentImagePath, getEffectiveModifiedTime } from '../../../lib/contentMetadata.js';
+import agentReadinessScreenshot from '../../../content/articles/ai-agent-ready-website-cloudflare-guide/img/agent-readiness-https---davidtofan-com 2.png';
 
 // Pull metadata from the companion content collection entry
 const article = await getEntry('articles', 'ai-agent-ready-website-cloudflare-guide');
@@ -748,6 +749,25 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
                 This is a non-exhaustive practitioner's intro to making your website AI agent-ready. Educational purposes only — the standards above will keep shifting, and that's the point. Audit your site at <a href="https://isitagentready.com/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">isitagentready.com</a>, read your crawl-to-refer ratio on <a href="https://radar.cloudflare.com/ai-insights" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">Cloudflare Radar AI Insights</a>, then decide consciously what you want to expose, monetize, or block. Properly inform yourself, keep learning, keep testing — and, as always, secure before you ship.
               </p>
             </blockquote>
+
+            <figure class="not-prose mt-6 overflow-hidden rounded-2xl border border-surface-200/80 bg-white shadow-sm dark:border-surface-700 dark:bg-surface-900">
+              <a
+                href="https://isitagentready.com/davidtofan.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="block focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface-900"
+              >
+                <img
+                  src={agentReadinessScreenshot.src}
+                  alt="IsItAgentReady assessment result for davidtofan.com"
+                  loading="lazy"
+                  class="w-full h-auto"
+                />
+              </a>
+              <figcaption class="px-4 py-3 text-sm text-surface-600 dark:text-surface-300">
+                Live check: <a href="https://isitagentready.com/davidtofan.com" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">isitagentready.com/davidtofan.com</a>
+              </figcaption>
+            </figure>
           </div>
         </SectionBlock>
 
