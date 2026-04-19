@@ -7,7 +7,7 @@ tags:
     "cybersecurity",
     "cloudflare",
     "resources",
-    "application performance",
+    "performance",
   ]
 type: "article"
 ---

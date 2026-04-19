@@ -60,7 +60,9 @@ https://davidtofan-astro.cf-testing.workers.dev/*
 
 # RSL 1.0 machine-readable license document — https://rslstandard.org/rsl
 /rsl.xml
-  Content-Type: application/rsl+xml; charset=utf-8
+  # Use a browser-native XML media type so the document renders instead of downloading.
+  Content-Type: application/xml; charset=utf-8
+  Content-Disposition: inline
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 

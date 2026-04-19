@@ -7,7 +7,7 @@ tags:
     "cybersecurity",
     "cloudflare",
     "resources",
-    "application performance",
+    "performance",
     "resilience",
     "business continuity",
   ]

@@ -76,7 +76,9 @@ const risks = [
     ref: 'Agentic',
     summary: 'Replay, impersonation, and unbounded spend by autonomous agents.',
     fix: 'Trusted Agent Protocol. For operators running bots, Web Bot Auth with nonce + created + expires. Spend caps enforced outside the LLM loop.',
-    feature: 'Trusted Agent Protocol',
+    productLinks: [
+      { label: 'Trusted Agent Protocol', href: 'https://blog.cloudflare.com/secure-agentic-commerce/' },
+    ],
   },
 ];
 ---
@@ -117,7 +119,7 @@ const risks = [
           {r.fix}
           <div class="mt-2 flex flex-wrap items-center gap-2 text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">
             <span aria-hidden="true">→</span>
-            {r.productLinks ? r.productLinks.map((product) => (
+            {r.productLinks.map((product) => (
               <a
                 href={product.href}
                 target="_blank"
@@ -126,9 +128,7 @@ const risks = [
               >
                 {product.label}
               </a>
-            )) : (
-              <span>{r.feature}</span>
-            )}
+            ))}
           </div>
         </div>
       </div>
