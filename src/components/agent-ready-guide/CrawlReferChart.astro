@@ -1,19 +1,24 @@
 ---
 // Crawl-to-refer ratio chart — logarithmic-feeling bar visualization
+// Source: https://radar.cloudflare.com/ai-insights#crawl-to-refer-ratio
+// `value` is numeric for the bar math; `label` mirrors Radar's display
+// verbatim so no precision is invented when Radar renders compact K notation.
 const platforms = [
-  { name: 'Anthropic', ratio: 38065, color: 'red', logo: 'A' },
-  { name: 'OpenAI', ratio: 1091, color: 'emerald', logo: 'O' },
-  { name: 'Perplexity', ratio: 195, color: 'violet', logo: 'P' },
-  { name: 'Microsoft', ratio: 41, color: 'sky', logo: 'M' },
-  { name: 'Yandex', ratio: 21, color: 'rose', logo: 'Y' },
-  { name: 'Google', ratio: 5.4, color: 'amber', logo: 'G' },
-  { name: 'ByteDance', ratio: 0.9, color: 'cyan', logo: 'B' },
-  { name: 'Mistral', ratio: 0.1, color: 'indigo', logo: 'M' },
+  { name: 'Anthropic',  value: 28700, label: '28.7K' },
+  { name: 'OpenAI',     value: 1100,  label: '1.1K' },
+  { name: 'Perplexity', value: 133,   label: '133' },
+  { name: 'Microsoft',  value: 37.7,  label: '37.7' },
+  { name: 'Mistral',    value: 21.2,  label: '21.2' },
+  { name: 'Yandex',     value: 19.4,  label: '19.4' },
+  { name: 'Google',     value: 7.8,   label: '7.8' },
+  { name: 'Baidu',      value: 2.7,   label: '2.7' },
+  { name: 'ByteDance',  value: 2,     label: '2' },
+  { name: 'DuckDuckGo', value: 0.99,  label: '0.99' },
 ];
 
-const maxLog = Math.log10(platforms[0].ratio + 1);
+const maxLog = Math.log10(platforms[0].value + 1);
 const rows = platforms.map((p) => {
-  const w = Math.max(2, (Math.log10(p.ratio + 1) / maxLog) * 100);
+  const w = Math.max(2, (Math.log10(p.value + 1) / maxLog) * 100);
   return { ...p, width: w };
 });
 ---
@@ -21,7 +26,7 @@ const rows = platforms.map((p) => {
 <div class="my-8 rounded-2xl border border-surface-200 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-950/60 overflow-hidden">
   <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-surface-100/60 dark:bg-surface-900/60">
     <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">
-      Crawl-to-refer ratio · July 2025
+      Crawl-to-refer ratio · April 2026
     </span>
     <span class="text-2xs font-mono text-surface-600 dark:text-surface-400">log scale · lower = better</span>
   </div>
@@ -42,7 +47,7 @@ const rows = platforms.map((p) => {
           ></div>
         </div>
         <div class="text-right font-mono text-xs sm:text-sm text-surface-600 dark:text-surface-300 tabular-nums">
-          <span class="font-semibold">{p.ratio.toLocaleString()}</span>:1
+          <span class="font-semibold">{p.label}</span>:1
         </div>
       </div>
     ))}
@@ -50,7 +55,7 @@ const rows = platforms.map((p) => {
 
   <div class="px-5 py-3 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
     <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
-      Read: for every single visitor Anthropic's crawler refers back, it has read ~38,000 pages.
+      Read: for every single visitor Anthropic's crawler refers back, it has read ~28.7K pages.
       <br>Live data on
       <a href="https://radar.cloudflare.com/ai-insights#crawl-to-refer-ratio" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Cloudflare Radar — AI Insights</a>.
     </p>
