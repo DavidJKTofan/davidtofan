@@ -100,7 +100,7 @@
   /* Button styles */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-lg font-medium;
+    @apply min-h-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
     @apply focus:ring-2 focus:ring-offset-2;
     @apply bg-accent-500 text-white;
@@ -110,7 +110,7 @@
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-lg font-medium;
+    @apply min-h-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
     @apply focus:ring-2 focus:ring-offset-2;
     @apply bg-surface-100 dark:bg-surface-800;
@@ -121,7 +121,7 @@
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2;
-    @apply px-4 py-2 rounded-lg font-medium;
+    @apply min-h-11 min-w-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
     @apply focus:ring-2 focus:ring-offset-2;
     @apply text-surface-600 dark:text-surface-400;

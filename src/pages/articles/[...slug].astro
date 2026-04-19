@@ -97,7 +97,7 @@ const articleUpdatedAt = getEffectiveModifiedTime(article.data);
           {article.data.tags.length > 0 && (
             <div class="flex flex-wrap gap-2 mb-4">
               {article.data.tags.slice(0, 4).map((tag: string) => (
-                <span class="tag tag-accent text-xs">
+                <span class="tag tag-accent text-sm sm:text-xs">
                   {tag}
                 </span>
               ))}

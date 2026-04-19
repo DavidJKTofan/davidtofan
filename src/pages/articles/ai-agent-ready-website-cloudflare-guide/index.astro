@@ -91,9 +91,9 @@ const readingTime = data?.readingTime ?? 14;
         <header class="mb-10">
           <div class="flex flex-wrap gap-2 mb-4">
             {tags.slice(0, 4).map((tag: string) => (
-              <span class="tag tag-accent text-xs">{tag}</span>
+              <span class="tag tag-accent text-sm sm:text-xs">{tag}</span>
             ))}
-            <span class="tag text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">interactive</span>
+            <span class="tag text-sm sm:text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">interactive</span>
           </div>
 
           <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-6 text-balance">
