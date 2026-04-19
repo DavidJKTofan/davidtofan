@@ -190,11 +190,14 @@ const readingTime = data?.readingTime ?? 14;
 
             <h3>Link response headers for agent discovery</h3>
             <p>
-              Return <code>Link:</code> headers on your homepage so agents can find machine-readable resources without parsing HTML. Specified by
-              <a href="https://www.rfc-editor.org/rfc/rfc8288" target="_blank" rel="noopener noreferrer">RFC 8288</a>
-              and
-              <a href="https://www.rfc-editor.org/rfc/rfc9727#section-3" target="_blank" rel="noopener noreferrer">RFC 9727 §3</a>.
-              Use the registered relation types: <code>api-catalog</code>, <code>service-desc</code>, <code>service-doc</code>, <code>describedby</code>.
+              Return <code>Link:</code> headers on your homepage so agents can find machine-readable resources without parsing HTML. The syntax is specified by
+              <a href="https://www.rfc-editor.org/rfc/rfc8288" target="_blank" rel="noopener noreferrer">RFC 8288</a>;
+              <a href="https://www.rfc-editor.org/rfc/rfc9727#section-3" target="_blank" rel="noopener noreferrer">RFC 9727 §3</a>
+              registers <code>api-catalog</code>. Common companion relations — <code>service-desc</code>, <code>service-doc</code>, <code>describedby</code> — come from
+              <a href="https://www.rfc-editor.org/rfc/rfc8631" target="_blank" rel="noopener noreferrer">RFC 8631</a>
+              and appear in
+              <a href="https://www.rfc-editor.org/rfc/rfc9727#appendix-A.1" target="_blank" rel="noopener noreferrer">RFC 9727 Appendix A.1</a>
+              as usage examples.
             </p>
             <pre><code>Link: &lt;/.well-known/api-catalog&gt;; rel=&quot;api-catalog&quot;
 Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;application/json&quot;</code></pre>
@@ -228,10 +231,10 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
 
           <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
             <p>
-              <a href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/" target="_blank" rel="noopener noreferrer">Markdown for Agents</a> performs edge-side HTML→Markdown conversion on the fly — no new <code>.md</code> files required. Cloudflare's own docs saw <strong>~80% token reduction</strong> (16,180 → 3,150 tokens on a typical page — see <a href="https://blog.cloudflare.com/agent-readiness/#content-accessibility" target="_blank" rel="noopener noreferrer">Agent Readiness · content accessibility</a>). The response also adds <code>x-markdown-tokens</code>, <code>vary: accept</code>, and a <code>content-signal</code> declaration.
+              <a href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/" target="_blank" rel="noopener noreferrer">Markdown for Agents</a> performs edge-side HTML→Markdown conversion on the fly — no new <code>.md</code> files required. Cloudflare's own docs reported <strong>up to ~80% token reduction</strong> — see <a href="https://blog.cloudflare.com/agent-readiness/#content-accessibility" target="_blank" rel="noopener noreferrer">Agent Readiness · content accessibility</a>. The response also adds <code>x-markdown-tokens</code>, <code>vary: accept</code>, and a <code>content-signal</code> declaration.
             </p>
             <p>
-              Today, only Claude Code, OpenCode, and Cursor send <code>Accept: text/markdown</code> by default — but emitting it costs you nothing.
+              In practice only a handful of coding agents — <strong>Claude Code, OpenCode, Cursor</strong> — are known to send <code>Accept: text/markdown</code> by default, but emitting it costs you nothing.
             </p>
             <p>
               For everyone else, add a URL fallback: make pages available at <code>/index.md</code> relative to the canonical URL. <a href="https://blog.cloudflare.com/agent-readiness/#url-fallbacks-using-index-md-files" target="_blank" rel="noopener noreferrer">Cloudflare documents this pattern</a> by combining a URL Rewrite Rule that strips <code>/index.md</code> back to the base path with a Request Header Transform Rule that matches on <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/raw.http.request.uri.path/" target="_blank" rel="noopener noreferrer"><code>raw.http.request.uri.path</code></a> and injects <code>accept: text/markdown</code>. That gives agents a deterministic Markdown URL even when they never negotiate on headers.
@@ -257,7 +260,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
           <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
             <p>
-              <a href="https://contentsignals.org/" target="_blank" rel="noopener noreferrer">Content Signals</a> — launched September 2025 under a CC0 (Creative Commons Zero) license and now an <a href="https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/" target="_blank" rel="noopener noreferrer">IETF (Internet Engineering Task Force) AIPREF (AI Preferences) draft</a> — introduces three preferences: <code>search</code>, <code>ai-input</code>, and <code>ai-train</code>. These are <em>preferences</em> plus a reservation of rights under the <a href="https://blog.cloudflare.com/content-signals-policy/" target="_blank" rel="noopener noreferrer">European Union (EU) Directive 2019/790 on Copyright and Related Rights in the Digital Single Market (DSM), Article 4</a>.
+              <a href="https://contentsignals.org/" target="_blank" rel="noopener noreferrer">Content Signals</a> — launched September 2025 under a CC0 (Creative Commons Zero) license and submitted to the <a href="https://datatracker.ietf.org/wg/aipref/about/" target="_blank" rel="noopener noreferrer">IETF (Internet Engineering Task Force) AIPREF (AI Preferences) working group</a> (the initial individual <a href="https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/" target="_blank" rel="noopener noreferrer">draft</a> has since expired; track the WG for the current revision) — introduces three preferences: <code>search</code>, <code>ai-input</code>, and <code>ai-train</code>. These are <em>preferences</em> plus a reservation of rights under the <a href="https://blog.cloudflare.com/content-signals-policy/" target="_blank" rel="noopener noreferrer">European Union (EU) Directive 2019/790 on Copyright and Related Rights in the Digital Single Market (DSM), Article 4</a>.
             </p>
 
             <h3>The three layers</h3>
@@ -357,7 +360,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
               The open-standard version is <a href="https://blog.cloudflare.com/x402/" target="_blank" rel="noopener noreferrer">x402</a>, governed by the x402 Foundation (Coinbase + Cloudflare) with stablecoin settlement.
             </p>
             <p>
-              The broader commerce layer — <a href="https://blog.cloudflare.com/secure-agentic-commerce/" target="_blank" rel="noopener noreferrer">Trusted Agent Protocol</a> (Cloudflare + Visa), Mastercard Agent Pay, Google AP2 (Agent Payments Protocol) — treats agent authentication and signed intent as first-class primitives.
+              The broader commerce layer — Visa's <a href="https://blog.cloudflare.com/secure-agentic-commerce/" target="_blank" rel="noopener noreferrer">Trusted Agent Protocol</a> (built on Cloudflare Web Bot Auth), Mastercard Agent Pay, Google AP2 (Agent Payments Protocol) — treats agent authentication and signed intent as first-class primitives.
             </p>
           </div>
 
@@ -523,7 +526,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
         >
           <blockquote class="my-6 rounded-xl bg-surface-50/70 dark:bg-surface-900/40 border-l-2 border-accent-500 p-5 sm:p-6">
             <p class="font-display text-lg sm:text-xl font-medium text-surface-800 dark:text-surface-100 leading-snug m-0 text-balance">
-              "Instead of being a fair trade, the web is being stripmined by AI crawlers with content creators seeing almost no traffic."
+              "The web is being stripmined by AI crawlers with content creators seeing almost no traffic and therefore almost no value."
             </p>
             <footer class="mt-3 text-sm text-surface-600 dark:text-surface-400">
               — Matthew Prince, Cloudflare,
@@ -593,7 +596,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
               </div>
               <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">MCP Servers for Cloudflare</div>
               <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
-                16 official remote MCP servers — docs, bindings, builds, Radar, AI Gateway, AI Search, Logs. Drop in with one config entry.
+                17 official remote MCP servers — docs, bindings, builds, Radar, AI Gateway, AI Search, Logs. Drop in with one config entry.
               </p>
             </a>
             <a
