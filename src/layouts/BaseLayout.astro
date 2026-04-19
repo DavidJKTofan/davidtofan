@@ -5,6 +5,8 @@ import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
+type StructuredData = Record<string, unknown>;
+
 interface Props {
   title?: string;
   description?: string;
@@ -14,6 +16,12 @@ interface Props {
   modifiedTime?: Date;
   tags?: string[];
   noIndex?: boolean;
+  // Opt out of the default Person JSON-LD (used on project/custom pages that
+  // emit their own schema.org block, so we don't mislead crawlers).
+  noPersonSchema?: boolean;
+  // Supply one or more custom JSON-LD payloads when a page needs semantics
+  // more specific than the default article/person fallback.
+  structuredData?: StructuredData | StructuredData[];
 }
 
 const {
@@ -25,11 +33,16 @@ const {
   modifiedTime,
   tags = [],
   noIndex = false,
+  noPersonSchema = false,
+  structuredData,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImageURL = new URL(image, Astro.site);
 const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.name}`;
+const structuredDataItems = structuredData
+  ? (Array.isArray(structuredData) ? structuredData : [structuredData])
+  : [];
 ---
 
 <!doctype html>
@@ -67,6 +80,14 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <!-- Sitemap -->
     <link rel="sitemap" href="/sitemap-index.xml" />
 
+    <!-- AI agent discovery — mirrors the Link response headers set in public/_headers.
+         rel="describedby" per RFC 9727 §3, rel="license" per the Cloudflare
+         ai-crawl-control + Transform Rules guide. The application/rsl+xml entry
+         points at the RSL 1.0 machine-readable license (https://rslstandard.org/rsl). -->
+    <link rel="describedby" type="text/html" href="/ai-licensing-terms/" />
+    <link rel="license" type="text/html" href="/ai-licensing-terms/" />
+    <link rel="license" type="application/rsl+xml" href="/rsl.xml" />
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={type} />
     <meta property="og:url" content={canonicalURL} />
@@ -95,7 +116,11 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
     <meta property="twitter:creator" content={siteConfig.author.twitter} />
 
     <!-- JSON-LD Structured Data -->
-    {type === 'article' ? (
+    {structuredDataItems.length > 0 ? (
+      structuredDataItems.map((item) => (
+        <script type="application/ld+json" set:html={JSON.stringify(item)} />
+      ))
+    ) : type === 'article' ? (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "BlogPosting",
@@ -111,8 +136,8 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
           "jobTitle": "Solutions Engineer",
           "sameAs": [
             `https://github.com/${siteConfig.author.github}`,
-            `https://linkedin.com/in/${siteConfig.author.linkedin}`,
-            `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+            `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
+            `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
           ],
         },
         "mainEntityOfPage": {
@@ -121,7 +146,7 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
         },
         "keywords": tags.join(", "),
       })} />
-    ) : (
+    ) : !noPersonSchema && (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Person",
@@ -132,8 +157,8 @@ const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.
         "image": new URL("/website-thumbnail.png", siteConfig.url).toString(),
         "sameAs": [
           `https://github.com/${siteConfig.author.github}`,
-          `https://linkedin.com/in/${siteConfig.author.linkedin}`,
-          `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
+          `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
+          `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
         ],
         "knowsAbout": [
           "Cybersecurity",

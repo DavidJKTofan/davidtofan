@@ -1,0 +1,452 @@
+---
+// Performance swimlane diagram — User → CF Edge → Tiered Cache/R2 → Origin
+// Grouped feature cards overlay the Cloudflare Edge lane
+---
+
+<div class="my-8 rounded-2xl border border-accent-500/40 dark:border-accent-500/30 bg-surface-50/50 dark:bg-surface-950/60 overflow-hidden shadow-lg shadow-accent-500/5">
+  <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-gradient-to-r from-accent-500/10 to-transparent">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="perf-dot flex-shrink-0"></span>
+      <span class="text-xs font-mono uppercase tracking-wider font-bold text-accent-700 dark:text-accent-300 truncate">
+        Request path · performance features grouped by stage
+      </span>
+    </div>
+    <a
+      href="https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-2xs font-mono text-accent-600 dark:text-accent-400 hover:underline flex-shrink-0"
+    >reference architecture →</a>
+  </div>
+
+  <div class="p-5 sm:p-6">
+    <!-- Swimlanes header -->
+    <div class="perf-lanes grid grid-cols-4 gap-2 mb-4 text-2xs font-mono uppercase tracking-wider">
+      <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400 truncate">User (eyeball)</div>
+      <div class="text-center py-2 rounded-md bg-accent-500/10 border border-accent-500/30 text-accent-700 dark:text-accent-400 truncate">Cloudflare edge</div>
+      <div class="text-center py-2 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 truncate">Tiered cache · R2</div>
+      <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400 truncate">Origin</div>
+    </div>
+
+    <!-- Feature groups stacked vertically, each row = pipeline stage -->
+    <div class="space-y-3">
+
+      <!-- Row 1: User connects, DNS + TLS + transport -->
+      <div class="perf-row" style="--i: 0">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-user" data-lane="User (eyeball)">
+            <div class="perf-label">Request</div>
+            <div class="text-2xs font-mono text-surface-700 dark:text-surface-300">GET /</div>
+          </div>
+          <div class="perf-lane perf-lane-edge perf-group-connection" data-lane="Cloudflare edge">
+            <div class="perf-group-title">Reduce latency · connection</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Global DNS</span>
+              <span class="perf-chip">HTTP/3 · QUIC</span>
+              <span class="perf-chip">TLS 1.3 · 0-RTT</span>
+              <span class="perf-chip">HSTS</span>
+              <span class="perf-chip">Early Hints</span>
+              <span class="perf-chip">Cloudflare Fonts</span>
+              <span class="perf-chip">Speed Brain</span>
+            </div>
+          </div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 2: Anycast / CDN footprint -->
+      <div class="perf-row" style="--i: 1">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-footprint perf-lane-span2" data-lane="Cloudflare edge">
+            <div class="perf-group-title">CDN network footprint</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Anycast · 330+ cities</span>
+              <span class="perf-chip">Nearest colo</span>
+              <span class="perf-chip">Tiered Cache</span>
+            </div>
+          </div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 3: URL & traffic handling -->
+      <div class="perf-row" style="--i: 2">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-routing" data-lane="Cloudflare edge">
+            <div class="perf-group-title">URL &amp; traffic handling</div>
+            <div class="perf-chips">
+              <span class="perf-chip">URL Normalization</span>
+              <span class="perf-chip">Redirect Rules</span>
+              <span class="perf-chip">Waiting Room</span>
+              <span class="perf-chip">Custom Errors</span>
+            </div>
+          </div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 4: Edge processing + cache decision -->
+      <div class="perf-row" style="--i: 3">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-edge" data-lane="Cloudflare edge">
+            <div class="perf-group-title">Edge processing</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Cache Rules</span>
+              <span class="perf-chip">Cache Response Rules</span>
+              <span class="perf-chip">Prefetch URLs</span>
+              <span class="perf-chip">Zaraz</span>
+              <span class="perf-chip">Google Tag Gateway</span>
+            </div>
+          </div>
+          <div class="perf-arrow perf-arrow-right"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 5: Cache HIT path -->
+      <div class="perf-row" style="--i: 4">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-cache" data-lane="Cloudflare edge">
+            <div class="perf-group-title">Reduce latency · caching</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Smart Tiered Caching</span>
+              <span class="perf-chip">Cache Reserve</span>
+              <span class="perf-chip">Cloud Connector</span>
+            </div>
+          </div>
+          <div class="perf-lane perf-lane-tier" data-lane="Tiered cache · R2">
+            <div class="perf-label perf-label-hit">Cache HIT</div>
+            <div class="text-2xs font-mono text-emerald-700 dark:text-emerald-400">R2 · Tiered</div>
+          </div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 6: Cache MISS path to origin -->
+      <div class="perf-row" style="--i: 5">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-origin" data-lane="Cloudflare edge">
+            <div class="perf-group-title">Reduce origin latency</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Argo Smart Routing</span>
+              <span class="perf-chip">HTTP/2 to origin</span>
+              <span class="perf-chip">Connection reuse</span>
+              <span class="perf-chip">Load Balancing</span>
+              <span class="perf-chip">Dedicated CDN Egress IPs</span>
+            </div>
+          </div>
+          <div class="perf-arrow perf-arrow-right-miss"></div>
+          <div class="perf-lane perf-lane-origin" data-lane="Origin">
+            <div class="perf-label perf-label-miss">Cache MISS</div>
+            <div class="text-2xs font-mono text-surface-700 dark:text-surface-300">fetch origin</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 7: Reduce size on return trip -->
+      <div class="perf-row" style="--i: 6">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-edge perf-group-size" data-lane="Cloudflare edge">
+            <div class="perf-group-title">Reduce size</div>
+            <div class="perf-chips">
+              <span class="perf-chip">Brotli · Gzip · Zstd</span>
+              <span class="perf-chip">Polish · Images</span>
+              <span class="perf-chip">Image Transformations</span>
+              <span class="perf-chip">Markdown for Agents</span>
+              <span class="perf-chip">Shared Dictionaries</span>
+            </div>
+          </div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+      <!-- Row 8: Response to user -->
+      <div class="perf-row" style="--i: 7">
+        <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
+          <div class="perf-lane perf-lane-user" data-lane="User (eyeball)">
+            <div class="perf-label perf-label-hit">Response</div>
+            <div class="text-2xs font-mono text-emerald-700 dark:text-emerald-400">200 OK · LCP &lt; 1.5s</div>
+          </div>
+          <div class="perf-arrow perf-arrow-left"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+          <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="px-5 py-3 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
+    <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
+      Every stage is a toggle — measure with
+      <a href="https://developers.cloudflare.com/speed/observatory/" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Speed Observatory</a>
+      (Lighthouse + RUM at p75), enable features, re-measure. <br>For agents specifically,
+      <a href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Markdown for Agents</a>
+      is the cheapest compression you can ship.
+    </p>
+  </div>
+</div>
+
+<style>
+  .perf-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129);
+  }
+  .perf-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129 / 0.4);
+    animation: perfDotPulse 1.8s ease-out infinite;
+  }
+  @keyframes perfDotPulse {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+
+  .perf-lane {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(214 211 209);
+    background: rgb(250 250 249 / 0.6);
+    min-height: 3.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  :global(.dark) .perf-lane {
+    border-color: rgb(41 37 36);
+    background: rgb(28 25 23 / 0.6);
+  }
+  .perf-lane-edge {
+    border-color: rgb(59 130 246 / 0.4);
+    background: rgb(59 130 246 / 0.05);
+  }
+  :global(.dark) .perf-lane-edge {
+    border-color: rgb(59 130 246 / 0.3);
+    background: rgb(59 130 246 / 0.08);
+  }
+  .perf-lane-user {
+    border-color: rgb(120 113 108 / 0.4);
+    background: rgb(120 113 108 / 0.04);
+  }
+  .perf-lane-tier {
+    border-color: rgb(245 158 11 / 0.4);
+    background: rgb(245 158 11 / 0.06);
+  }
+  :global(.dark) .perf-lane-tier {
+    border-color: rgb(245 158 11 / 0.3);
+    background: rgb(245 158 11 / 0.08);
+  }
+  .perf-lane-origin {
+    border-color: rgb(139 92 246 / 0.4);
+    background: rgb(139 92 246 / 0.05);
+  }
+  :global(.dark) .perf-lane-origin {
+    border-color: rgb(139 92 246 / 0.3);
+    background: rgb(139 92 246 / 0.08);
+  }
+  .perf-lane-dim {
+    opacity: 0.3;
+    background: transparent;
+    border-style: dashed;
+    min-height: 3.75rem;
+  }
+  .perf-lane-span2 {
+    grid-column: span 2 / span 2;
+  }
+
+  .perf-group-title {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(29 78 216);
+    font-weight: 600;
+    margin-bottom: 0.375rem;
+  }
+  :global(.dark) .perf-group-title {
+    color: rgb(147 197 253);
+  }
+
+  .perf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .perf-chip {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.7);
+    border: 1px solid rgb(214 211 209);
+    color: rgb(68 64 60);
+    white-space: nowrap;
+  }
+  :global(.dark) .perf-chip {
+    background: rgb(0 0 0 / 0.3);
+    border-color: rgb(68 64 60);
+    color: rgb(214 211 209);
+  }
+
+  .perf-label {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgb(87 83 78);
+    margin-bottom: 0.25rem;
+  }
+  :global(.dark) .perf-label {
+    color: rgb(168 162 158);
+  }
+  .perf-label-hit {
+    color: rgb(4 120 87);
+    font-weight: 700;
+  }
+  :global(.dark) .perf-label-hit {
+    color: rgb(110 231 183);
+  }
+  .perf-label-miss {
+    color: rgb(109 40 217);
+    font-weight: 700;
+  }
+  :global(.dark) .perf-label-miss {
+    color: rgb(196 181 253);
+  }
+
+  .perf-arrow {
+    position: relative;
+    min-height: 3.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .perf-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 6%;
+    right: 6%;
+    height: 2px;
+    transform: translateY(-50%);
+  }
+  .perf-arrow-right::after {
+    background: linear-gradient(90deg, rgb(59 130 246 / 0.3), rgb(16 185 129 / 0.7));
+  }
+  .perf-arrow-right::before {
+    content: '▶ HIT';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(250 250 249);
+    padding: 0 0.375rem;
+    color: rgb(5 150 105);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+  :global(.dark) .perf-arrow-right::before {
+    background: rgb(12 10 9);
+  }
+  .perf-arrow-right-miss::after {
+    background: linear-gradient(90deg, rgb(59 130 246 / 0.3), rgb(139 92 246 / 0.7));
+  }
+  .perf-arrow-right-miss::before {
+    content: '▶ MISS';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(250 250 249);
+    padding: 0 0.375rem;
+    color: rgb(139 92 246);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+  :global(.dark) .perf-arrow-right-miss::before {
+    background: rgb(12 10 9);
+  }
+  .perf-arrow-left::after {
+    background: linear-gradient(270deg, rgb(59 130 246 / 0.3), rgb(16 185 129 / 0.7));
+  }
+  .perf-arrow-left::before {
+    content: '◀';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgb(250 250 249);
+    padding: 0 0.375rem;
+    color: rgb(5 150 105);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+  :global(.dark) .perf-arrow-left::before {
+    background: rgb(12 10 9);
+  }
+
+  .perf-row {
+    opacity: 0;
+    transform: translateY(4px);
+    animation: perfRowIn 0.4s ease-out forwards;
+    animation-delay: calc(var(--i) * 0.07s + 0.1s);
+  }
+  @keyframes perfRowIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .perf-dot::before { animation: none; }
+    .perf-row { animation: none; opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 720px) {
+    .perf-lane { padding: 0.5rem; min-height: 3.25rem; }
+    .perf-lane-dim { min-height: 3.25rem; }
+    .perf-chip { font-size: 0.5625rem; padding: 0.0625rem 0.375rem; }
+    .perf-group-title { font-size: 0.5625rem; }
+    .perf-arrow { min-height: 3.25rem; }
+  }
+
+  @media (max-width: 640px) {
+    .perf-lanes { display: none; }
+    .perf-row-grid { grid-template-columns: minmax(0, 1fr); }
+    .perf-arrow, .perf-lane-empty { display: none; }
+    .perf-lane {
+      min-height: auto;
+      padding: 0.625rem;
+    }
+    .perf-lane-span2 { grid-column: auto; }
+    .perf-lane[data-lane]::before {
+      content: attr(data-lane);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.625rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgb(120 113 108);
+      margin-bottom: 0.375rem;
+    }
+    :global(.dark) .perf-lane[data-lane]::before {
+      color: rgb(168 162 158);
+    }
+  }
+</style>

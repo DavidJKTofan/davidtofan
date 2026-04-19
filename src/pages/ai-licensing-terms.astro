@@ -1,0 +1,185 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
+import { sitePageMetadata } from '../lib/contentMetadata.js';
+
+const { route, lastModified } = sitePageMetadata.aiLicensingTerms;
+const lastUpdated = lastModified;
+const lastUpdatedIso = new Date(`${lastUpdated}T00:00:00.000Z`).toISOString();
+
+const licensingTermsJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'AI Licensing Terms',
+  description:
+    "How davidtofan.com grants use to AI crawlers, retrievers, and training pipelines — and how to license what isn't granted by default.",
+  url: `${siteConfig.url}${route}`,
+  dateModified: lastUpdatedIso,
+  inLanguage: siteConfig.locale,
+  license: `${siteConfig.url}/rsl.xml`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: siteConfig.name,
+    url: siteConfig.url,
+  },
+  author: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+    url: siteConfig.url,
+    sameAs: [
+      `https://github.com/${siteConfig.author.github}`,
+      `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
+      `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
+    ],
+  },
+  keywords: [
+    'AI licensing',
+    'Content Signals',
+    'RSL',
+    'AI Crawl Control',
+    'Pay Per Crawl',
+  ],
+};
+---
+
+<BaseLayout
+  title="AI Licensing Terms"
+  description="How davidtofan.com grants use to AI crawlers, retrievers, and training pipelines — and how to license what isn't granted by default."
+  noPersonSchema={true}
+  structuredData={licensingTermsJsonLd}
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <header class="mb-10">
+      <p class="text-xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-3">
+        Machine-readable · agent-discoverable
+      </p>
+      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-4 text-balance">
+        AI Licensing Terms
+      </h1>
+      <p class="text-lg text-surface-600 dark:text-surface-400 leading-relaxed">
+        This page describes how AI crawlers, retrievers, and training pipelines may use content
+        on <strong>davidtofan.com</strong>. It is the target of the site's
+        <code class="text-sm">Link: …; rel="license"</code> response header and the corresponding
+        entry in <a href="/robots.txt" class="underline decoration-accent-400/50 hover:decoration-accent-500">robots.txt</a>.
+      </p>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mt-3">
+        Last updated: <time datetime={lastUpdated}>{lastUpdated}</time>
+      </p>
+    </header>
+
+    <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+      <h2 id="tldr">TL;DR</h2>
+      <ul>
+        <li><strong>Search indexing</strong> — allowed.</li>
+        <li><strong>AI retrieval with citation</strong> (RAG, agent answers that link back) — allowed.</li>
+        <li><strong>AI training and fine-tuning</strong> — <em>not</em> granted. Requires a written license.</li>
+        <li><strong>Bulk scraping without attribution</strong> — not allowed.</li>
+      </ul>
+
+      <h2 id="content-signals">Content Signals</h2>
+      <p>
+        This site publishes <a href="https://contentsignals.org/" target="_blank" rel="noopener noreferrer">Content Signals</a>
+        (<a href="https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/" target="_blank" rel="noopener noreferrer">IETF AIPREF draft</a>)
+        via <a href="/robots.txt">robots.txt</a>. The current declaration is:
+      </p>
+      <pre><code>User-Agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=no</code></pre>
+      <p>
+        These are machine-readable <em>preferences</em>. Where jurisdiction applies — in particular the
+        <a href="https://eur-lex.europa.eu/eli/dir/2019/790/oj" target="_blank" rel="noopener noreferrer">European Union (EU) Directive 2019/790 on Copyright and Related Rights in the Digital Single Market (DSM) — Article 4(3)</a> — they also constitute
+        an express opt-out of <strong>Text and Data Mining (TDM)</strong> for commercial purposes.
+      </p>
+
+      <h2 id="license">License</h2>
+      <p>
+        Unless a specific article or project states otherwise, original content (text, diagrams, code
+        samples) on this website is published under the following terms:
+      </p>
+      <ul>
+        <li>
+          <strong>Search crawlers</strong> may index and display short excerpts with attribution and
+          a back-link to the canonical URL.
+        </li>
+        <li>
+          <strong>AI agents performing user-initiated retrieval</strong> (e.g. answering a prompt with
+          a citation) may fetch, quote briefly, and summarize content, provided the response links
+          back to the canonical URL.
+        </li>
+        <li>
+          <strong>Training, fine-tuning, or model distillation</strong> on this content — whether
+          directly or via a derived dataset — is not granted by default. Contact the author for a
+          commercial license.
+        </li>
+        <li>
+          <strong>Bulk mirroring, republishing, or redistribution</strong> of full articles without
+          attribution and a back-link is not permitted.
+        </li>
+      </ul>
+
+      <h2 id="tdm-opt-out">Text and Data Mining (TDM) opt-out reservation</h2>
+      <p>
+        Rights under Article 4(3) of the
+        <a href="https://eur-lex.europa.eu/eli/dir/2019/790/oj" target="_blank" rel="noopener noreferrer">European Union (EU) Directive 2019/790 on Copyright and Related Rights in the Digital Single Market (DSM)</a>
+        are expressly reserved. This reservation is repeated machine-readably via the
+        <code>ai-train=no</code> Content Signal in <a href="/robots.txt">robots.txt</a>.
+      </p>
+
+      <h2 id="enforcement">Enforcement</h2>
+      <p>
+        This website is behind <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare</a>.
+        Requests identifying as AI crawlers may be throttled, challenged, blocked, or charged via
+        <a href="https://developers.cloudflare.com/ai-crawl-control/" target="_blank" rel="noopener noreferrer">AI Crawl Control</a>
+        and <a href="https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/" target="_blank" rel="noopener noreferrer">Pay Per Crawl</a>
+        regardless of their declared preferences, according to the operator's policy at the time of the request.
+      </p>
+
+      <h2 id="contact">Commercial licensing</h2>
+      <p>
+        For a commercial training or redistribution license, reach out via
+        <a href={`https://www.linkedin.com/in/${siteConfig.author.linkedin}/`} target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+        Please include: the content you want to license, the intended use (training, fine-tuning,
+        product), and the expected scale.
+      </p>
+
+      <h2 id="rsl">RSL 1.0 license document</h2>
+      <p>
+        These terms are also published as a
+        <a href="https://rslstandard.org/rsl" target="_blank" rel="noopener noreferrer">Really Simple Licensing (RSL) 1.0</a>
+        document at <a href="/rsl.xml"><code>/rsl.xml</code></a>, advertised via the
+        <code>License:</code> directive in <a href="/robots.txt">robots.txt</a> and a
+        <code>Link: …; rel="license"; type="application/rsl+xml"</code> response header
+        on every HTML page. RSL is the emerging standard backed by Reddit, Yahoo, Quora,
+        Medium, People and others — the natural successor to prose-only licensing for
+        machine consumers.
+      </p>
+
+      <h2 id="machine-readable">Machine-readable summary</h2>
+      <p>
+        For agents that prefer a single JSON blob over fetching <code>/rsl.xml</code>:
+      </p>
+      <pre><code>{`{
+  "site": "https://davidtofan.com",
+  "content_signals": {
+    "search": "yes",
+    "ai-input": "yes",
+    "ai-train": "no"
+  },
+  "tdm_opt_out": {
+    "basis": "EU Directive 2019/790 Article 4(3)",
+    "applies_to": "all original content"
+  },
+  "license": {
+    "default": "all-rights-reserved",
+    "grants": {
+      "search_indexing": "allowed-with-attribution",
+      "ai_retrieval_with_citation": "allowed-with-backlink",
+      "ai_training": "requires-written-license",
+      "bulk_redistribution": "not-allowed"
+    },
+    "commercial_contact": "https://www.linkedin.com/in/${siteConfig.author.linkedin}/",
+    "rsl": "https://davidtofan.com/rsl.xml"
+  }
+}`}</code></pre>
+    </div>
+  </div>
+</BaseLayout>

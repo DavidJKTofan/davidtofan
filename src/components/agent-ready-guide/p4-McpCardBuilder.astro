@@ -1,0 +1,298 @@
+---
+// Interactive builder for a minimal MCP Server Card at /.well-known/mcp/server-card.json
+---
+
+<div class="mcp-builder demo-card my-8 rounded-2xl border border-accent-500/40 dark:border-accent-500/30 bg-surface-50/50 dark:bg-surface-950/60 overflow-hidden shadow-lg shadow-accent-500/5" data-mcp-builder>
+  <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-gradient-to-r from-accent-500/10 to-transparent">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="live-dot flex-shrink-0"></span>
+      <span class="text-xs font-mono uppercase tracking-wider font-bold text-accent-700 dark:text-accent-300 truncate">
+        Interactive demo · MCP server card
+      </span>
+      <span class="text-2xs text-surface-600 dark:text-surface-400 hidden sm:inline">— edit any field</span>
+    </div>
+    <span class="text-2xs font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30">SEP-2127 · draft</span>
+  </div>
+
+  <div class="grid md:grid-cols-[1fr_1.1fr] gap-0">
+    <!-- Form -->
+    <div class="p-5 sm:p-6 border-b md:border-b-0 md:border-r border-surface-200 dark:border-surface-800 space-y-4">
+      <label class="block">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Server name</span>
+        <input type="text" name="mcp-name" data-mcp="name" value="search-mcp" class="mcp-input mt-1.5 w-full px-3 py-2 rounded-md font-mono text-sm" />
+      </label>
+      <label class="block">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Title</span>
+        <input type="text" name="mcp-title" data-mcp="title" value="Docs Search" class="mcp-input mt-1.5 w-full px-3 py-2 rounded-md text-sm" />
+      </label>
+      <label class="block">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Endpoint</span>
+        <input type="text" name="mcp-endpoint" data-mcp="endpoint" value="/mcp" class="mcp-input mt-1.5 w-full px-3 py-2 rounded-md font-mono text-sm" />
+      </label>
+      <div>
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 block mb-2">Transport</span>
+        <div class="inline-flex rounded-md border border-surface-300 dark:border-surface-700 overflow-hidden">
+          <button type="button" data-transport="streamable-http" class="transport-btn px-3 py-1.5 text-2xs font-mono" data-active="true">streamable-http</button>
+          <button type="button" data-transport="sse" class="transport-btn px-3 py-1.5 text-2xs font-mono">sse</button>
+          <button type="button" data-transport="stdio" class="transport-btn px-3 py-1.5 text-2xs font-mono">stdio</button>
+        </div>
+      </div>
+      <div>
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 block mb-2">Auth required</span>
+        <div class="inline-flex rounded-md border border-surface-300 dark:border-surface-700 overflow-hidden">
+          <button type="button" data-auth="false" class="auth-btn px-3 py-1.5 text-2xs font-mono uppercase" data-active="true">no</button>
+          <button type="button" data-auth="true" class="auth-btn px-3 py-1.5 text-2xs font-mono uppercase">yes</button>
+        </div>
+      </div>
+      <label class="block">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Tool name</span>
+        <input type="text" name="mcp-tool-name" data-mcp="toolName" value="search" class="mcp-input mt-1.5 w-full px-3 py-2 rounded-md font-mono text-sm" />
+      </label>
+      <label class="block">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Tool description</span>
+        <input type="text" name="mcp-tool-description" data-mcp="toolDesc" value="Search by keyword or question" class="mcp-input mt-1.5 w-full px-3 py-2 rounded-md text-sm" />
+      </label>
+    </div>
+
+    <!-- Preview -->
+    <div class="relative flex flex-col">
+      <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
+        <span class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">Preview</span>
+        <button
+          type="button"
+          data-copy-mcp
+          class="text-xs font-mono px-2.5 py-1 rounded-md border border-surface-300 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 hover:border-accent-400 transition-colors inline-flex items-center gap-1.5"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="8" y="8" width="12" height="12" rx="2" />
+            <path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" />
+          </svg>
+          <span data-copy-mcp-label>Copy JSON</span>
+        </button>
+      </div>
+      <pre class="mcp-output flex-1 overflow-auto text-xs sm:text-sm leading-relaxed font-mono p-5 sm:p-6 m-0 bg-transparent"><code data-mcp-output></code></pre>
+    </div>
+  </div>
+
+  <div class="px-5 py-3 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
+    <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
+      Host this via a
+      <a href="https://developers.cloudflare.com/agents/guides/remote-mcp-server/" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Cloudflare Worker + Durable Object</a>
+      and pair it with
+      <a href="https://developers.cloudflare.com/agents/model-context-protocol/authorization/" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Workers OAuth Provider</a>
+      for scoped, RFC 9728-compliant auth.
+    </p>
+  </div>
+</div>
+
+<style>
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129);
+  }
+  .live-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129 / 0.4);
+    animation: liveDotPulse 1.8s ease-out infinite;
+  }
+  @keyframes liveDotPulse {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot::before { animation: none; }
+  }
+
+  .mcp-input {
+    background: rgb(255 255 255 / 0.6);
+    border: 1px solid rgb(214 211 209);
+    color: rgb(28 25 23);
+    font-size: 0.875rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  :global(.dark) .mcp-input {
+    background: rgb(12 10 9 / 0.5);
+    border-color: rgb(68 64 60);
+    color: rgb(245 245 244);
+  }
+  .mcp-input:focus {
+    outline: none;
+    border-color: rgb(59 130 246);
+    box-shadow: 0 0 0 3px rgb(59 130 246 / 0.12);
+  }
+
+  .transport-btn, .auth-btn {
+    background: transparent;
+    color: rgb(120 113 108);
+    transition: all 0.15s;
+  }
+  :global(.dark) .transport-btn, :global(.dark) .auth-btn { color: rgb(168 162 158); }
+  .transport-btn[data-active="true"], .auth-btn[data-active="true"] {
+    background-color: rgb(59 130 246 / 0.15);
+    color: rgb(29 78 216);
+  }
+  :global(.dark) .transport-btn[data-active="true"], :global(.dark) .auth-btn[data-active="true"] {
+    color: rgb(147 197 253);
+  }
+
+  .mcp-output :global(.key) { color: rgb(29 78 216); }
+  :global(.dark) .mcp-output :global(.key) { color: rgb(147 197 253); }
+  .mcp-output :global(.str) { color: rgb(4 120 87); }
+  :global(.dark) .mcp-output :global(.str) { color: rgb(110 231 183); }
+  .mcp-output :global(.bool) { color: rgb(234 88 12); }
+  :global(.dark) .mcp-output :global(.bool) { color: rgb(253 186 116); }
+  .mcp-output :global(.num) { color: rgb(139 92 246); }
+  :global(.dark) .mcp-output :global(.num) { color: rgb(196 181 253); }
+</style>
+
+<script>
+  let cleanupMcp: (() => void) | null = null;
+
+  function syntaxHighlight(json: string): string {
+    const escaped = json
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return escaped.replace(
+      /("(?:\\.|[^"\\])*"(?:\s*:)?)|\b(true|false|null)\b|-?\d+(?:\.\d+)?/g,
+      (match) => {
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) return `<span class="key">${match}</span>`;
+          return `<span class="str">${match}</span>`;
+        }
+        if (/true|false|null/.test(match)) return `<span class="bool">${match}</span>`;
+        return `<span class="num">${match}</span>`;
+      }
+    );
+  }
+
+  function setupMcp() {
+    if (cleanupMcp) cleanupMcp();
+    const root = document.querySelector<HTMLDivElement>('[data-mcp-builder]');
+    if (!root) return;
+
+    const inputs = Array.from(root.querySelectorAll<HTMLInputElement>('.mcp-input'));
+    const transportBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.transport-btn'));
+    const authBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.auth-btn'));
+    const output = root.querySelector<HTMLElement>('[data-mcp-output]');
+    const copyBtn = root.querySelector<HTMLButtonElement>('[data-copy-mcp]');
+    const copyLabel = root.querySelector<HTMLElement>('[data-copy-mcp-label]');
+    if (!output) return;
+    const outputEl = output;
+
+    let state = {
+      name: 'search-mcp',
+      title: 'Docs Search',
+      endpoint: '/mcp',
+      transport: 'streamable-http',
+      auth: false,
+      toolName: 'search',
+      toolDesc: 'Search by keyword or question',
+    };
+
+    function buildJson() {
+      const obj = {
+        version: '1.0',
+        protocolVersion: '2025-06-18',
+        serverInfo: {
+          name: state.name,
+          title: state.title,
+          version: '1.0.0',
+        },
+        transport: { type: state.transport, endpoint: state.endpoint },
+        authentication: { required: state.auth },
+        tools: [
+          {
+            name: state.toolName,
+            description: state.toolDesc,
+            inputSchema: {
+              type: 'object',
+              properties: { query: { type: 'string' } },
+              required: ['query'],
+            },
+          },
+        ],
+      };
+      return JSON.stringify(obj, null, 2);
+    }
+
+    function render() {
+      const json = buildJson();
+      outputEl.innerHTML = syntaxHighlight(json);
+    }
+
+    const handlers: Array<{ el: HTMLElement; type: string; fn: (e: Event) => void }> = [];
+
+    inputs.forEach((input) => {
+      const key = input.dataset.mcp;
+      if (!key) return;
+      const fn = () => {
+        (state as any)[key] = input.value;
+        render();
+      };
+      input.addEventListener('input', fn);
+      handlers.push({ el: input, type: 'input', fn });
+    });
+
+    transportBtns.forEach((b) => {
+      const fn = () => {
+        state.transport = b.dataset.transport ?? 'streamable-http';
+        transportBtns.forEach((x) => { x.dataset.active = x === b ? 'true' : 'false'; });
+        render();
+      };
+      b.addEventListener('click', fn);
+      handlers.push({ el: b, type: 'click', fn });
+    });
+
+    authBtns.forEach((b) => {
+      const fn = () => {
+        state.auth = b.dataset.auth === 'true';
+        authBtns.forEach((x) => { x.dataset.active = x === b ? 'true' : 'false'; });
+        render();
+      };
+      b.addEventListener('click', fn);
+      handlers.push({ el: b, type: 'click', fn });
+    });
+
+    if (copyBtn && copyLabel) {
+      const fn = async () => {
+        try {
+          await navigator.clipboard.writeText(buildJson());
+          const original = copyLabel.textContent;
+          copyLabel.textContent = 'Copied';
+          setTimeout(() => { copyLabel.textContent = original; }, 1600);
+        } catch (err) {
+          console.error('Clipboard copy failed', err);
+        }
+      };
+      copyBtn.addEventListener('click', fn);
+      handlers.push({ el: copyBtn, type: 'click', fn });
+    }
+
+    render();
+
+    cleanupMcp = () => {
+      handlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
+      cleanupMcp = null;
+    };
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupMcp, { once: true });
+    } else {
+      setupMcp();
+    }
+  }
+
+  document.addEventListener('astro:page-load', setupMcp);
+  document.addEventListener('astro:before-swap', () => { if (cleanupMcp) cleanupMcp(); });
+  init();
+</script>

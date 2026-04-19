@@ -1,0 +1,244 @@
+---
+// Content negotiation preview — fake but representative numbers
+---
+
+<div class="markdown-nego demo-card my-8 rounded-2xl border border-accent-500/40 dark:border-accent-500/30 bg-surface-50/50 dark:bg-surface-950/60 overflow-hidden shadow-lg shadow-accent-500/5" data-md-nego>
+  <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-gradient-to-r from-accent-500/10 to-transparent">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="live-dot flex-shrink-0"></span>
+      <span class="text-xs font-mono uppercase tracking-wider font-bold text-accent-700 dark:text-accent-300 truncate">
+        Interactive demo · content negotiation
+      </span>
+      <span class="text-2xs text-surface-600 dark:text-surface-400 hidden sm:inline">— flip the Accept header</span>
+    </div>
+    <div class="relative">
+      <div class="nego-tip pointer-events-none absolute -top-10 right-0 px-2.5 py-1 rounded-md bg-accent-500 text-white text-2xs font-mono font-semibold whitespace-nowrap shadow-lg" aria-hidden="true">
+        Click to see the ~80% token drop
+        <span class="absolute -bottom-1 right-6 w-2 h-2 rotate-45 bg-accent-500"></span>
+      </div>
+      <div class="inline-flex rounded-md border border-surface-300 dark:border-surface-700 overflow-hidden text-2xs font-mono" role="group" aria-label="Accept header">
+        <button type="button" data-accept="text/html" class="nego-btn px-3 py-1 font-semibold">text/html</button>
+        <button type="button" data-accept="text/markdown" class="nego-btn px-3 py-1 font-semibold" data-active="true">text/markdown</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-0">
+    <!-- Request column -->
+    <div class="p-5 sm:p-6 border-b md:border-b-0 md:border-r border-surface-200 dark:border-surface-800">
+      <div class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 mb-3">
+        Request
+      </div>
+      <pre class="text-xs sm:text-sm font-mono leading-relaxed text-surface-700 dark:text-surface-300 m-0"><code>curl https://yourdomain.com/docs \
+  -H "<span class="text-accent-600 dark:text-accent-400">Accept: <span data-accept-out>text/markdown</span></span>"</code></pre>
+
+      <div class="mt-6 text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 mb-3">
+        Response headers
+      </div>
+      <pre class="text-xs sm:text-sm font-mono leading-relaxed text-surface-700 dark:text-surface-300 m-0 max-w-full overflow-x-auto whitespace-pre-wrap break-words"><code data-response-headers></code></pre>
+    </div>
+
+    <!-- Body column -->
+    <div class="p-5 sm:p-6">
+      <div class="flex items-baseline justify-between mb-3">
+        <div class="text-xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400">
+          Body preview
+        </div>
+        <div class="text-2xs font-mono text-surface-600 dark:text-surface-400">
+          Tokens: <span data-token-count class="text-surface-900 dark:text-surface-100 font-semibold tabular-nums">3,150</span>
+        </div>
+      </div>
+      <pre class="text-xs leading-relaxed font-mono text-surface-700 dark:text-surface-300 m-0 max-h-64 overflow-auto whitespace-pre-wrap"><code data-body-out></code></pre>
+
+      <div class="mt-4">
+        <div class="flex items-center justify-between text-2xs font-mono mb-1.5">
+          <span class="text-surface-600 dark:text-surface-400">HTML 16,180 tokens</span>
+          <span class="text-accent-600 dark:text-accent-400 font-semibold" data-savings>↓ 80.5% Markdown</span>
+        </div>
+        <div class="h-2 rounded-full bg-surface-200 dark:bg-surface-800 overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-emerald-500 to-accent-500 transition-[width] duration-500 ease-out" data-bar style="width: 19.5%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="px-5 py-3 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
+    <p class="text-xs text-surface-600 dark:text-surface-400 leading-relaxed">
+      Enable with one toggle on Cloudflare —
+      <a href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Markdown for Agents</a>.
+      <br>Edge converts HTML → Markdown via <code class="px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-800 text-2xs">Accept: text/markdown</code> on the fly. No new .md files required.
+    </p>
+  </div>
+</div>
+
+<style>
+  .live-dot {
+    position: relative;
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129);
+  }
+  .live-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background-color: rgb(16 185 129 / 0.4);
+    animation: liveDotPulse 1.8s ease-out infinite;
+  }
+  @keyframes liveDotPulse {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot::before { animation: none; }
+  }
+
+  .nego-btn { color: rgb(120 113 108); background: transparent; transition: all 0.15s; }
+  :global(.dark) .nego-btn { color: rgb(168 162 158); }
+  .nego-btn[data-active="true"] {
+    background-color: rgb(59 130 246 / 0.15);
+    color: rgb(29 78 216);
+  }
+  :global(.dark) .nego-btn[data-active="true"] { color: rgb(147 197 253); }
+
+  .nego-tip {
+    animation: negoTipBob 1.8s ease-in-out infinite;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  @keyframes negoTipBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  [data-md-nego][data-interacted="true"] .nego-tip {
+    opacity: 0;
+    transform: translateY(-6px);
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nego-tip { animation: none; }
+  }
+</style>
+
+<script>
+  let cleanupMdNego: (() => void) | null = null;
+
+  const HTML_SNIPPET = `<!DOCTYPE html>
+<html>
+<head><title>Your docs page</title>
+  <script src="/analytics.js"><\/script>
+  <link rel="stylesheet" href="/css/main.css">
+  <nav class="nav">...150 links...</nav>
+</head>
+<body>
+  <header class="site-header">...</header>
+  <main>
+    <h1>Getting started</h1>
+    <p>Welcome to the guide. Browsers parse
+    hundreds of tokens of chrome before they
+    reach your content...</p>
+    <!-- 4,000 more lines of HTML, JS, CSS -->
+  </main>
+</body>
+</html>`;
+
+  const MD_SNIPPET = `---
+title: Getting started
+---
+
+# Getting started
+
+Welcome to the guide. Agents skip past the
+chrome entirely and start consuming your
+content at byte 0.
+
+## What you'll build
+
+- An agent-ready robots.txt
+- Content signals
+- A minimal MCP server card
+...`;
+
+  const HTML_HEADERS = `HTTP/2 200
+content-type: text/html; charset=utf-8
+content-length: 48,230
+vary: accept`;
+
+  const MD_HEADERS = `HTTP/2 200
+content-type: text/markdown; charset=utf-8
+content-length: 8,944
+vary: accept
+x-markdown-tokens: 3150
+content-signal: search=yes, ai-input=yes, ai-train=no`;
+
+  function setupMdNego() {
+    if (cleanupMdNego) cleanupMdNego();
+    const root = document.querySelector<HTMLDivElement>('[data-md-nego]');
+    if (!root) return;
+
+    const acceptBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.nego-btn'));
+    const acceptOut = root.querySelector<HTMLElement>('[data-accept-out]');
+    const responseHeaders = root.querySelector<HTMLElement>('[data-response-headers]');
+    const bodyOut = root.querySelector<HTMLElement>('[data-body-out]');
+    const tokenCount = root.querySelector<HTMLElement>('[data-token-count]');
+    const bar = root.querySelector<HTMLElement>('[data-bar]');
+    const savings = root.querySelector<HTMLElement>('[data-savings]');
+
+    function apply(accept: string) {
+      if (acceptOut) acceptOut.textContent = accept;
+      if (accept === 'text/markdown') {
+        if (responseHeaders) responseHeaders.textContent = MD_HEADERS;
+        if (bodyOut) bodyOut.textContent = MD_SNIPPET;
+        if (tokenCount) tokenCount.textContent = '3,150';
+        if (bar) bar.style.width = '19.5%';
+        if (savings) {
+          savings.textContent = '↓ 80.5% Markdown';
+          savings.className = 'text-accent-600 dark:text-accent-400 font-semibold';
+        }
+      } else {
+        if (responseHeaders) responseHeaders.textContent = HTML_HEADERS;
+        if (bodyOut) bodyOut.textContent = HTML_SNIPPET;
+        if (tokenCount) tokenCount.textContent = '16,180';
+        if (bar) bar.style.width = '100%';
+        if (savings) {
+          savings.textContent = 'HTML baseline';
+          savings.className = 'text-surface-600 dark:text-surface-400 font-semibold';
+        }
+      }
+      acceptBtns.forEach((b) => {
+        b.dataset.active = b.dataset.accept === accept ? 'true' : 'false';
+      });
+    }
+
+    const handlers: Array<{ el: HTMLElement; fn: () => void }> = [];
+    acceptBtns.forEach((b) => {
+      const fn = () => {
+        root.dataset.interacted = 'true';
+        apply(b.dataset.accept ?? 'text/markdown');
+      };
+      b.addEventListener('click', fn);
+      handlers.push({ el: b, fn });
+    });
+
+    apply('text/markdown');
+
+    cleanupMdNego = () => {
+      handlers.forEach(({ el, fn }) => el.removeEventListener('click', fn));
+      cleanupMdNego = null;
+    };
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupMdNego, { once: true });
+    } else {
+      setupMdNego();
+    }
+  }
+
+  document.addEventListener('astro:page-load', setupMdNego);
+  document.addEventListener('astro:before-swap', () => { if (cleanupMdNego) cleanupMdNego(); });
+  init();
+</script>

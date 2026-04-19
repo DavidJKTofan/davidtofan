@@ -31,12 +31,12 @@ export const socialLinks = [
   },
   {
     name: 'LinkedIn',
-    href: 'https://linkedin.com/in/davidtofan',
+    href: 'https://www.linkedin.com/in/davidtofan/',
     icon: 'linkedin',
   },
   {
     name: 'Twitter',
-    href: 'https://twitter.com/davidjktofan',
+    href: 'https://x.com/davidjktofan',
     icon: 'twitter',
   },
 ];

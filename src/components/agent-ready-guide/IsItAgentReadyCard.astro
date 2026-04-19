@@ -1,0 +1,70 @@
+---
+// Star-tool promo card for isitagentready.com — the rubric this walkthrough follows.
+---
+
+<div class="star-tool relative my-10 group">
+  <!-- Animated gradient border -->
+  <div
+    class="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-accent-500 via-emerald-500 to-accent-500 opacity-60 group-hover:opacity-90 transition-opacity star-tool-border"
+    aria-hidden="true"
+  ></div>
+
+  <div class="relative rounded-2xl bg-white dark:bg-surface-950 p-6 sm:p-8">
+    <div class="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+      <!-- Icon column -->
+      <div class="flex-shrink-0">
+        <div class="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-accent-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-accent-500/30">
+          <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span class="absolute -top-1 -right-1 inline-flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Text column -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">Star tool · built by Cloudflare</span>
+        </div>
+        <h3 class="font-display font-semibold text-xl sm:text-2xl text-surface-900 dark:text-surface-50 mb-2 text-balance">
+          Audit your site — <span class="font-mono text-accent-600 dark:text-accent-400">isitagentready.com</span>
+        </h3>
+        <p class="text-sm sm:text-base text-surface-600 dark:text-surface-400 leading-relaxed mb-4 text-balance">
+          The original Cloudflare rubric this walkthrough starts from: 12 checks across Discoverability, Content, Bot control, Capabilities, and Commerce. This article then extends that model with Performance and Security. Most sites score 2 of 12 today — where does yours stand?
+        </p>
+
+        <!-- CTA row -->
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href="https://isitagentready.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-accent-600 to-accent-500 hover:from-accent-500 hover:to-accent-400 text-white text-sm font-semibold shadow-md shadow-accent-500/30 hover:shadow-lg hover:shadow-accent-500/40 transition-all"
+          >
+            Run scan
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .star-tool-border {
+    background-size: 200% 100%;
+    animation: starToolShine 6s linear infinite;
+  }
+  @keyframes starToolShine {
+    0% { background-position: 0% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .star-tool-border { animation: none; }
+  }
+</style>

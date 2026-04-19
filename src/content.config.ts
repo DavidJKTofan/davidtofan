@@ -10,11 +10,17 @@ const articles = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
+    // Optional last-modified date; fed to <meta article:modified_time> and
+    // BlogPosting.dateModified. When absent, `date` is used as the fallback.
+    modified: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
     featured: z.boolean().default(false),
     image: z.string().optional(),
     imageAlt: z.string().optional(),
+    // Override computed reading time (used when the body is a stub and the full
+    // article lives in a custom .astro page)
+    readingTime: z.number().int().positive().optional(),
     // Hugo compatibility fields (optional)
     type: z.string().optional(),
     showTableOfContents: z.boolean().optional(),
@@ -28,6 +34,8 @@ const projects = defineCollection({
     title: z.string(),
     description: z.string(),
     date: z.coerce.date(),
+    // Optional last-modified date (see articles schema above).
+    modified: z.coerce.date().optional(),
     // Allow empty string or valid URL (Hugo compatibility)
     website: z.string().optional().transform(val => val === '' ? undefined : val),
     github: z.string().optional().transform(val => val === '' ? undefined : val),

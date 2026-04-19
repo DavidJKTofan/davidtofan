@@ -8,7 +8,7 @@ tags:
     "cloudflare",
     "hospitality",
     "travel",
-    "zero-trust",
+    "zero trust",
     "performance",
   ]
 type: "article"

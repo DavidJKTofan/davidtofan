@@ -4,18 +4,50 @@ import CertificateCard from '../components/CertificateCard.astro';
 import certificatesData from '../data/certificates.json';
 import type { Certificate } from '../types';
 import { groupByCategory, sortCategories, calculateYearsLearning } from '../lib/certificates';
+import { siteConfig } from '../config/site';
 
 // Load and process certificates
 const certificates: Certificate[] = certificatesData;
 const grouped = groupByCategory(certificates);
 const categories = sortCategories(Object.keys(grouped), grouped);
 const yearsLearning = calculateYearsLearning(certificates);
+
+// JSON-LD: ItemList of EducationalOccupationalCredential — lets agents and
+// Google Knowledge Graph enumerate certifications without OCR or scraping.
+const certificatesJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Certificates — David Tofan',
+  description: 'Professional certifications and achievements in cybersecurity, cloud computing, and technology.',
+  url: `${siteConfig.url}/certificates/`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: certificates.length,
+    itemListElement: certificates.map((cert, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'EducationalOccupationalCredential',
+        name: cert.name,
+        url: cert.link,
+        dateCreated: cert.date,
+        credentialCategory: cert.category,
+        recognizedBy: {
+          '@type': 'Organization',
+          name: cert.organization,
+        },
+      },
+    })),
+  },
+};
 ---
 
 <BaseLayout
   title="Certificates"
   description="Professional certifications and achievements in cybersecurity, cloud computing, and technology."
+  noPersonSchema={true}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(certificatesJsonLd)} />
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
     <!-- Header -->
     <header class="max-w-2xl mb-12">

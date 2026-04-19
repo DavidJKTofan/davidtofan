@@ -1,0 +1,35 @@
+---
+const stats = [
+  { value: '78%', label: 'have a robots.txt', sub: 'the 1994 standard, still the entrypoint' },
+  { value: '4%', label: 'declare Content Signals', sub: 'stating AI usage preferences' },
+  { value: '<15', label: 'expose an MCP Server Card', sub: 'out of the top 200,000 domains' },
+  { value: '4.6%', label: 'support markdown negotiation', sub: '~80% token savings when they do' },
+];
+---
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 my-8">
+  {stats.map((s, i) => (
+    <div
+      class="relative overflow-hidden rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-4 sm:p-5 group hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors"
+      style={`animation-delay: ${i * 0.08}s`}
+    >
+      <div class="font-display font-bold text-2xl sm:text-3xl md:text-4xl text-surface-900 dark:text-surface-50 tracking-tight">
+        {s.value}
+      </div>
+      <div class="mt-1 text-sm font-medium text-surface-700 dark:text-surface-300">
+        {s.label}
+      </div>
+      <div class="mt-2 text-xs text-surface-600 dark:text-surface-400 leading-snug">
+        {s.sub}
+      </div>
+      <!-- Accent corner -->
+      <div class="absolute top-0 right-0 w-8 h-8 -mr-4 -mt-4 bg-accent-500/10 rounded-full blur-xl group-hover:bg-accent-500/20 transition-colors"></div>
+    </div>
+  ))}
+</div>
+
+<p class="text-xs text-surface-600 dark:text-surface-400 italic mt-3">
+  Source:
+  <a href="https://radar.cloudflare.com/ai-insights#adoption-of-ai-agent-standards" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted hover:text-accent-600 dark:hover:text-accent-400">Cloudflare Radar — Adoption of AI agent standards</a>
+  (top 200,000 domains), as of April 2026.
+</p>

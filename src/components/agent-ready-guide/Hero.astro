@@ -1,0 +1,309 @@
+---
+const milestones = [
+  { year: '1970s', label: 'ARPANET', sub: 'Connected computers', blurb: 'Packet-switched networks stitched universities and labs together.' },
+  { year: '1990s', label: 'Web / HTTP', sub: 'Speak to browsers', blurb: 'HTTP and HTML gave browsers a universal document interface.' },
+  { year: '2000s', label: 'Mobile', sub: 'Speak to phones', blurb: 'Responsive design taught sites to fit pocket-sized screens.' },
+  { year: '2010s', label: 'IoT / Cloud', sub: 'Speak to devices', blurb: 'APIs became the real product; the browser became optional.' },
+  { year: '2020s', label: 'Agents', sub: 'Speak to AI', blurb: 'Now the web must speak to autonomous AI — on its own terms.' },
+];
+---
+
+<div class="walk-hero mb-12" data-walk-hero>
+  <div class="relative overflow-hidden rounded-2xl border border-surface-200 dark:border-surface-800 bg-gradient-to-br from-surface-50 via-surface-50 to-accent-50/40 dark:from-surface-900 dark:via-surface-950 dark:to-accent-950/40 p-6 sm:p-10 md:p-12">
+    <!-- Grid pattern background -->
+    <div class="pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.06]" aria-hidden="true">
+      <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="hero-grid" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#hero-grid)" />
+      </svg>
+    </div>
+
+    <div class="relative">
+      <p class="text-xs font-semibold text-accent-600 dark:text-accent-400 uppercase tracking-[0.16em] mb-4">
+        <span class="inline-block w-2 h-2 rounded-full bg-accent-500 animate-pulse-subtle mr-2 align-middle"></span>
+        The Internet's next historic phase
+      </p>
+
+      <!-- Timeline -->
+      <ol class="hero-timeline relative grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-0 mb-6" aria-label="Evolution of the Internet — click a milestone to read its blurb">
+        {milestones.map((m, i) => (
+          <li
+            class="relative hero-timeline-item"
+            data-step={i}
+            style={`--i: ${i}`}
+          >
+            <button
+              type="button"
+              data-hero-step={i}
+              aria-label={`${m.year} — ${m.label}: ${m.blurb}`}
+              class="hero-step-btn group w-full flex flex-col items-start sm:items-center text-center rounded-lg px-1 py-2 transition-colors hover:bg-accent-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
+            >
+              <span
+                class="hero-step-dot relative z-10 inline-flex items-center justify-center w-8 h-8 rounded-full border-2 font-mono text-xs font-bold transition-all group-hover:scale-110"
+              >
+                {i + 1}
+              </span>
+              <div class="mt-3 px-1">
+                <div class="text-xs font-mono text-surface-600 dark:text-surface-400 mb-0.5">{m.year}</div>
+                <div class="text-sm font-semibold text-surface-800 dark:text-surface-100">{m.label}</div>
+                <div class="text-xs text-surface-600 dark:text-surface-400 mt-0.5">{m.sub}</div>
+              </div>
+            </button>
+          </li>
+        ))}
+        <!-- Connecting line (desktop only) -->
+        <span class="hidden md:block absolute top-4 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-surface-300 via-surface-300 to-accent-500 dark:from-surface-700 dark:via-surface-700 dark:to-accent-500 -z-0" aria-hidden="true"></span>
+      </ol>
+
+      <!-- Rotating blurb caption -->
+      <div class="min-h-[1.75rem] mb-8 text-sm sm:text-base text-surface-600 dark:text-surface-400 text-balance" aria-live="polite">
+        <span data-hero-blurb class="hero-blurb transition-opacity duration-500 opacity-0">&nbsp;</span>
+      </div>
+
+      <!-- Quote reveal -->
+      <blockquote class="hero-quote relative pl-5 border-l-2 border-accent-500/60 max-w-3xl mb-8">
+        <p class="text-lg sm:text-xl md:text-2xl font-display font-medium text-surface-800 dark:text-surface-100 leading-snug text-balance">
+          <i>The web has always had to adapt to new standards. It learned to speak to web browsers, and then it learned to speak to search engines. Now, it needs to speak to AI agents.</i>
+        </p>
+        <cite class="block not-italic mt-3 text-sm text-surface-600 dark:text-surface-400">
+          — Cloudflare,
+          <a
+            href="https://blog.cloudflare.com/agent-readiness/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline decoration-accent-400/40 hover:decoration-accent-500"
+          >Agent Readiness</a>
+        </cite>
+      </blockquote>
+
+      <div class="mt-2 flex flex-wrap gap-3">
+        <a
+          href="https://isitagentready.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 transition-colors"
+        >
+          Audit your site on isitagentready.com
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Base dot state (before activation) */
+  .hero-step-dot {
+    background: rgb(249 250 251);
+    color: rgb(120 113 108);
+    border-color: rgb(214 211 209);
+  }
+  :global(.dark) .hero-step-dot {
+    background: rgb(23 23 23);
+    color: rgb(168 162 158);
+    border-color: rgb(68 64 60);
+  }
+  .hero-timeline-item[data-state="active"] .hero-step-dot,
+  .hero-timeline-item[data-state="done"] .hero-step-dot {
+    background-color: rgb(59 130 246);
+    color: white;
+    border-color: rgb(59 130 246);
+  }
+  .hero-timeline-item[data-state="active"] .hero-step-dot {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.18);
+    transform: scale(1.08);
+  }
+
+  /* Quote — hidden until reveal */
+  .hero-quote {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  }
+  [data-walk-hero][data-quote="shown"] .hero-quote {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Blurb transition helper */
+  .hero-blurb.is-visible {
+    opacity: 1;
+  }
+
+  /* Reduced motion: everything shown instantly */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-step-dot,
+    .hero-timeline-item[data-state="active"] .hero-step-dot {
+      transition: none;
+      transform: none;
+    }
+    .hero-quote {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  let cleanupHero: (() => void) | null = null;
+
+  function setupHero() {
+    if (cleanupHero) cleanupHero();
+
+    const root = document.querySelector<HTMLElement>('[data-walk-hero]');
+    if (!root) {
+      cleanupHero = null;
+      return;
+    }
+
+    const items = Array.from(root.querySelectorAll<HTMLElement>('.hero-timeline-item'));
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-hero-step]'));
+    const blurbEl = root.querySelector<HTMLElement>('[data-hero-blurb]');
+    if (!items.length || !blurbEl) {
+      cleanupHero = null;
+      return;
+    }
+
+    const blurbs = items.map((el) => {
+      const year = el.querySelector('.mt-3 .text-xs.font-mono')?.textContent ?? '';
+      const label = el.querySelector('.text-sm.font-semibold')?.textContent ?? '';
+      return { year: year.trim(), label: label.trim() };
+    });
+
+    const blurbText = [
+      'Packet-switched networks stitched universities and labs together.',
+      'HTTP and HTML gave browsers a universal document interface.',
+      'Responsive design taught sites to fit pocket-sized screens.',
+      'APIs became the real product; the browser became optional.',
+      'Now the web must speak to autonomous AI — on its own terms.',
+    ];
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    let observer: IntersectionObserver | null = null;
+    let autoCancelled = false;
+
+    function setBlurb(text: string, immediate = false) {
+      if (!blurbEl) return;
+      if (immediate) {
+        blurbEl.textContent = text;
+        blurbEl.classList.add('is-visible');
+        return;
+      }
+      blurbEl.classList.remove('is-visible');
+      const t = setTimeout(() => {
+        blurbEl.textContent = text;
+        blurbEl.classList.add('is-visible');
+      }, 180);
+      timeouts.push(t);
+    }
+
+    function revealQuote() {
+      root!.dataset.quote = 'shown';
+    }
+
+    function markStep(i: number) {
+      items.forEach((x, j) => {
+        x.dataset.state = j === i ? 'active' : j < i ? 'done' : '';
+      });
+      const prefix = `${blurbs[i].year} · ${blurbs[i].label} — `;
+      setBlurb(prefix + blurbText[i], true);
+    }
+
+    function selectStep(i: number) {
+      autoCancelled = true;
+      timeouts.forEach(clearTimeout);
+      timeouts.length = 0;
+      markStep(i);
+      revealQuote();
+      root!.dataset.played = 'true';
+    }
+
+    function showAllInstant() {
+      if (items.length) {
+        const last = items.length - 1;
+        markStep(last);
+      }
+      revealQuote();
+      root!.dataset.played = 'true';
+    }
+
+    function play() {
+      if (root!.dataset.played === 'true') return;
+      root!.dataset.played = 'true';
+
+      if (prefersReducedMotion) {
+        showAllInstant();
+        return;
+      }
+
+      const stepMs = 900;
+      items.forEach((_, i) => {
+        const t = setTimeout(() => {
+          if (autoCancelled) return;
+          markStep(i);
+        }, i * stepMs + 150);
+        timeouts.push(t);
+      });
+
+      const finalize = setTimeout(() => {
+        if (autoCancelled) return;
+        items.forEach((x) => { x.dataset.state = 'done'; });
+        revealQuote();
+      }, items.length * stepMs + 150);
+      timeouts.push(finalize);
+    }
+
+    const btnHandlers: Array<{ el: HTMLButtonElement; fn: (e: Event) => void }> = [];
+    buttons.forEach((btn, i) => {
+      const fn = (e: Event) => {
+        e.preventDefault();
+        selectStep(i);
+      };
+      btn.addEventListener('click', fn);
+      btnHandlers.push({ el: btn, fn });
+    });
+
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              play();
+              observer?.disconnect();
+              break;
+            }
+          }
+        },
+        { threshold: 0.35 }
+      );
+      observer.observe(root);
+    } else {
+      showAllInstant();
+    }
+
+    cleanupHero = () => {
+      timeouts.forEach(clearTimeout);
+      observer?.disconnect();
+      btnHandlers.forEach(({ el, fn }) => el.removeEventListener('click', fn));
+      cleanupHero = null;
+    };
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupHero, { once: true });
+    } else {
+      setupHero();
+    }
+  }
+
+  document.addEventListener('astro:page-load', setupHero);
+  document.addEventListener('astro:before-swap', () => { if (cleanupHero) cleanupHero(); });
+  init();
+</script>

@@ -12,31 +12,57 @@
 https://davidtofan-astro.cf-testing.workers.dev/*
   X-Robots-Tag: noindex
 
-# Security headers for all HTML pages
+# AI agent discovery — RFC 8288 Link headers
+# rel="describedby" / "license" per RFC 9727 §3 + Cloudflare ai-crawl-control guide.
+# /ai-licensing-terms/ is the real target page (src/pages/ai-licensing-terms.astro).
+
+# Security + agent-discovery headers for all HTML pages
 /*.html
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
 
 /
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
 
 /articles/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
 
 /projects/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
 
-/certificates
+/certificates/
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
+
+/ai-licensing-terms/
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# robots.txt — force UTF-8 so Content Signals render correctly (em dashes etc.)
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=36000
+
+# RSL 1.0 machine-readable license document — https://rslstandard.org/rsl
+/rsl.xml
+  Content-Type: application/rsl+xml; charset=utf-8
+  Cache-Control: public, max-age=36000
+  X-Content-Type-Options: nosniff
 
 # Astro optimized/fingerprinted assets (hashed filenames) - cache for 1 year
 # These files have content hashes in their names, so they can be cached indefinitely

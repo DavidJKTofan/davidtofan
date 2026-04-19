@@ -4,10 +4,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import TableOfContents from '../../components/TableOfContents.astro';
 import ReadingProgress from '../../components/ReadingProgress.astro';
 import ScrollToTop from '../../components/ScrollToTop.astro';
+import { calculateReadingTime } from '../../lib/readingTime';
+import { siteConfig } from '../../config/site';
+import { getContentImagePath, getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
 
 export async function getStaticPaths() {
-  // Only generate pages for non-draft articles
-  const articles = await getCollection('articles', ({ data }) => !data.draft);
+  const CUSTOM_ARTICLE_PAGES = new Set<string>([
+    'ai-agent-ready-website-cloudflare-guide',
+  ]);
+  const articles = await getCollection(
+    'articles',
+    ({ data, id }) => !data.draft && !CUSTOM_ARTICLE_PAGES.has(id)
+  );
   return articles.map((article) => ({
     params: { slug: article.id },
     props: { article },
@@ -23,12 +31,14 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
   day: 'numeric',
 }).format(article.data.date);
 
-// Calculate reading time (rough estimate: 200 words per minute)
-const wordCount = article.body?.split(/\s+/).length || 0;
-const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+// Reading time — frontmatter override wins, else compute from body via shared
+// helper so the article page matches the listing cards exactly.
+const readingTime = article.data.readingTime
+  ?? parseInt(calculateReadingTime(article.body), 10);
 
 // Use article's image if set, otherwise use featured.png from article folder
-const articleImage = article.data.image || `/articles/${article.id}/featured.png`;
+const articleImage = getContentImagePath('articles', article.id, article.data.image);
+const articleUpdatedAt = getEffectiveModifiedTime(article.data);
 ---
 
 <BaseLayout
@@ -36,6 +46,7 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
   description={article.data.description}
   type="article"
   publishedTime={article.data.date}
+  modifiedTime={articleUpdatedAt}
   tags={article.data.tags}
   image={articleImage}
 >
@@ -137,7 +148,7 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
         </article>
 
         <!-- Article footer -->
-        <footer class="mt-12 pt-8 border-t border-surface-200 dark:border-surface-800">
+        <footer id="article-footer" class="mt-12 pt-8 border-t border-surface-200 dark:border-surface-800">
           <!-- Tags -->
           {article.data.tags.length > 0 && (
             <div class="mb-8">
@@ -233,6 +244,17 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
     </div>
   </aside>
 
+  <!-- JSON-LD BreadcrumbList — helps agents understand the hierarchy without
+       having to infer from the URL. Schema.org / Google-recognised. -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home",     "item": `${siteConfig.url}/` },
+      { "@type": "ListItem", "position": 2, "name": "Articles", "item": `${siteConfig.url}/articles/` },
+      { "@type": "ListItem", "position": 3, "name": article.data.title, "item": `${siteConfig.url}/articles/${article.id}/` },
+    ],
+  })} />
 </BaseLayout>
 
 <script>
@@ -293,7 +315,10 @@ const articleImage = article.data.image || `/articles/${article.id}/featured.png
   function updateTOCSidebar() {
     const anchor  = document.getElementById('toc-anchor');
     const sidebar = document.getElementById('toc-sidebar');
-    const footer  = document.querySelector('footer') as HTMLElement | null;
+    // Use the article's own footer id (not `querySelector('footer')`) so that
+    // markdown-rendered <footer> elements inside the content (e.g. blockquote
+    // citations) don't hijack the clamp calculation and collapse the sidebar.
+    const footer  = document.getElementById('article-footer');
     if (!anchor || !sidebar) return;
 
     // On mobile / tablet the sidebar is hidden via CSS — clear inline styles.

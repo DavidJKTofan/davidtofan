@@ -63,7 +63,7 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     cleanupTableOfContents();
 
     const tocLinks = document.querySelectorAll('[data-toc-link]');
-    const headings = document.querySelectorAll('article h2[id], article h3[id]');
+    const headings = document.querySelectorAll('article h2[id], article h3[id], section[id]');
     
     if (!tocLinks.length || !headings.length) {
       cleanupTableOfContents = () => {};

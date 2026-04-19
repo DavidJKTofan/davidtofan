@@ -1,0 +1,265 @@
+---
+const rows = [
+  { num: 1, pillar: 'Discoverability', ship: 'robots.txt with AI UAs + Disallow: /cdn-cgi/', spec: 'RFC 9309', feature: 'Managed robots.txt' },
+  { num: 2, pillar: 'Discoverability', ship: 'sitemap.xml with canonicals', spec: 'sitemaps.org', feature: 'Managed robots.txt' },
+  { num: 3, pillar: 'Discoverability', ship: 'Link: headers for resource discovery', spec: 'RFC 8288', feature: 'Transform Rules' },
+  { num: 4, pillar: 'Content', ship: 'Serve markdown on Accept: text/markdown', spec: 'Cloudflare spec', feature: 'Markdown for Agents', star: true },
+  { num: 5, pillar: 'Bot control', ship: 'Content Signals in robots.txt', spec: 'contentsignals.org', feature: 'Content Signals Policy' },
+  { num: 6, pillar: 'Bot control', ship: 'AI-training redirects via canonical', spec: 'Cloudflare', feature: 'Redirects for AI Training', star: true },
+  { num: 7, pillar: 'Bot control', ship: 'Verified-bot enforcement', spec: 'Web Bot Auth (draft)', feature: 'Verified Bots · Web Bot Auth' },
+  { num: 8, pillar: 'Capabilities', ship: '/.well-known/api-catalog', spec: 'RFC 9727', feature: 'Workers' },
+  { num: 9, pillar: 'Capabilities', ship: 'OAuth / OIDC discovery', spec: 'RFC 8414 / OIDC', feature: 'Workers OAuth Provider' },
+  { num: 10, pillar: 'Capabilities', ship: '/.well-known/oauth-protected-resource', spec: 'RFC 9728', feature: 'Workers OAuth Provider' },
+  { num: 11, pillar: 'Capabilities', ship: 'MCP Server Card', spec: 'SEP-2127 (draft)', feature: 'Workers + Durable Objects' },
+  { num: 12, pillar: 'Capabilities', ship: 'Agent Skills index', spec: 'agentskills.io', feature: 'Static hosting / R2' },
+  { num: 13, pillar: 'Capabilities', ship: 'WebMCP (navigator.modelContext)', spec: 'W3C CG draft', feature: 'Any site' },
+  { num: 14, pillar: 'Commerce', ship: 'HTTP 402 / Pay Per Crawl', spec: 'Cloudflare', feature: 'Pay Per Crawl', star: true },
+  { num: 15, pillar: 'Commerce', ship: 'x402 for content and MCP tools', spec: 'x402.org', feature: 'Agents SDK' },
+  { num: 16, pillar: 'Performance', ship: 'Core Web Vitals + RUM', spec: 'web.dev', feature: 'Speed Observatory · Shared Dictionaries' },
+  { num: 17, pillar: 'Security', ship: 'Bot auth + scoped OAuth + tool allowlists', spec: 'OWASP LLM / Agentic', feature: 'AI Gateway · Access · WAF · Logpush' },
+];
+
+const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
+---
+
+<div class="checklist-wrap demo-card my-8 rounded-2xl border border-accent-500/40 dark:border-accent-500/30 bg-surface-50/50 dark:bg-surface-950/60 overflow-hidden shadow-lg shadow-accent-500/5" data-checklist>
+  <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-surface-200 dark:border-surface-800 bg-gradient-to-r from-accent-500/10 to-transparent">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="live-dot flex-shrink-0"></span>
+      <span class="text-xs font-mono uppercase tracking-wider font-bold text-accent-700 dark:text-accent-300 truncate">
+        Interactive checklist · mapped to Cloudflare
+      </span>
+    </div>
+    <span class="text-2xs font-mono text-surface-600 dark:text-surface-400">
+      <span data-progress>0</span> / {rows.length} shipped
+    </span>
+  </div>
+
+  <div class="flex flex-wrap gap-1.5 px-5 pt-4 pb-3 border-b border-surface-200 dark:border-surface-800">
+    <button
+      type="button"
+      data-pillar-filter=""
+      class="pillar-filter active px-2.5 py-1 rounded-md text-2xs font-mono border"
+      data-active="true"
+    >all</button>
+    {pillars.map((p) => (
+      <button
+        type="button"
+        data-pillar-filter={p}
+        class="pillar-filter px-2.5 py-1 rounded-md text-2xs font-mono border"
+      >{p.toLowerCase()}</button>
+    ))}
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left border-b border-surface-200 dark:border-surface-800">
+          <th scope="col" class="py-2.5 px-4 text-2xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 font-normal w-12"></th>
+          <th scope="col" class="py-2.5 px-4 text-2xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 font-normal">What to ship</th>
+          <th scope="col" class="py-2.5 px-4 text-2xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 font-normal hidden md:table-cell">Spec</th>
+          <th scope="col" class="py-2.5 px-4 text-2xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 font-normal">Cloudflare</th>
+          <th scope="col" class="py-2.5 px-4 text-2xs font-mono uppercase tracking-wider text-surface-600 dark:text-surface-400 font-normal w-20">Done</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => (
+          <tr
+            class="checklist-row border-b border-surface-100 dark:border-surface-800/60 transition-colors cursor-pointer"
+            data-pillar={r.pillar}
+            tabindex="0"
+            role="button"
+            aria-pressed="false"
+          >
+            <th scope="row" class="py-3 px-4 font-mono text-2xs text-surface-500 dark:text-surface-400 tabular-nums font-normal">{String(r.num).padStart(2, '0')}</th>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <span class="text-surface-800 dark:text-surface-100">{r.ship}</span>
+                {r.star && <span class="text-2xs px-1.5 py-0.5 rounded-full bg-accent-500/10 text-accent-700 dark:text-accent-400 font-mono uppercase tracking-wider">easy win</span>}
+              </div>
+              <div class="text-2xs font-mono text-surface-600 dark:text-surface-400 mt-0.5 md:hidden">{r.spec}</div>
+            </td>
+            <td class="py-3 px-4 hidden md:table-cell font-mono text-2xs text-surface-600 dark:text-surface-400">{r.spec}</td>
+            <td class="py-3 px-4 text-xs font-mono text-surface-700 dark:text-surface-300">{r.feature}</td>
+            <td class="py-3 px-4">
+              <button
+                type="button"
+                data-check
+                class="w-6 h-6 rounded-md border border-surface-300 dark:border-surface-700 flex items-center justify-center transition-all hover:border-accent-500"
+                aria-label="Mark shipped"
+                aria-pressed="false"
+              >
+                <svg class="w-3.5 h-3.5 opacity-0 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-surface-200 dark:border-surface-800 bg-surface-50 dark:bg-surface-900/40">
+    <div class="flex-1 max-w-md">
+      <div class="h-1.5 rounded-full bg-surface-200 dark:bg-surface-800 overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-accent-500 to-emerald-500 transition-[width] duration-400 ease-out" data-progress-bar style="width: 0%"></div>
+      </div>
+    </div>
+    <button
+      type="button"
+      data-reset-check
+      class="text-2xs font-mono px-2.5 py-1 rounded-md border border-surface-300 dark:border-surface-700 text-surface-500 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 hover:border-accent-400 transition-colors"
+    >Reset</button>
+  </div>
+</div>
+
+<style>
+  .pillar-filter {
+    background: transparent;
+    color: rgb(120 113 108);
+    border-color: rgb(214 211 209);
+    transition: all 0.15s;
+  }
+  :global(.dark) .pillar-filter {
+    color: rgb(168 162 158);
+    border-color: rgb(68 64 60);
+  }
+  .pillar-filter[data-active="true"] {
+    background-color: rgb(59 130 246 / 0.12);
+    color: rgb(29 78 216);
+    border-color: rgb(59 130 246 / 0.4);
+  }
+  :global(.dark) .pillar-filter[data-active="true"] {
+    color: rgb(147 197 253);
+  }
+
+  .checklist-row:hover {
+    background-color: rgb(59 130 246 / 0.04);
+  }
+  :global(.dark) .checklist-row:hover {
+    background-color: rgb(59 130 246 / 0.06);
+  }
+  .checklist-row:focus-visible {
+    outline: 2px solid var(--color-accent-500, #3b82f6);
+    outline-offset: -2px;
+  }
+  .checklist-row[data-hidden="true"] {
+    display: none;
+  }
+  .checklist-row[data-done="true"] {
+    opacity: 0.6;
+  }
+  .checklist-row[data-done="true"] td:nth-child(2) {
+    text-decoration: line-through;
+    text-decoration-color: rgb(120 113 108 / 0.4);
+  }
+  [data-check][aria-pressed="true"] {
+    background-color: rgb(16 185 129 / 0.15);
+    border-color: rgb(16 185 129);
+    color: rgb(5 150 105);
+  }
+  [data-check][aria-pressed="true"] svg {
+    opacity: 1 !important;
+  }
+</style>
+
+<script>
+  let cleanupChecklist: (() => void) | null = null;
+
+  function setupChecklist() {
+    if (cleanupChecklist) cleanupChecklist();
+    const root = document.querySelector<HTMLDivElement>('[data-checklist]');
+    if (!root) return;
+
+    const rows = Array.from(root.querySelectorAll<HTMLTableRowElement>('.checklist-row'));
+    const filters = Array.from(root.querySelectorAll<HTMLButtonElement>('.pillar-filter'));
+    const progressOut = root.querySelector<HTMLElement>('[data-progress]');
+    const progressBar = root.querySelector<HTMLElement>('[data-progress-bar]');
+    const resetBtn = root.querySelector<HTMLButtonElement>('[data-reset-check]');
+    const total = rows.length;
+
+    const handlers: Array<{ el: HTMLElement; type: string; fn: (e: Event) => void }> = [];
+
+    function updateProgress() {
+      const done = rows.filter((r) => r.dataset.done === 'true').length;
+      if (progressOut) progressOut.textContent = String(done);
+      if (progressBar) progressBar.style.width = `${(done / total) * 100}%`;
+    }
+
+    rows.forEach((row) => {
+      const btn = row.querySelector<HTMLButtonElement>('[data-check]');
+      if (!btn) return;
+      const toggle = () => {
+        const pressed = btn.getAttribute('aria-pressed') === 'true';
+        const next = pressed ? 'false' : 'true';
+        btn.setAttribute('aria-pressed', next);
+        row.setAttribute('aria-pressed', next);
+        row.dataset.done = next;
+        updateProgress();
+      };
+      const onClick = (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('a')) return;
+        toggle();
+      };
+      const onKey = (e: Event) => {
+        const ke = e as KeyboardEvent;
+        if (ke.key === ' ' || ke.key === 'Enter') {
+          ke.preventDefault();
+          toggle();
+        }
+      };
+      row.addEventListener('click', onClick);
+      row.addEventListener('keydown', onKey);
+      handlers.push({ el: row, type: 'click', fn: onClick });
+      handlers.push({ el: row, type: 'keydown', fn: onKey });
+    });
+
+    filters.forEach((f) => {
+      const fn = () => {
+        const pillar = f.dataset.pillarFilter ?? '';
+        filters.forEach((x) => { x.dataset.active = x === f ? 'true' : 'false'; });
+        rows.forEach((r) => {
+          r.dataset.hidden = pillar && r.dataset.pillar !== pillar ? 'true' : 'false';
+        });
+      };
+      f.addEventListener('click', fn);
+      handlers.push({ el: f, type: 'click', fn });
+    });
+
+    if (resetBtn) {
+      const fn = (e: Event) => {
+        e.stopPropagation();
+        rows.forEach((r) => {
+          const btn = r.querySelector<HTMLButtonElement>('[data-check]');
+          if (btn) btn.setAttribute('aria-pressed', 'false');
+          r.setAttribute('aria-pressed', 'false');
+          r.dataset.done = 'false';
+        });
+        updateProgress();
+      };
+      resetBtn.addEventListener('click', fn);
+      handlers.push({ el: resetBtn, type: 'click', fn });
+    }
+
+    updateProgress();
+
+    cleanupChecklist = () => {
+      handlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
+      cleanupChecklist = null;
+    };
+  }
+
+  function init() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupChecklist, { once: true });
+    } else {
+      setupChecklist();
+    }
+  }
+
+  document.addEventListener('astro:page-load', setupChecklist);
+  document.addEventListener('astro:before-swap', () => { if (cleanupChecklist) cleanupChecklist(); });
+  init();
+</script>

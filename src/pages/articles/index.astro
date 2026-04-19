@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import { calculateReadingTime } from '../../lib/readingTime';
+import { siteConfig } from '../../config/site';
+import { getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
 
 // Get all articles (non-draft)
 const articles = await getCollection('articles', ({ data }) => !data.draft);
@@ -16,12 +18,38 @@ const allTags = [...new Set(sortedArticles.flatMap((article) => article.data.tag
 // Separate featured articles
 const featuredArticles = sortedArticles.filter((a) => a.data.featured);
 const regularArticles = sortedArticles.filter((a) => !a.data.featured);
+
+// JSON-LD: Blog listing + ItemList of posts. Helps agents enumerate the
+// catalogue without scraping cards.
+const blogJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Blog',
+  name: 'Articles — David Tofan',
+  description: 'Technical articles on cybersecurity, cloud architecture, and web development.',
+  url: `${siteConfig.url}/articles/`,
+  author: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+    url: siteConfig.url,
+  },
+  blogPost: sortedArticles.map((a) => ({
+    '@type': 'BlogPosting',
+    headline: a.data.title,
+    description: a.data.description,
+    url: `${siteConfig.url}/articles/${a.id}/`,
+    datePublished: a.data.date.toISOString(),
+    dateModified: getEffectiveModifiedTime(a.data).toISOString(),
+    keywords: a.data.tags.join(', '),
+  })),
+};
 ---
 
 <BaseLayout
   title="Articles"
   description="Technical articles on cybersecurity, cloud architecture, and web development by David Tofan."
+  noPersonSchema={true}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(blogJsonLd)} />
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
     <!-- Page Header -->
     <div class="max-w-2xl mb-12">
@@ -82,7 +110,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
                 slug={article.id}
                 tags={article.data.tags}
                 featured={true}
-                readingTime={calculateReadingTime(article.body)}
+                readingTime={article.data.readingTime ? `${article.data.readingTime} min read` : calculateReadingTime(article.body)}
               />
             </div>
           ))}
@@ -108,7 +136,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
               slug={article.id}
               tags={article.data.tags}
               featured={false}
-              readingTime={calculateReadingTime(article.body)}
+              readingTime={article.data.readingTime ? `${article.data.readingTime} min read` : calculateReadingTime(article.body)}
             />
           </div>
         ))}
@@ -167,7 +195,9 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
     if (!(filterContainer instanceof HTMLElement)) return;
     if (filterContainer.dataset.tagFiltersBound === 'true') return;
 
-    filterContainer.dataset.tagFiltersBound = 'true';
+  const filtersRoot = filterContainer;
+
+  filtersRoot.dataset.tagFiltersBound = 'true';
 
     let currentTag = '';
 
@@ -194,7 +224,7 @@ const regularArticles = sortedArticles.filter((a) => !a.data.featured);
       });
 
       // Update active state on filter buttons
-      const filters = filterContainer.querySelectorAll('.tag-filter');
+      const filters = filtersRoot.querySelectorAll('.tag-filter');
       filters.forEach((filter) => {
         const filterTag = (filter as HTMLElement).getAttribute('data-tag') || '';
         if (filterTag === selectedTag) {

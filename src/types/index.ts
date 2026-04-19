@@ -5,7 +5,7 @@ export interface SiteConfig {
   url: string;
   author: {
     name: string;
-    email: string;
+    // email: string;
     twitter: string;
     github: string;
     linkedin: string;

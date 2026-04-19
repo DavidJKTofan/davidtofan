@@ -2,12 +2,25 @@
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import sitemap from '@astrojs/sitemap';
+import { EnumChangefreq } from 'sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
+import { buildSitemapLastmodMap } from './src/lib/contentMetadata.js';
+
+const siteUrl = 'https://davidtofan.com';
+const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl);
+const cloudflareAdapterOptions = /** @type {import('@astrojs/cloudflare').Options & { platformProxy?: { enabled: boolean } }} */ ({
+  platformProxy: {
+    enabled: true,
+  },
+  // Use 'compile' for local dev compatibility (sharp at build time)
+  // Images are optimized at build, works both locally and in production
+  imageService: 'compile',
+});
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://davidtofan.com',
+  site: siteUrl,
   // Prefetch configuration for View Transitions
   // Links are prefetched on hover/focus for faster navigation
   prefetch: {
@@ -26,44 +39,41 @@ export default defineConfig({
     // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
     '/sitemap.xml': '/sitemap-index.xml',
   },
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
-    // Use 'compile' for local dev compatibility (sharp at build time)
-    // Images are optimized at build, works both locally and in production
-    imageService: 'compile',
-  }),
+  adapter: cloudflare(cloudflareAdapterOptions),
   integrations: [
     sitemap({
       // Default change frequency for all pages
-      changefreq: 'monthly',
+      changefreq: EnumChangefreq.MONTHLY,
       // Default priority
       priority: 0.7,
-      // Set lastmod to current build time as baseline
-      lastmod: new Date(),
       // Customize individual pages
       serialize(item) {
+        const itemUrl = item.url.toString();
+        const lastmod = sitemapLastmodMap.get(itemUrl);
+        if (lastmod) {
+          item.lastmod = lastmod;
+        }
+
         // Higher priority for main pages
-        if (item.url === 'https://davidtofan.com/') {
-          item.changefreq = 'yearly';
+        if (itemUrl === `${siteUrl}/`) {
+          item.changefreq = EnumChangefreq.YEARLY;
           item.priority = 1.0;
         }
         // Articles section
-        if (item.url.includes('/articles/') && item.url !== 'https://davidtofan.com/articles/') {
-          item.changefreq = 'monthly';
+        if (itemUrl.includes('/articles/') && itemUrl !== `${siteUrl}/articles/`) {
+          item.changefreq = EnumChangefreq.MONTHLY;
           item.priority = 0.8;
         }
         // Projects section
-        if (item.url.includes('/projects/') && item.url !== 'https://davidtofan.com/projects/') {
-          item.changefreq = 'yearly';
+        if (itemUrl.includes('/projects/') && itemUrl !== `${siteUrl}/projects/`) {
+          item.changefreq = EnumChangefreq.YEARLY;
           item.priority = 0.6;
         }
         // Index pages
-        if (item.url === 'https://davidtofan.com/articles/' || 
-            item.url === 'https://davidtofan.com/projects/' ||
-            item.url === 'https://davidtofan.com/certificates/') {
-          item.changefreq = 'yearly';
+        if (itemUrl === `${siteUrl}/articles/` || 
+            itemUrl === `${siteUrl}/projects/` ||
+            itemUrl === `${siteUrl}/certificates/`) {
+          item.changefreq = EnumChangefreq.YEARLY;
           item.priority = 0.9;
         }
         return item;

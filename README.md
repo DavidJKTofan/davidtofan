@@ -101,6 +101,7 @@ Create `src/content/articles/my-article/index.md`:
 ---
 title: Article Title
 date: 2024-01-15
+modified: 2024-01-16 # Optional but recommended after substantive edits
 description: Brief description for SEO.
 tags: ["tag1", "tag2"]
 ---
@@ -108,7 +109,7 @@ tags: ["tag1", "tag2"]
 Content here...
 ```
 
-Add images to the same folder and reference with `![Alt](img/image.png)`.
+Add images to the same folder and reference with `![Alt](img/image.png)`. Add `featured.png` beside `index.md` when you want an automatic og:image / twitter:image fallback.
 
 ### Project
 
@@ -151,10 +152,16 @@ Add to `src/data/certificates.json`:
 |:--------------|:---------|:---------|:-------------------------|
 | `title`       | string   | Yes      | Article title            |
 | `date`        | date     | Yes      | Publication date         |
+| `modified`    | date     | No       | Last substantial update; used for `dateModified` and sitemap freshness |
 | `description` | string   | Yes      | SEO description          |
 | `tags`        | string[] | No       | Topic tags               |
 | `draft`       | boolean  | No       | Hide from production     |
 | `featured`    | boolean  | No       | Show on homepage         |
+| `image`       | string   | No       | Explicit social/share image override |
+| `imageAlt`    | string   | No       | Share image alt text     |
+| `readingTime` | number   | No       | Manual override for reading time |
+| `type`        | string   | No       | Hugo compatibility field |
+| `showTableOfContents` | boolean | No | Toggle article TOC       |
 
 ### Projects
 
@@ -162,9 +169,12 @@ Add to `src/data/certificates.json`:
 |:--------------|:---------|:---------|:------------------------------------|
 | `title`       | string   | Yes      | Project name                        |
 | `date`        | date     | Yes      | Start date                          |
+| `modified`    | date     | No       | Last substantial update; used for `dateModified` and sitemap freshness |
 | `description` | string   | Yes      | Brief description                   |
 | `website`     | string   | No       | Live URL                            |
 | `github`      | string   | No       | Repository URL                      |
+| `image`       | string   | No       | Explicit social/share image override |
+| `imageAlt`    | string   | No       | Share image alt text                |
 | `tags`        | string[] | No       | Technologies                        |
 | `draft`       | boolean  | No       | Hide from production                |
 | `status`      | enum     | No       | `active`, `completed`, `archived`   |
@@ -208,12 +218,14 @@ All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 
 ### Structured Data (JSON-LD)
 
-- **Articles**: `Article` schema with headline, description, author, publisher, datePublished, dateModified
-- **Other pages**: `WebSite` schema with author `Person` and social `sameAs` links
+- **Articles**: `BlogPosting` schema with headline, description, author, mainEntityOfPage, datePublished, and dateModified
+- **Listings and special pages**: page-specific JSON-LD where needed (`Blog`, `CollectionPage`, `BreadcrumbList`, `WebPage`, etc.)
+- **Fallback**: `BaseLayout.astro` can emit a default `Person` schema, or accept page-specific `structuredData` payloads when a route needs more precise semantics
 
 ### Sitemap & Robots
 
 - **Sitemap**: Auto-generated via `@astrojs/sitemap` integration (`/sitemap-index.xml`)
+- **Freshness**: article and project `lastmod` values come from frontmatter `modified` when set, otherwise from the original content `date`
 - **robots.txt**: Located at `public/robots.txt` with sitemap reference
 - **Sitemap link**: Added to `<head>` for discovery
 

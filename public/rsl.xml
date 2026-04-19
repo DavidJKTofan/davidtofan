@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  RSL 1.0 licensing for davidtofan.com
+  Spec: https://rslstandard.org/rsl
+  Human-readable terms: https://davidtofan.com/ai-licensing-terms/
+
+  Two licenses expressed below, both scoped to site root.
+    1. Free tier — search indexing and AI retrieval (RAG / grounding with citation)
+       are permitted, subject to attribution + a link back to the canonical URL.
+    2. AI training tier — training and fine-tuning require a commercial license.
+       Contact via the custom URL.
+
+  The IETF AIPREF Content-Signal declaration in /robots.txt carries the same
+  intent. This file is the machine-readable licensing layer; the terms page at
+  /ai-licensing-terms/ is the prose layer.
+-->
+<rsl xmlns="https://rslstandard.org/rsl">
+  <content url="https://davidtofan.com/">
+    <license>
+      <permits type="usage">search</permits>
+      <permits type="usage">ai-input</permits>
+      <payment type="attribution">
+        <custom>https://davidtofan.com/ai-licensing-terms/</custom>
+      </payment>
+    </license>
+    <license>
+      <permits type="usage">ai-train</permits>
+      <payment type="training">
+        <custom>https://linkedin.com/in/davidtofan</custom>
+      </payment>
+    </license>
+  </content>
+</rsl>

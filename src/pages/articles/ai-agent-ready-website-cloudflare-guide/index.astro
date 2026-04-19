@@ -1,0 +1,932 @@
+---
+import { getEntry } from 'astro:content';
+import { siteConfig } from '../../../config/site';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import TableOfContents from '../../../components/TableOfContents.astro';
+import ReadingProgress from '../../../components/ReadingProgress.astro';
+import ScrollToTop from '../../../components/ScrollToTop.astro';
+import SectionBlock from '../../../components/agent-ready-guide/SectionBlock.astro';
+import Hero from '../../../components/agent-ready-guide/Hero.astro';
+import StatsRibbon from '../../../components/agent-ready-guide/StatsRibbon.astro';
+import PillarsGrid from '../../../components/agent-ready-guide/PillarsGrid.astro';
+import CrawlReferChart from '../../../components/agent-ready-guide/CrawlReferChart.astro';
+import IsItAgentReadyCard from '../../../components/agent-ready-guide/IsItAgentReadyCard.astro';
+import RobotsTxtBuilder from '../../../components/agent-ready-guide/p1-RobotsTxtBuilder.astro';
+import MarkdownNegotiation from '../../../components/agent-ready-guide/p2-MarkdownNegotiation.astro';
+import WebBotAuthFlow from '../../../components/agent-ready-guide/p3-WebBotAuthFlow.astro';
+import McpCardBuilder from '../../../components/agent-ready-guide/p4-McpCardBuilder.astro';
+import PayPerCrawlFlow from '../../../components/agent-ready-guide/p5-PayPerCrawlFlow.astro';
+import PerformanceFlow from '../../../components/agent-ready-guide/p6-PerformanceFlow.astro';
+import SecurityRisksGrid from '../../../components/agent-ready-guide/p7-SecurityRisksGrid.astro';
+import ChecklistTable from '../../../components/agent-ready-guide/p8-ChecklistTable.astro';
+import { getContentImagePath, getEffectiveModifiedTime } from '../../../lib/contentMetadata.js';
+
+// Pull metadata from the companion content collection entry
+const article = await getEntry('articles', 'ai-agent-ready-website-cloudflare-guide');
+const data = article?.data;
+
+const title = data?.title ?? 'Preparing Your Website for the AI Agentic Internet';
+const description = data?.description ?? 'A practitioner\'s interactive walkthrough on making any website agent-ready with Cloudflare.';
+const date = data?.date ?? new Date('2026-04-17');
+const modified = data?.modified;
+const tags = data?.tags ?? ['cybersecurity', 'cloudflare', 'artificial intelligence', 'agents'];
+const articleImage = getContentImagePath('articles', 'ai-agent-ready-website-cloudflare-guide', data?.image);
+const articleUpdatedAt = getEffectiveModifiedTime({ date, modified });
+
+const formattedDate = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(date);
+
+// Manual headings array for the TableOfContents component (no markdown render here)
+const headings = [
+  { depth: 2, slug: 'historic-phase', text: 'The Internet\'s next historic phase' },
+  { depth: 2, slug: 'readiness-pillars', text: 'What "agent-ready" actually means' },
+  { depth: 2, slug: 'discoverability', text: 'Pillar 1: Discoverability' },
+  { depth: 2, slug: 'content', text: 'Pillar 2: Content — Markdown for Agents' },
+  { depth: 2, slug: 'bot-control', text: 'Pillar 3: Bot access control' },
+  { depth: 2, slug: 'capabilities', text: 'Pillar 4: Capabilities' },
+  { depth: 2, slug: 'commerce', text: 'Pillar 5: Commerce — Pay Per Crawl & x402' },
+  { depth: 2, slug: 'performance', text: 'Pillar 6: Performance' },
+  { depth: 2, slug: 'security', text: 'Pillar 7: AI Security implications' },
+  { depth: 2, slug: 'business-case', text: 'For website owners' },
+  { depth: 2, slug: 'developer-workflow', text: 'The developer workflow' },
+  { depth: 2, slug: 'checklist', text: 'Checklist & what\'s next' },
+];
+
+const readingTime = data?.readingTime ?? 14;
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  type="article"
+  publishedTime={date}
+  modifiedTime={articleUpdatedAt}
+  tags={tags}
+  image={articleImage}
+>
+  <ReadingProgress />
+  <ScrollToTop />
+
+  <div class="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <div class="lg:grid lg:grid-cols-[1fr_15rem] xl:grid-cols-[1fr_17rem] lg:gap-10 xl:gap-12 lg:items-start">
+
+      <!-- ── Main article column ─────────────────────────────────────── -->
+      <div class="min-w-0">
+        <!-- Back link -->
+        <a
+          href="/articles"
+          class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors mb-8 group"
+        >
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back to articles
+        </a>
+
+        <!-- Article header -->
+        <header class="mb-10">
+          <div class="flex flex-wrap gap-2 mb-4">
+            {tags.slice(0, 4).map((tag: string) => (
+              <span class="tag tag-accent text-xs">{tag}</span>
+            ))}
+            <span class="tag text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">interactive</span>
+          </div>
+
+          <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-6 text-balance">
+            {title}
+          </h1>
+
+          <p class="text-lg sm:text-xl text-surface-600 dark:text-surface-400 leading-relaxed max-w-3xl mb-6">
+            The web once learned to speak to browsers, then to search engines. Now it must speak to AI agents. This is a general walkthrough — with live, interactive mini-demos — for making any website ready for the <em>agentic</em> internet with Cloudflare.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-4 text-surface-500 dark:text-surface-400">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
+                <span class="text-white text-xs font-bold">DT</span>
+              </div>
+              <span class="font-medium text-surface-700 dark:text-surface-300">David Tofan</span>
+            </div>
+            <span class="w-1 h-1 rounded-full bg-surface-300 dark:bg-surface-600"></span>
+            <time datetime={date.toISOString()} class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+              {formattedDate}
+            </time>
+            <span class="w-1 h-1 rounded-full bg-surface-300 dark:bg-surface-600"></span>
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              {readingTime} min read · 12 sections
+            </span>
+          </div>
+        </header>
+
+        <!-- ── Section 1: Historic phase ──────────────────────────────── -->
+        <SectionBlock
+          number="01"
+          id="historic-phase"
+          eyebrow="Where we are"
+          title="The Internet's next historic phase"
+          lede="This isn't incremental. The web is learning a new audience the way it once learned browsers and search engines — and the old search-to-click bargain is breaking as agents read more than they refer."
+        >
+          <Hero />
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              In 1994, <a href="https://www.rfc-editor.org/rfc/rfc9309" target="_blank" rel="noopener noreferrer">robots.txt</a> taught the web to talk to search crawlers.
+              Thirty-two years later, almost nothing on your site is ready for the crawlers that matter now: AI agents and the humans driving them.
+              The numbers are mind-blowing — see <a href="https://blog.cloudflare.com/ai-search-crawl-refer-ratio-on-radar/" target="_blank" rel="noopener noreferrer">AI Search Crawl Refer Ratio on Radar</a> and the
+              <a href="https://blog.cloudflare.com/crawlers-click-ai-bots-training/" target="_blank" rel="noopener noreferrer">crawl-to-click insights</a>.
+              What follows is Cloudflare's original five-pillar
+              <a href="https://blog.cloudflare.com/agent-readiness/" target="_blank" rel="noopener noreferrer">Agent Readiness</a> framework, plus two additional pillars I added here: <strong>Performance</strong> and <strong>Security</strong>.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 2: What agent-ready means ──────────────────────── -->
+        <SectionBlock
+          number="02"
+          id="readiness-pillars"
+          eyebrow="The framework"
+          title="What &quot;agent-ready&quot; actually means"
+          lede='Being "agent-ready" is less about adding AI to your site and more about letting AI reliably and respectfully read, act on, and transact with it. Cloudflare scanned the top 200,000 domains — here is a baseline:'
+        >
+          <StatsRibbon />
+          <IsItAgentReadyCard />
+          <div class="my-6 rounded-xl border border-accent-500/25 bg-accent-500/5 px-5 py-4 text-sm text-surface-700 dark:border-accent-500/20 dark:bg-accent-500/10 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Framework note:</strong> <code>isitagentready.com</code> scores the original five Cloudflare pillars. This walkthrough extends that rubric with two operational pillars — <strong>Performance</strong> and <strong>Security</strong> — so the full checklist here spans seven categories.
+          </div>
+          <PillarsGrid />
+        </SectionBlock>
+
+        <!-- ── Section 3: Discoverability ─────────────────────────────── -->
+        <SectionBlock
+          number="03"
+          id="discoverability"
+          eyebrow="Pillar 1 · Discoverability"
+          title="robots.txt, sitemap, and Link headers"
+          lede="Most sites already have a robots.txt — but not prepared for agents. The first three isitagentready.com checks fall under this pillar."
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> any public website, docs portal, blog, or product site that wants search engines and AI agents to reliably discover crawlable pages and machine-readable resources.
+          </div>
+          <RobotsTxtBuilder />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <h3>Why <code>Disallow: /cdn-cgi/</code> matters</h3>
+            <p>
+              Cloudflare reserves the
+              <a href="https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/" target="_blank" rel="noopener noreferrer"><code>/cdn-cgi/</code></a> path for internal features (challenge pages, email obfuscation, etc.). Crawling it produces noise in Search Console. Disallow it — but if you use Cloudflare Image Transformations (<code>/cdn-cgi/image/</code>), scope the rule to avoid blocking your own image variants.
+              Here is more information on the <a href="https://developers.cloudflare.com/fundamentals/performance/improve-seo/" target="_blank" rel="noopener noreferrer">SEO (Search Engine Optimization) impact by Cloudflare</a>.
+            </p>
+
+            <h3>Link response headers for agent discovery</h3>
+            <p>
+              Return <code>Link:</code> headers on your homepage so agents can find machine-readable resources without parsing HTML. Specified by
+              <a href="https://www.rfc-editor.org/rfc/rfc8288" target="_blank" rel="noopener noreferrer">RFC 8288</a>
+              and
+              <a href="https://www.rfc-editor.org/rfc/rfc9727#section-3" target="_blank" rel="noopener noreferrer">RFC 9727 §3</a>.
+              Use the registered relation types: <code>api-catalog</code>, <code>service-desc</code>, <code>service-doc</code>, <code>describedby</code>.
+            </p>
+            <pre><code>Link: &lt;/.well-known/api-catalog&gt;; rel=&quot;api-catalog&quot;
+Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;application/json&quot;</code></pre>
+            <p>
+              Multiple <code>Link:</code> headers or a single comma-separated value are both valid.
+            </p>
+            <p>
+              <strong>On Cloudflare:</strong> add these via
+              <a href="https://developers.cloudflare.com/rules/transform/" target="_blank" rel="noopener noreferrer">Transform Rules → Response Header Modification</a>
+              or a
+              <a href="https://developers.cloudflare.com/workers/reference/how-workers-works/" target="_blank" rel="noopener noreferrer">Worker</a> —
+              no origin changes required. The
+              <a href="https://developers.cloudflare.com/ai-crawl-control/configuration/ai-crawl-control-with-transform-rules/" target="_blank" rel="noopener noreferrer">AI Crawl Control + Transform Rules</a>
+              guide has a practical licensing terms example.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 4: Content ─────────────────────────────────────── -->
+        <SectionBlock
+          number="04"
+          id="content"
+          eyebrow="Pillar 2 · Content"
+          title="Markdown for Agents — content that isn't wasted on them"
+          lede="Agents parsing HTML burn tokens on nav, scripts, and chrome. Markdown is the right wire format for LLMs (Large Language Models). Toggle the <code>Accept</code> header below to see Cloudflare's edge conversion in action."
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> publishers of articles, documentation, knowledge bases, changelogs, and other text-heavy pages where the real content is buried under lots of HTML chrome.
+          </div>
+          <MarkdownNegotiation />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              <a href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/" target="_blank" rel="noopener noreferrer">Markdown for Agents</a> performs edge-side HTML→Markdown conversion on the fly — no new <code>.md</code> files required. Cloudflare's own docs saw <strong>~80% token reduction</strong> (16,180 → 3,150 tokens on a typical page — see <a href="https://blog.cloudflare.com/agent-readiness/#content-accessibility" target="_blank" rel="noopener noreferrer">Agent Readiness · content accessibility</a>). The response also adds <code>x-markdown-tokens</code>, <code>vary: accept</code>, and a <code>content-signal</code> declaration.
+            </p>
+            <p>
+              Today, only Claude Code, OpenCode, and Cursor send <code>Accept: text/markdown</code> by default — but emitting it costs you nothing.
+            </p>
+            <p>
+              Flip side: if you're building the <em>agent</em>, Cloudflare's
+              <a href="https://developers.cloudflare.com/browser-run/quick-actions/markdown-endpoint/" target="_blank" rel="noopener noreferrer">Browser Run Markdown endpoint</a>
+              gives you a one-call API to pull clean Markdown from any URL (or raw HTML) — useful for ingesting sites that <em>don't</em> yet serve it natively.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 5: Bot access control ──────────────────────────── -->
+        <SectionBlock
+          number="05"
+          id="bot-control"
+          eyebrow="Pillar 3 · Bot access control"
+          title="From passive disclosure to active enforcement"
+          lede="Content Signals declare intent. AI Crawl Control + WAF (Web Application Firewall) enforce it. Web Bot Auth adds cryptographic identity when a bot provider signs requests."
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> site owners who need to decide which AI crawlers may read, train on, pay for, or be blocked from their content. Within this pillar, Web Bot Auth mainly matters to bot providers or operators who sign traffic; site owners mostly consume the verification result.
+          </div>
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              <a href="https://contentsignals.org/" target="_blank" rel="noopener noreferrer">Content Signals</a> — launched September 2025 under a CC0 (Creative Commons Zero) license and now an <a href="https://datatracker.ietf.org/doc/draft-romm-aipref-contentsignals/" target="_blank" rel="noopener noreferrer">IETF (Internet Engineering Task Force) AIPREF (AI Preferences) draft</a> — introduces three preferences: <code>search</code>, <code>ai-input</code>, and <code>ai-train</code>. These are <em>preferences</em> plus a reservation of rights under the <a href="https://blog.cloudflare.com/content-signals-policy/" target="_blank" rel="noopener noreferrer">European Union (EU) Directive 2019/790 on Copyright and Related Rights in the Digital Single Market (DSM), Article 4</a>.
+            </p>
+
+            <h3>The three layers</h3>
+            <ol>
+              <li>
+                <strong><a href="https://developers.cloudflare.com/ai-crawl-control/" target="_blank" rel="noopener noreferrer">AI Crawl Control</a></strong> — per-bot allow / block / charge, with a dashboard view of every AI category (<code>AI Crawler</code>, <code>AI Search</code>, <code>AI Assistant</code>, <code>Archiver</code>). Free and self-serve plans detect by user-agent; Enterprise plans with Enterprise Bot Management use full Detection IDs.
+              </li>
+              <li>
+                <strong><a href="https://blog.cloudflare.com/ai-redirects/" target="_blank" rel="noopener noreferrer">Redirects for AI Training</a></strong> — one toggle converts <code>&lt;link rel=&quot;canonical&quot;&gt;</code> tags into HTTP 301s for verified AI training crawlers. Cloudflare's own docs redirected 100% of training crawler requests to deprecated pages in the first week.
+              </li>
+              <li>
+                <strong><a href="https://blog.cloudflare.com/web-bot-auth/" target="_blank" rel="noopener noreferrer">Verified Bots + Web Bot Auth</a></strong> — cryptographic identification via Ed25519 HTTP Message Signatures (<a href="https://www.rfc-editor.org/rfc/rfc9421" target="_blank" rel="noopener noreferrer">RFC 9421</a>), public keys at <code>/.well-known/http-message-signatures-directory</code>. This is primarily for bot providers/operators: they publish keys and sign requests, while site owners mostly consume the verification result at the edge. Cloudflare uses Web Bot Auth for both verified bots and signed agents, but a bot can only be registered as one classification.
+              </li>
+            </ol>
+          </div>
+
+          <WebBotAuthFlow />
+
+          <div class="signals-callout my-8 relative overflow-hidden rounded-2xl p-[1.5px] bg-gradient-to-r from-accent-500 via-amber-500 to-accent-500 shadow-lg shadow-accent-500/10">
+            <div class="rounded-2xl bg-surface-50 dark:bg-surface-950 p-5 sm:p-6 relative">
+              <div class="absolute inset-0 opacity-[0.04] dark:opacity-[0.07] pointer-events-none" style="background-image: radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0); background-size: 16px 16px;"></div>
+              <div class="flex items-start gap-4 relative">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500/20 to-amber-500/20 border border-accent-500/30 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+                    <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="font-display font-semibold text-base sm:text-lg text-surface-900 dark:text-surface-50 mb-1 leading-snug">
+                    Signals declare. Enforcement executes. Ship both.
+                  </div>
+                  <p class="text-sm text-surface-700 dark:text-surface-300 m-0 leading-relaxed">
+                    Content Signals publish <em>intent</em>; Managed robots.txt + AI Crawl Control + WAF publish <em>consequences</em>. Web Bot Auth adds cryptographic identity when incoming bot traffic is signed by a bot provider. Without the enforcement layer, signals are wishes — not policy.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 6: Capabilities ────────────────────────────────── -->
+        <SectionBlock
+          number="06"
+          id="capabilities"
+          eyebrow="Pillar 4 · Capabilities"
+          title="Give agents things to do"
+          lede="Beyond reading content, agents should be able to authenticate, discover APIs, and call tools. Most sites have zero presence here — the upside is huge."
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> organizations exposing APIs, SaaS actions, search endpoints, MCP servers, or other machine-callable services. If your site is purely informational, you likely need only a subset of these surfaces.
+          </div>
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>The capability well-knowns, in order of the isitagentready.com checklist:</p>
+            <ul>
+              <li><code>/.well-known/api-catalog</code> — <a href="https://www.rfc-editor.org/rfc/rfc9727" target="_blank" rel="noopener noreferrer">RFC 9727</a>, a Linkset of your APIs. Mainly useful for organizations or people who expose one or more API services and want agents to discover them systematically.</li>
+              <li><code>/.well-known/oauth-authorization-server</code> — <a href="https://www.rfc-editor.org/rfc/rfc8414" target="_blank" rel="noopener noreferrer">RFC 8414</a> / OIDC (OpenID Connect) discovery. Useful when you operate your own authorization server for APIs, MCP servers, or agent actions.</li>
+              <li><code>/.well-known/oauth-protected-resource</code> — <a href="https://www.rfc-editor.org/rfc/rfc9728" target="_blank" rel="noopener noreferrer">RFC 9728</a>, tells MCP (Model Context Protocol) clients which AS (Authorization Server) to use and which scopes to request. Useful for protected APIs or MCP endpoints that require scoped access.</li>
+              <li><code>/.well-known/mcp/server-card.json</code> — <a href="https://modelcontextprotocol.io/community/server-card/charter" target="_blank" rel="noopener noreferrer">MCP SEP-2127</a>, describes your server's tools, transport, and auth. Useful for teams operating an MCP server and wanting clients to discover its capabilities cleanly.</li>
+              <li><code>/.well-known/agent-skills/index.json</code> — <a href="https://agentskills.io/" target="_blank" rel="noopener noreferrer">Agent Skills</a>, Anthropic's directory convention. Useful when you publish reusable agent workflows, prompts, or skills as first-class assets.</li>
+              <li><strong>WebMCP</strong> — <a href="https://webmachinelearning.github.io/webmcp/" target="_blank" rel="noopener noreferrer">W3C Community Group draft</a>, the browser API surface around <code>navigator.modelContext</code> and methods like <code>registerTool()</code> for exposing in-page tools to agents. Mainly useful for browser applications that want to expose live, in-page actions or context directly to agents.</li>
+            </ul>
+            <p>
+              Build your first one below — a minimal MCP Server Card. Host it on a
+              <a href="https://developers.cloudflare.com/agents/guides/remote-mcp-server/" target="_blank" rel="noopener noreferrer">Cloudflare Worker</a>
+              with
+              <a href="https://blog.cloudflare.com/ai-search-agent-primitive/" target="_blank" rel="noopener noreferrer">AI Search</a>
+              as the backing retrieval.
+            </p>
+          </div>
+
+          <McpCardBuilder />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p class="text-sm text-surface-600 dark:text-surface-400 italic">
+              Note: Content Signals, MCP Server Card, WebMCP, and Agent Skills are all drafts or community reports — adopting them is a forward bet. Publish drafts on non-critical paths, and keep versions pinned.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 7: Commerce ────────────────────────────────────── -->
+        <SectionBlock
+          number="07"
+          id="commerce"
+          eyebrow="Pillar 5 · Commerce"
+          title="Pay Per Crawl and x402 — monetize, or block"
+          lede="HTTP 402 has existed since 1997. In 2026, it finally got a use. The handshake below is what actually travels between crawler and origin."
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> publishers, data providers, and API operators with high-value content or actions that should be monetized, rate-limited, or blocked for bots instead of treated like free traffic.
+          </div>
+          <PayPerCrawlFlow />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              <a href="https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/" target="_blank" rel="noopener noreferrer">Pay Per Crawl</a> lets publishers choose <em>Allow</em>, <em>Charge</em>, or <em>Block</em> per crawler. Charge typically starts with <code>402</code> plus <code>crawler-price</code>; crawlers then retry with either <code>crawler-max-price</code> or <code>crawler-exact-price</code>, and successful responses include <code>crawler-charged</code>. All payment headers must be Web Bot Auth-signed by the crawler/provider.
+              The open-standard version is <a href="https://blog.cloudflare.com/x402/" target="_blank" rel="noopener noreferrer">x402</a>, governed by the x402 Foundation (Coinbase + Cloudflare) with stablecoin settlement.
+            </p>
+            <p>
+              The broader commerce layer — <a href="https://blog.cloudflare.com/secure-agentic-commerce/" target="_blank" rel="noopener noreferrer">Trusted Agent Protocol</a> (Cloudflare + Visa), Mastercard Agent Pay, Google AP2 (Agent Payments Protocol) — treats agent authentication and signed intent as first-class primitives.
+            </p>
+          </div>
+
+          <a
+            href="https://playground.x402.cloudflare.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="x402-cta not-prose group my-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 rounded-2xl border border-amber-500/40 dark:border-amber-400/30 bg-gradient-to-br from-amber-500/5 via-surface-50/50 to-accent-500/5 dark:from-amber-500/10 dark:via-surface-950/60 dark:to-accent-500/10 p-5 shadow-lg shadow-amber-500/5 hover:border-amber-500/70 dark:hover:border-amber-400/60 transition-colors"
+          >
+            <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-accent-500 text-white flex items-center justify-center font-bold font-mono text-lg shadow-md">402</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-2xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold">Try it live</span>
+                <span class="x402-dot flex-shrink-0"></span>
+              </div>
+              <div class="font-display font-bold text-lg text-surface-900 dark:text-surface-50 leading-tight">
+                playground.x402.cloudflare.com
+              </div>
+              <div class="text-sm text-surface-600 dark:text-surface-400 mt-1">
+                Issue a signed payment, watch the 402 handshake, inspect the charge receipt.
+              </div>
+            </div>
+            <div class="text-accent-600 dark:text-accent-400 font-mono text-xs font-semibold group-hover:translate-x-1 transition-transform flex-shrink-0">Open →</div>
+          </a>
+
+          <style>
+            .x402-dot {
+              position: relative;
+              display: inline-block;
+              width: 0.375rem;
+              height: 0.375rem;
+              border-radius: 9999px;
+              background-color: rgb(245 158 11);
+            }
+            .x402-dot::before {
+              content: '';
+              position: absolute;
+              inset: -3px;
+              border-radius: 9999px;
+              background-color: rgb(245 158 11 / 0.4);
+              animation: x402DotPulse 1.8s ease-out infinite;
+            }
+            @keyframes x402DotPulse {
+              0% { transform: scale(0.6); opacity: 0.9; }
+              100% { transform: scale(2); opacity: 0; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .x402-dot::before { animation: none; }
+            }
+          </style>
+        </SectionBlock>
+
+        <!-- ── Section 8: Performance ─────────────────────────────────── -->
+        <SectionBlock
+          number="08"
+          id="performance"
+          eyebrow="Added pillar · Performance"
+          title="Performance matters (for agents, too)"
+          lede={`Slow sites don't just frustrate humans — they time out agents and blow token budgets. Cloudflare's <a href="https://developers.cloudflare.com/use-cases/performance/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">web performance stack</a> doubles as your agent-readiness layer.`}
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> any public site, but especially docs portals, blogs, template-heavy pages, ecommerce catalogs, and other experiences that agents may fetch repeatedly or summarize under time and token constraints.
+          </div>
+          <PerformanceFlow />
+
+          <div class="grid md:grid-cols-3 gap-4 my-6">
+            <div class="group rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors">
+              <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-2">measure</div>
+              <a
+                href="https://developers.cloudflare.com/speed/observatory/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-block font-semibold text-surface-900 dark:text-surface-50 mb-1 group-hover:text-accent-600 dark:group-hover:text-accent-400 hover:underline transition-colors"
+              >
+                Speed Observatory
+              </a>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Synthetic Lighthouse + RUM (Real User Monitoring) at p75 for LCP (Largest Contentful Paint), INP (Interaction to Next Paint), CLS (Cumulative Layout Shift), TTFB (Time to First Byte). Recommendations map to Image Transformations, Argo, Brotli, HTTP/3, Early Hints and more.
+              </p>
+              <a
+                href="https://developers.cloudflare.com/speed/observatory/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden="true"
+                tabindex="-1"
+                class="mt-3 inline-block text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform hover:underline"
+              >Open →</a>
+            </div>
+            <div class="group rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors">
+              <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-2">optimize</div>
+              <a
+                href="https://blog.cloudflare.com/shared-dictionaries/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-block font-semibold text-surface-900 dark:text-surface-50 mb-1 group-hover:text-accent-600 dark:group-hover:text-accent-400 hover:underline transition-colors"
+              >
+                Shared Dictionaries
+              </a>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Phase 1 shipping April 30, 2026. Significant payload compression for repeat fetches — valuable when agents crawl template-heavy pages.
+              </p>
+              <a
+                href="https://blog.cloudflare.com/shared-dictionaries/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden="true"
+                tabindex="-1"
+                class="mt-3 inline-block text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform hover:underline"
+              >Open →</a>
+            </div>
+            <div class="group rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors">
+              <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-2">agent-specific</div>
+              <a
+                href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-block font-semibold text-surface-900 dark:text-surface-50 mb-1 group-hover:text-accent-600 dark:group-hover:text-accent-400 hover:underline transition-colors"
+              >
+                Serve Markdown
+              </a>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Markdown is a perf optimization: fewer bytes, fewer tokens, faster turnarounds. The cheapest perf win you'll ship this quarter.
+              </p>
+              <a
+                href="https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden="true"
+                tabindex="-1"
+                class="mt-3 inline-block text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform hover:underline"
+              >Open →</a>
+            </div>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 9: AI Security implications ────────────────────── -->
+        <SectionBlock
+          number="09"
+          id="security"
+          eyebrow="Added pillar · Security"
+          title="AI Security implications"
+          lede={`Seven concrete risks — one-line mitigation each — mapped to <a href="https://genai.owasp.org/llm-top-10/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">OWASP (Open Worldwide Application Security Project) LLM Top 10 (2025)</a>, <a href="https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">Agentic Top 10 (2026)</a>, and the <a href="https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">MCP Authorization Spec</a>. <br>Tap &quot;Mitigate&quot; on any card to reveal the fix, or review AI-related use cases in the <a href="https://ai-security.automatic-demo.com/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">Cloudflare AI security demo</a>.`}
+        >
+          <div class="my-6 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 px-5 py-4 text-sm text-surface-700 dark:text-surface-300">
+            <strong class="text-surface-900 dark:text-surface-50">Most useful for:</strong> any organization exposing <code>/.well-known/</code> endpoints, APIs, MCP servers, auth flows, or other machine-readable surfaces. The more agent-facing capability you publish, the less optional this pillar becomes.
+          </div>
+          <SecurityRisksGrid />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              <strong>Observability:</strong> log <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/" target="_blank" rel="noopener noreferrer">Rules-language fields</a> — <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.bot_management.verified_bot/" target="_blank" rel="noopener noreferrer"><code>cf.bot_management.verified_bot</code></a>, <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.verified_bot_category/" target="_blank" rel="noopener noreferrer"><code>cf.verified_bot_category</code></a>, <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.bot_management.ja4/" target="_blank" rel="noopener noreferrer"><code>cf.bot_management.ja4</code></a>, <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.bot_management.score/" target="_blank" rel="noopener noreferrer"><code>cf.bot_management.score</code></a>, the <code>Signature-Agent</code> request header — and tool-call telemetry to your SIEM (Security Information and Event Management) via <a href="https://developers.cloudflare.com/logs/logpush/" target="_blank" rel="noopener noreferrer">Logpush</a>. Alert on per-agent anomalies, not just global thresholds.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 10: Business case ──────────────────────────────── -->
+        <SectionBlock
+          number="10"
+          id="business-case"
+          eyebrow="For website owners"
+          title="The 30-year search bargain is broken"
+          lede="If you're not the developer shipping this, this section is for you."
+        >
+          <blockquote class="my-6 rounded-xl bg-surface-50/70 dark:bg-surface-900/40 border-l-2 border-accent-500 p-5 sm:p-6">
+            <p class="font-display text-lg sm:text-xl font-medium text-surface-800 dark:text-surface-100 leading-snug m-0 text-balance">
+              "Instead of being a fair trade, the web is being stripmined by AI crawlers with content creators seeing almost no traffic."
+            </p>
+            <footer class="mt-3 text-sm text-surface-600 dark:text-surface-400">
+              — Matthew Prince, Cloudflare,
+              <a href="https://blog.cloudflare.com/content-independence-day-no-ai-crawl-without-compensation/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">July 2025</a>
+            </footer>
+          </blockquote>
+
+          <CrawlReferChart />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <h3>What changed</h3>
+            <p>
+              Around 75% of mobile Google queries now resolve without a click, and training drives ~80% of AI bot activity — see the
+              <a href="https://blog.cloudflare.com/ai-crawler-traffic-by-purpose-and-industry/" target="_blank" rel="noopener noreferrer">purpose & industry breakdown</a> and the
+              <a href="https://blog.cloudflare.com/ai-search-crawl-refer-ratio-on-radar/" target="_blank" rel="noopener noreferrer">crawl-to-refer ratio on Radar</a>.
+            </p>
+            <p>
+              Your website isn't just optimizing for "search ranking → click → conversion" anymore. It's optimizing for "<strong>agent answer → brand mention → qualified action</strong>".
+            </p>
+
+            <h3>Four owner-level moves</h3>
+            <ol>
+              <li><strong>Measure</strong> — run your domain through <a href="https://isitagentready.com/" target="_blank" rel="noopener noreferrer">isitagentready.com</a> and review <a href="https://radar.cloudflare.com/ai-insights" target="_blank" rel="noopener noreferrer">Cloudflare Radar AI Insights</a>.</li>
+              <li><strong>Decide</strong> — declare intent via Content Signals. Which uses do you permit (<code>search</code>, <code>ai-input</code>, <code>ai-train</code>)?</li>
+              <li><strong>Enforce</strong> — turn on <a href="https://developers.cloudflare.com/ai-crawl-control/" target="_blank" rel="noopener noreferrer">AI Crawl Control</a> and <a href="https://developers.cloudflare.com/bots/additional-configurations/managed-robots-txt/" target="_blank" rel="noopener noreferrer">Managed robots.txt</a>.</li>
+              <li><strong>Monetize or block</strong> — choose <a href="https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/" target="_blank" rel="noopener noreferrer">Pay Per Crawl</a> for high-value content.</li>
+            </ol>
+            <p>
+              If you do nothing: your content still gets scraped, your brand still gets summarized in AI answers — you just give up both (potential) compensation <em>and</em> the ability to correct what the model says about you. This is your choice.
+            </p>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Section 11: Developer workflow ─────────────────────────── -->
+        <SectionBlock
+          number="11"
+          id="developer-workflow"
+          eyebrow="Ship it"
+          title="The developer workflow with Cloudflare"
+          lede="The fast path from plan to deployed. Everything below is official Cloudflare tooling."
+        >
+          <div class="grid md:grid-cols-2 gap-4 my-6">
+            <a
+              href="https://blog.cloudflare.com/cf-cli-local-explorer/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+                <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">cli</div>
+              </div>
+              <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">Wrangler + Local Explorer</div>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Deploy Workers, configure <code class="text-xs">content_converter</code>, run <code class="text-xs">wrangler dev</code>. Local Explorer for debugging.
+              </p>
+            </a>
+            <a
+              href="https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 7V3m8 4V3M5 11h14M5 21h14a2 2 0 002-2v-8H3v8a2 2 0 002 2z"/></svg>
+                <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">mcp</div>
+              </div>
+              <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">MCP Servers for Cloudflare</div>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                16 official remote MCP servers — docs, bindings, builds, Radar, AI Gateway, AI Search, Logs. Drop in with one config entry.
+              </p>
+            </a>
+            <a
+              href="https://blog.cloudflare.com/introducing-agent-lee/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
+                <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">agent</div>
+              </div>
+              <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">Agent Lee</div>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Cloudflare's agent for dashboard interaction. Handy for non-destructive account introspection while you build.
+              </p>
+            </a>
+            <a
+              href="https://search.ai.cloudflare.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="group block rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/70 dark:bg-surface-900/40 p-5 hover:border-accent-400/60 dark:hover:border-accent-500/40 transition-colors"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>
+                <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">search</div>
+              </div>
+              <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">AI Search (AutoRAG)</div>
+              <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                Build a knowledge base or add search to your site. MCP endpoint at <code class="text-xs">autorag.mcp.cloudflare.com/mcp</code>.
+              </p>
+            </a>
+          </div>
+
+          <div class="mt-8">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="demo-trio-dot"></span>
+              <h3 class="font-display font-semibold text-sm uppercase tracking-wider text-accent-700 dark:text-accent-300 m-0">
+                Public demos — play with the primitives
+              </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+              <a
+                href="https://playground.ai.cloudflare.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="demo-trio-card group block rounded-xl border border-accent-500/30 dark:border-accent-500/20 bg-gradient-to-br from-accent-500/5 via-surface-50/50 to-transparent dark:from-accent-500/10 dark:via-surface-950/50 dark:to-transparent p-5 hover:border-accent-500/60 dark:hover:border-accent-400/50 transition-colors shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m-6-8h6M5 6a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6z"/></svg>
+                  <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">LLM playground</div>
+                </div>
+                <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">playground.ai</div>
+                <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                  Chat with <strong>Workers AI</strong> models routed through <strong>AI Gateway</strong>. Compare latency, tokens, cost side by side.
+                </p>
+                <div class="mt-3 text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform">Open →</div>
+              </a>
+              <a
+                href="https://multi-modal.ai.cloudflare.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="demo-trio-card group block rounded-xl border border-accent-500/30 dark:border-accent-500/20 bg-gradient-to-br from-accent-500/5 via-surface-50/50 to-transparent dark:from-accent-500/10 dark:via-surface-950/50 dark:to-transparent p-5 hover:border-accent-500/60 dark:hover:border-accent-400/50 transition-colors shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  <div class="text-2xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400">multi-modal</div>
+                </div>
+                <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">multi-modal.ai</div>
+                <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                  Image + audio + text inference on Workers AI — drop in a picture, get structured captions back.
+                </p>
+                <div class="mt-3 text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform">Open →</div>
+              </a>
+              <a
+                href="https://playground.x402.cloudflare.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="demo-trio-card group block rounded-xl border border-amber-500/30 dark:border-amber-400/20 bg-gradient-to-br from-amber-500/5 via-surface-50/50 to-accent-500/5 dark:from-amber-500/10 dark:via-surface-950/50 dark:to-accent-500/10 p-5 hover:border-amber-500/60 dark:hover:border-amber-400/50 transition-colors shadow-sm"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="font-mono text-2xs font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">402</span>
+                  <div class="text-2xs font-mono uppercase tracking-wider text-amber-700 dark:text-amber-400">pay per crawl</div>
+                </div>
+                <div class="font-semibold text-surface-900 dark:text-surface-50 mb-1">playground.x402</div>
+                <p class="text-sm text-surface-600 dark:text-surface-400 leading-relaxed m-0">
+                  Send a signed HTTP request, watch the 402 handshake, inspect the charge receipt. End-to-end x402 flow.
+                </p>
+                <div class="mt-3 text-xs font-mono text-accent-600 dark:text-accent-400 group-hover:translate-x-1 transition-transform">Open →</div>
+              </a>
+            </div>
+          </div>
+
+          <style>
+            .demo-trio-dot {
+              position: relative;
+              display: inline-block;
+              width: 0.375rem;
+              height: 0.375rem;
+              border-radius: 9999px;
+              background-color: rgb(16 185 129);
+            }
+            .demo-trio-dot::before {
+              content: '';
+              position: absolute;
+              inset: -3px;
+              border-radius: 9999px;
+              background-color: rgb(16 185 129 / 0.4);
+              animation: demoTrioDotPulse 1.8s ease-out infinite;
+            }
+            @keyframes demoTrioDotPulse {
+              0% { transform: scale(0.6); opacity: 0.9; }
+              100% { transform: scale(2); opacity: 0; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              .demo-trio-dot::before { animation: none; }
+            }
+          </style>
+        </SectionBlock>
+
+        <!-- ── Section 12: Checklist + CTA ────────────────────────────── -->
+        <SectionBlock
+          number="12"
+          id="checklist"
+          eyebrow="Close the loop"
+          title="The agent-ready checklist, mapped to Cloudflare"
+          lede="Tick the boxes as you ship. Filter by pillar. Reset when you start on a new zone."
+        >
+          <ChecklistTable />
+
+          <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none mt-8">
+            <h3>Build it with AI tools</h3>
+            <p>
+              Cloudflare publishes a
+              <a href="https://developers.cloudflare.com/style-guide/ai-tooling/" target="_blank" rel="noopener noreferrer">style guide for AI-assisted development</a>
+              — curated prompts, <code>llms.txt</code> indexes, IDE (Integrated Development Environment) setup, and the docs MCP server so your agent pulls
+              verified Cloudflare references while it writes code.
+            </p>
+            <ul>
+              <li>
+                <a href="https://developers.cloudflare.com/llms.txt" target="_blank" rel="noopener noreferrer"><code>developers.cloudflare.com/llms.txt</code></a> — curated index of every docs page, agent-readable.
+              </li>
+              <li>
+                <a href="https://developers.cloudflare.com/llms-full.txt" target="_blank" rel="noopener noreferrer"><code>llms-full.txt</code></a> — every page inlined as markdown in a single file for bulk ingestion.
+              </li>
+              <li>
+                <a href="https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/#docs-server" target="_blank" rel="noopener noreferrer">Cloudflare Docs MCP server</a> — <code>https://docs.mcp.cloudflare.com/mcp</code>. Add once to Claude Code, Cursor, or VS Code and your agent can search the docs directly.
+              </li>
+              <li>
+                <a href="https://developers.cloudflare.com/workers/get-started/prompting/" target="_blank" rel="noopener noreferrer">Workers prompting guide</a> + <a href="https://github.com/cloudflare/templates" target="_blank" rel="noopener noreferrer">cloudflare/templates</a> — starter prompts for Workers, AI Gateway, AI Search.
+              </li>
+            </ul>
+
+            <blockquote class="not-prose rounded-xl border-l-2 border-accent-500 bg-accent-50/40 dark:bg-accent-950/30 p-5 sm:p-6 my-6">
+              <p class="font-display text-base sm:text-lg text-surface-800 dark:text-surface-100 leading-relaxed m-0">
+                This is a non-exhaustive practitioner's intro to making your website AI agent-ready. Educational purposes only — the standards above will keep shifting, and that's the point. Audit your site at <a href="https://isitagentready.com/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">isitagentready.com</a>, read your crawl-to-refer ratio on <a href="https://radar.cloudflare.com/ai-insights" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">Cloudflare Radar AI Insights</a>, then decide consciously what you want to expose, monetize, or block. Properly inform yourself, keep learning, keep testing — and, as always, secure before you ship.
+              </p>
+            </blockquote>
+          </div>
+        </SectionBlock>
+
+        <!-- ── Article footer ─────────────────────────────────────────── -->
+        <footer id="article-footer" class="mt-12 pt-8 border-t border-surface-200 dark:border-surface-800">
+          <div class="mb-8">
+            <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide mb-3">Topics</h3>
+            <div class="flex flex-wrap gap-2">
+              {tags.map((tag: string) => (
+                <a
+                  href={`/articles?tag=${encodeURIComponent(tag)}`}
+                  class="tag hover:bg-accent-100 hover:text-accent-700 dark:hover:bg-accent-900/30 dark:hover:text-accent-400"
+                >
+                  {tag}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide mb-3">Share this article</h3>
+            <div class="flex items-center gap-2">
+              <a
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(Astro.url.href)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-ghost p-2"
+                aria-label="Share on Twitter"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+              <a
+                href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(Astro.url.href)}&title=${encodeURIComponent(title)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-ghost p-2"
+                aria-label="Share on LinkedIn"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                </svg>
+              </a>
+              <button
+                class="btn-ghost p-2"
+                aria-label="Copy link"
+                id="copy-link-btn"
+                data-url={Astro.url.href}
+              >
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      <!-- ── TOC anchor (grid placeholder) ──────────────────────────── -->
+      <div id="toc-anchor" class="hidden lg:block" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- ── Fixed TOC sidebar ──────────────────────────────────────────── -->
+  <aside
+    id="toc-sidebar"
+    class="hidden lg:flex flex-col fixed z-30"
+    style="top: 6rem; max-height: calc(100vh - 7rem);"
+    aria-label="Table of contents"
+  >
+    <div class="overflow-y-auto scrollbar-hide flex-1">
+      <TableOfContents headings={headings} />
+    </div>
+  </aside>
+
+  <!-- JSON-LD BreadcrumbList -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home",     "item": `${siteConfig.url}/` },
+      { "@type": "ListItem", "position": 2, "name": "Articles", "item": `${siteConfig.url}/articles/` },
+      { "@type": "ListItem", "position": 3, "name": title,      "item": `${siteConfig.url}/articles/ai-agent-ready-website-cloudflare-guide/` },
+    ],
+  })} />
+</BaseLayout>
+
+<script>
+  let cleanupArticlePage = () => {};
+
+  function setupCopyLink() {
+    const copyBtn = document.getElementById('copy-link-btn');
+    if (!(copyBtn instanceof HTMLButtonElement)) return () => {};
+
+    const onClick = async () => {
+      const url = (copyBtn as HTMLElement).dataset.url;
+      if (!url) return;
+      try {
+        await navigator.clipboard.writeText(url);
+        const originalHTML = copyBtn.innerHTML;
+        copyBtn.innerHTML = `
+          <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M5 13l4 4L19 7" />
+          </svg>
+        `;
+        setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    };
+
+    copyBtn.addEventListener('click', onClick);
+    return () => copyBtn.removeEventListener('click', onClick);
+  }
+
+  const TOC_TOP = 96;
+  const BOTTOM_GAP = 16;
+
+  function updateTOCSidebar() {
+    const anchor = document.getElementById('toc-anchor');
+    const sidebar = document.getElementById('toc-sidebar');
+    const footer = document.getElementById('article-footer');
+    if (!anchor || !sidebar) return;
+
+    if (window.innerWidth < 1024) {
+      sidebar.style.left = '';
+      sidebar.style.width = '';
+      sidebar.style.maxHeight = '';
+      return;
+    }
+
+    const rect = anchor.getBoundingClientRect();
+    sidebar.style.left = `${rect.left}px`;
+    sidebar.style.width = `${rect.width}px`;
+
+    const viewportHeight = window.innerHeight;
+    let maxH: number;
+    if (footer) {
+      const footerTop = footer.getBoundingClientRect().top;
+      const available = footerTop - TOC_TOP - BOTTOM_GAP;
+      const viewportBound = viewportHeight - TOC_TOP - BOTTOM_GAP;
+      maxH = Math.max(0, Math.min(available, viewportBound));
+    } else {
+      maxH = viewportHeight - TOC_TOP - BOTTOM_GAP;
+    }
+    sidebar.style.maxHeight = `${maxH}px`;
+  }
+
+  let resizeTimer: ReturnType<typeof setTimeout>;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(updateTOCSidebar, 60);
+  }
+
+  function setup() {
+    cleanupArticlePage();
+    const cleanupCopyLink = setupCopyLink();
+    updateTOCSidebar();
+    window.addEventListener('scroll', updateTOCSidebar, { passive: true });
+    window.addEventListener('resize', onResize);
+
+    cleanupArticlePage = () => {
+      cleanupCopyLink();
+      window.removeEventListener('scroll', updateTOCSidebar);
+      window.removeEventListener('resize', onResize);
+      clearTimeout(resizeTimer);
+    };
+  }
+
+  function initArticlePage() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setup, { once: true });
+    } else {
+      setup();
+    }
+  }
+
+  document.addEventListener('astro:page-load', setup);
+  initArticlePage();
+  document.addEventListener('astro:before-swap', () => cleanupArticlePage());
+</script>

@@ -2,6 +2,8 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../../components/ProjectCard.astro';
+import { siteConfig } from '../../config/site';
+import { getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
 
 // Get all projects (non-draft)
 const projects = await getCollection('projects', ({ data }) => !data.draft);
@@ -18,12 +20,43 @@ const sortedProjects = projects.sort((a, b) => {
 const activeProjects = sortedProjects.filter((p) => p.data.status === 'active');
 const completedProjects = sortedProjects.filter((p) => p.data.status === 'completed');
 const archivedProjects = sortedProjects.filter((p) => p.data.status === 'archived');
+
+// JSON-LD: CollectionPage + ItemList of projects for agent discoverability.
+const collectionJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Projects — David Tofan',
+  description: 'Side projects, open source contributions, and experiments by David Tofan.',
+  url: `${siteConfig.url}/projects/`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: sortedProjects.length,
+    itemListElement: sortedProjects.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'CreativeWork',
+        name: p.data.title,
+        description: p.data.description,
+        url: `${siteConfig.url}/projects/${p.id}/`,
+        keywords: p.data.tags.join(', '),
+        dateCreated: p.data.date.toISOString(),
+        dateModified: getEffectiveModifiedTime(p.data).toISOString(),
+        ...(p.data.status && { creativeWorkStatus: p.data.status }),
+        ...(p.data.github && { codeRepository: p.data.github }),
+        ...(p.data.website && { mainEntityOfPage: p.data.website }),
+      },
+    })),
+  },
+};
 ---
 
 <BaseLayout
   title="Projects"
   description="Side projects, open source contributions, and experiments by David Tofan."
+  noPersonSchema={true}
 >
+  <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd)} />
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
     <!-- Page Header -->
     <div class="max-w-2xl mb-12">

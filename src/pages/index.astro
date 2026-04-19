@@ -20,7 +20,11 @@ const featuredProjects = projects
   .slice(0, 3);
 ---
 
-<BaseLayout>
+<BaseLayout
+  title={siteConfig.title}
+  description={siteConfig.description}
+  image={siteConfig.ogImage}
+>
   <!-- Hero Section -->
   <section class="relative overflow-hidden">
     <!-- Background gradient -->
@@ -123,7 +127,7 @@ const featuredProjects = projects
             slug={article.id}
             tags={article.data.tags}
             featured={article.data.featured}
-            readingTime={calculateReadingTime(article.body)}
+            readingTime={article.data.readingTime ? `${article.data.readingTime} min read` : calculateReadingTime(article.body)}
           />
         ))}
       </div>
@@ -197,7 +201,7 @@ const featuredProjects = projects
       </p>
       <div class="flex flex-wrap items-center justify-center gap-4">
         <a 
-          href={`https://linkedin.com/in/${siteConfig.author.linkedin}`}
+          href={`https://www.linkedin.com/in/${siteConfig.author.linkedin}/`}
           target="_blank"
           rel="noopener noreferrer"
           class="btn-primary bg-white text-surface-900 hover:bg-surface-100"
