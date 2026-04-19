@@ -234,6 +234,9 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
               Today, only Claude Code, OpenCode, and Cursor send <code>Accept: text/markdown</code> by default — but emitting it costs you nothing.
             </p>
             <p>
+              For everyone else, add a URL fallback: make pages available at <code>/index.md</code> relative to the canonical URL. <a href="https://blog.cloudflare.com/agent-readiness/#url-fallbacks-using-index-md-files" target="_blank" rel="noopener noreferrer">Cloudflare documents this pattern</a> by combining a URL Rewrite Rule that strips <code>/index.md</code> back to the base path with a Request Header Transform Rule that matches on <a href="https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/raw.http.request.uri.path/" target="_blank" rel="noopener noreferrer"><code>raw.http.request.uri.path</code></a> and injects <code>accept: text/markdown</code>. That gives agents a deterministic Markdown URL even when they never negotiate on headers.
+            </p>
+            <p>
               Flip side: if you're building the <em>agent</em>, Cloudflare's
               <a href="https://developers.cloudflare.com/browser-run/quick-actions/markdown-endpoint/" target="_blank" rel="noopener noreferrer">Browser Run Markdown endpoint</a>
               gives you a one-call API to pull clean Markdown from any URL (or raw HTML) — useful for ingesting sites that <em>don't</em> yet serve it natively.
