@@ -12,13 +12,13 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
         <!-- Logo -->
         <a
           href="/"
-          class="header-hit-area inline-flex min-h-11 items-center gap-3 rounded-xl px-1.5 group"
+          class="inline-flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-1.5 group"
           aria-label="DT — Home"
         >
           <div class="relative w-9 h-9 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/25 group-hover:shadow-accent-500/40 transition-shadow duration-300">
-            <span class="text-white font-display font-bold text-sm">DT</span>
+            <span class="pointer-events-none text-white font-display font-bold text-sm">DT</span>
           </div>
-          <span class="hidden sm:block font-display font-bold text-lg text-surface-900 dark:text-surface-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
+          <span class="pointer-events-none hidden sm:block font-display font-bold text-lg text-surface-900 dark:text-surface-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
             {siteConfig.name}
           </span>
         </a>
@@ -32,14 +32,14 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
               <a
                 href={item.href}
                 class:list={[
-                  'header-hit-area inline-flex min-h-11 items-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
+                  'inline-flex min-h-11 cursor-pointer select-none items-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
                   isActive
                     ? 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20'
                     : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800',
                 ]}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <span>{item.label}</span>
+                {item.label}
               </a>
             );
           })}
@@ -51,13 +51,13 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
             <button
               id="search-modal-trigger"
               type="button"
-              class="header-hit-area inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+              class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
               aria-label="Search David Tofan's site"
               aria-haspopup="dialog"
               title="Search David Tofan's site (Cmd/Ctrl+K)"
             >
               <svg
-                class="w-5 h-5"
+                class="pointer-events-none block w-5 h-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -74,12 +74,12 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
           <button
             id="theme-toggle"
             type="button"
-            class="header-hit-area inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+            class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
             aria-label="Toggle theme"
           >
             <!-- Sun icon (shown in dark mode) -->
             <svg
-              class="hidden w-5 h-5 dark:block"
+              class="pointer-events-none hidden w-5 h-5 dark:block"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -91,7 +91,7 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
             </svg>
             <!-- Moon icon (shown in light mode) -->
             <svg
-              class="block w-5 h-5 dark:hidden"
+              class="pointer-events-none block w-5 h-5 dark:hidden"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -106,15 +106,15 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
           <button
             id="mobile-menu-toggle"
             type="button"
-            class="header-hit-area md:hidden inline-flex h-11 w-11 items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+            class="md:hidden inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
             aria-label="Toggle menu"
             aria-expanded="false"
             aria-controls="mobile-menu"
           >
-            <svg class="w-5 h-5 menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg class="pointer-events-none w-5 h-5 menu-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg class="w-5 h-5 hidden close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <svg class="pointer-events-none w-5 h-5 hidden close-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -136,14 +136,14 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
           <a
             href={item.href}
             class:list={[
-              'header-hit-area block rounded-lg px-4 py-3 text-base font-medium transition-all duration-200',
+              'block cursor-pointer select-none rounded-lg px-4 py-3 text-base font-medium transition-all duration-200',
               isActive
                 ? 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20'
                 : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800',
             ]}
             aria-current={isActive ? 'page' : undefined}
           >
-            <span>{item.label}</span>
+            {item.label}
           </a>
         );
       })}

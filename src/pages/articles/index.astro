@@ -100,7 +100,7 @@ const blogJsonLd = {
           </svg>
           Featured
         </h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="featured-grid">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 articles-grid" id="featured-grid">
           {featuredArticles.map((article) => (
             <div class="article-item" data-tags={article.data.tags.join(',')}>
               <ArticleCard
@@ -126,7 +126,7 @@ const blogJsonLd = {
           ({regularArticles.length})
         </span>
       </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="articles-grid">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 articles-grid" id="articles-grid">
         {regularArticles.map((article) => (
           <div class="article-item" data-tags={article.data.tags.join(',')}>
             <ArticleCard
@@ -175,7 +175,11 @@ const blogJsonLd = {
   }
 
   .article-item {
-    @apply transition-opacity duration-300;
+    @apply transition-opacity duration-300 h-full;
+  }
+
+  .articles-grid {
+    grid-auto-rows: 1fr;
   }
 
   .article-item.is-hidden {

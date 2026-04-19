@@ -21,11 +21,11 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
 const estimatedReadingTime = readingTime || '5 min read';
 ---
 
-<article class="group">
-  <a href={`/articles/${slug}`} class="block card p-6 h-full">
+<article class="group h-full">
+  <a href={`/articles/${slug}`} class="block card p-6 h-full article-card">
     <div class="flex flex-col h-full">
       <!-- Meta info -->
-      <div class="flex items-center gap-3 text-[15px] sm:text-sm text-surface-500 dark:text-surface-400 mb-3">
+      <div class="flex items-center gap-3 text-[15px] sm:text-sm text-surface-500 dark:text-surface-400 mb-3 min-h-6">
         <time datetime={date.toISOString()} class="flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -49,20 +49,23 @@ const estimatedReadingTime = readingTime || '5 min read';
       </div>
 
       <!-- Title -->
-      <h3 class="font-display font-semibold text-lg text-surface-900 dark:text-surface-100 mb-2 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200 line-clamp-2">
+      <h3 class="font-display font-semibold text-lg text-surface-900 dark:text-surface-100 mb-2 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200 line-clamp-2 min-h-[3.5rem] leading-7">
         {title}
       </h3>
 
       <!-- Description -->
-      <p class="text-surface-600 dark:text-surface-400 text-[15px] sm:text-sm leading-relaxed mb-4 line-clamp-3 flex-1">
+      <p
+        class="text-surface-600 dark:text-surface-400 text-[15px] sm:text-sm leading-relaxed mb-4"
+        style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;"
+      >
         {description}
       </p>
 
       <!-- Tags -->
       {tags.length > 0 && (
-        <div class="flex flex-wrap gap-2 mt-auto">
+        <div class="flex flex-wrap gap-2 mt-auto min-h-7 content-start">
           {tags.slice(0, 3).map((tag) => (
-            <span class="tag">
+            <span class="tag max-w-[10rem] truncate">
               {tag}
             </span>
           ))}
@@ -84,3 +87,15 @@ const estimatedReadingTime = readingTime || '5 min read';
     </div>
   </a>
 </article>
+
+<style>
+  @reference "../styles/global.css";
+
+  .article-card {
+    @apply transition-transform duration-200;
+  }
+
+  .group:hover .article-card {
+    transform: translateY(-2px);
+  }
+</style>

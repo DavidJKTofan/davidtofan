@@ -162,30 +162,6 @@
     @apply focus:ring-surface-400;
   }
 
-  .header-hit-area {
-    @apply relative cursor-pointer select-none;
-    -webkit-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    isolation: isolate;
-  }
-
-  .header-hit-area::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    cursor: inherit;
-    pointer-events: auto;
-  }
-
-  .header-hit-area > * {
-    position: relative;
-    z-index: 0;
-    pointer-events: none;
-  }
-
   /* Tag/badge styles */
   .tag {
     @apply inline-flex items-center;
