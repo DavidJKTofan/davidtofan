@@ -39,7 +39,7 @@ const milestones = [
             <button
               type="button"
               data-hero-step={i}
-              aria-label={`${m.year} — ${m.label}: ${m.blurb}`}
+              aria-describedby={`hero-milestone-${i}-description`}
               class="hero-step-btn group w-full flex flex-col items-start sm:items-center text-center rounded-lg px-1 py-2 transition-colors hover:bg-accent-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60"
             >
               <span
@@ -53,6 +53,7 @@ const milestones = [
                 <div class="text-xs text-surface-600 dark:text-surface-400 mt-0.5">{m.sub}</div>
               </div>
             </button>
+            <span id={`hero-milestone-${i}-description`} class="sr-only">{m.blurb}</span>
           </li>
         ))}
         <!-- Connecting line (desktop only) -->
