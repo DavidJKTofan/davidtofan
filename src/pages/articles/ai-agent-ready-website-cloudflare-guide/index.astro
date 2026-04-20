@@ -103,6 +103,9 @@ const readingTime = data?.readingTime ?? 14;
           <p class="text-lg sm:text-xl text-surface-600 dark:text-surface-400 leading-relaxed max-w-3xl mb-6">
             The web once learned to speak to browsers, then to search engines. Now it must speak to AI agents. This is a general walkthrough — with live, interactive mini-demos — for making any website ready for the <em>agentic</em> Internet with Cloudflare.
           </p>
+          <p class="text-sm sm:text-base text-surface-600 dark:text-surface-400 leading-relaxed max-w-3xl mb-6">
+            Context: Cloudflare's <a href="https://blog.cloudflare.com/agents-week-in-review/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400/40 hover:decoration-accent-500">Agents Week 2026 roundup</a> frames this shift as the emerging agentic web. This walkthrough focuses on the website layer: control what bots can access, package content for agents, and measure whether your site is ready.
+          </p>
 
           <div class="flex flex-wrap items-center gap-4 text-surface-500 dark:text-surface-400">
             <div class="flex items-center gap-2">
@@ -335,6 +338,14 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           <McpCardBuilder />
 
           <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+            <p>
+              Enterprise pattern: if you operate multiple MCP servers, put them behind an
+              <a href="https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/" target="_blank" rel="noopener noreferrer">MCP Server Portal</a>
+              and use
+              <a href="https://developers.cloudflare.com/agents/api-reference/codemode/" target="_blank" rel="noopener noreferrer">Code Mode</a>
+              so clients do not need every upstream tool schema in context. Cloudflare describes this as the pattern behind its
+              <a href="https://blog.cloudflare.com/internal-ai-engineering-stack/" target="_blank" rel="noopener noreferrer">internal AI engineering stack</a>.
+            </p>
             <p class="text-sm text-surface-600 dark:text-surface-400 italic">
               Note: Content Signals, MCP Server Card, WebMCP, and Agent Skills are all drafts or community reports — adopting them is a forward bet. Publish drafts on non-critical paths, and keep versions pinned.
             </p>
