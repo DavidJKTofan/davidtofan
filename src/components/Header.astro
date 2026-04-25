@@ -3,6 +3,9 @@ import { navigation, siteConfig } from '../config/site';
 
 const currentPath = Astro.url.pathname;
 const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null;
+const aiSearchSnippetURL = aiSearchConfig
+  ? new URL(`/assets/${aiSearchConfig.snippetVersion}/search-snippet.es.js`, aiSearchConfig.apiUrl).toString()
+  : null;
 ---
 
 <header class="fixed top-0 left-0 right-0 z-40">
@@ -55,6 +58,7 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
               aria-label="Search David Tofan's site"
               aria-haspopup="dialog"
               title="Search David Tofan's site (Cmd/Ctrl+K)"
+              data-search-snippet-url={aiSearchSnippetURL}
             >
               <svg
                 class="pointer-events-none block w-5 h-5"
@@ -75,7 +79,8 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
             id="theme-toggle"
             type="button"
             class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
-            aria-label="Toggle theme"
+            aria-label="Switch to dark theme"
+            aria-pressed="false"
           >
             <!-- Sun icon (shown in dark mode) -->
             <svg
@@ -175,24 +180,54 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
     if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement) || !menuIcon || !closeIcon) return;
     if (toggle.dataset.mobileMenuBound === 'true') return;
 
+    const appWindow = window as Window & { mobileMenuAbortController?: AbortController };
+    appWindow.mobileMenuAbortController?.abort();
+    const controller = new AbortController();
+    appWindow.mobileMenuAbortController = controller;
+
     toggle.dataset.mobileMenuBound = 'true';
 
-    toggle.addEventListener('click', () => {
+    function closeMenu() {
+      toggle.setAttribute('aria-expanded', 'false');
+      menu.classList.add('hidden');
+      menuIcon.classList.remove('hidden');
+      closeIcon.classList.add('hidden');
+    }
+
+    function toggleMenu() {
       const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!isExpanded));
-      menu.classList.toggle('hidden');
-      menuIcon.classList.toggle('hidden');
-      closeIcon.classList.toggle('hidden');
-    });
+
+      if (isExpanded) {
+        closeMenu();
+        return;
+      }
+
+      toggle.setAttribute('aria-expanded', 'true');
+      menu.classList.remove('hidden');
+      menuIcon.classList.add('hidden');
+      closeIcon.classList.remove('hidden');
+    }
+
+    toggle.addEventListener('click', toggleMenu, { signal: controller.signal });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        closeMenu();
+        toggle.focus();
+      }
+    }, { signal: controller.signal });
+
+    document.addEventListener('click', (event) => {
+      if (toggle.getAttribute('aria-expanded') !== 'true') return;
+      if (!(event.target instanceof Node)) return;
+      if (menu.contains(event.target) || toggle.contains(event.target)) return;
+
+      closeMenu();
+    }, { signal: controller.signal });
 
     // Close menu when clicking a link
     menu.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        toggle.setAttribute('aria-expanded', 'false');
-        menu.classList.add('hidden');
-        menuIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
-      });
+      link.addEventListener('click', closeMenu, { signal: controller.signal });
     });
   }
 
@@ -212,6 +247,56 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
     modal.setAttribute('theme', theme);
   }
 
+  async function loadSearchSnippet(trigger: HTMLButtonElement) {
+    const appWindow = window as Window & { aiSearchSnippetPromise?: Promise<void> };
+    const snippetUrl = trigger.dataset.searchSnippetUrl;
+
+    if (!snippetUrl || customElements.get('search-modal-snippet')) return;
+
+    if (!appWindow.aiSearchSnippetPromise) {
+      appWindow.aiSearchSnippetPromise = new Promise<void>((resolve, reject) => {
+        const existingScript = document.querySelector<HTMLScriptElement>('script[data-ai-search-snippet]');
+
+        if (existingScript) {
+          existingScript.addEventListener('load', () => resolve(), { once: true });
+          existingScript.addEventListener('error', () => reject(new Error('AI search snippet failed to load')), { once: true });
+          return;
+        }
+
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = snippetUrl;
+        script.dataset.aiSearchSnippet = 'true';
+        script.addEventListener('load', () => resolve(), { once: true });
+        script.addEventListener('error', () => reject(new Error('AI search snippet failed to load')), { once: true });
+        document.head.append(script);
+      }).then(async () => {
+        if (typeof customElements !== 'undefined') {
+          await customElements.whenDefined('search-modal-snippet');
+        }
+      });
+    }
+
+    await appWindow.aiSearchSnippetPromise;
+  }
+
+  async function openSearchModal() {
+    const trigger = document.getElementById('search-modal-trigger');
+    const modal = document.getElementById('site-search-modal');
+
+    if (!(trigger instanceof HTMLButtonElement) || !(modal instanceof HTMLElement)) return;
+
+    try {
+      await loadSearchSnippet(trigger);
+      syncSearchModalTheme();
+
+      const searchModal = modal as HTMLElement & { open?: () => void };
+      searchModal.open?.();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   function setupSearchModal() {
     const trigger = document.getElementById('search-modal-trigger');
     const modal = document.getElementById('site-search-modal');
@@ -223,15 +308,19 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
 
     trigger.dataset.searchModalBound = 'true';
 
-    trigger.addEventListener('click', async () => {
-      if (typeof customElements !== 'undefined') {
-        await customElements.whenDefined('search-modal-snippet');
-      }
+    trigger.addEventListener('click', openSearchModal);
+  }
 
-      syncSearchModalTheme();
+  function bindSearchShortcut() {
+    if (document.documentElement.dataset.searchShortcutBound === 'true') return;
 
-      const searchModal = modal as HTMLElement & { open?: () => void };
-      searchModal.open?.();
+    document.documentElement.dataset.searchShortcutBound = 'true';
+    document.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return;
+      if (event.key.toLowerCase() !== 'k' || (!event.metaKey && !event.ctrlKey)) return;
+
+      event.preventDefault();
+      openSearchModal();
     });
   }
 
@@ -240,10 +329,12 @@ const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null
       document.addEventListener('DOMContentLoaded', () => {
         setupMobileMenu();
         setupSearchModal();
+        bindSearchShortcut();
       }, { once: true });
     } else {
       setupMobileMenu();
       setupSearchModal();
+      bindSearchShortcut();
     }
   }
 

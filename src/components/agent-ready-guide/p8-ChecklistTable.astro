@@ -41,12 +41,14 @@ const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
       data-pillar-filter=""
       class="pillar-filter active min-h-10 px-3 py-2 rounded-md text-2xs font-mono border"
       data-active="true"
+      aria-pressed="true"
     >all</button>
     {pillars.map((p) => (
       <button
         type="button"
         data-pillar-filter={p}
         class="pillar-filter min-h-10 px-3 py-2 rounded-md text-2xs font-mono border"
+        aria-pressed="false"
       >{p.toLowerCase()}</button>
     ))}
   </div>
@@ -65,11 +67,8 @@ const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
       <tbody>
         {rows.map((r) => (
           <tr
-            class="checklist-row border-b border-surface-100 dark:border-surface-800/60 transition-colors cursor-pointer"
+            class="checklist-row border-b border-surface-100 dark:border-surface-800/60 transition-colors"
             data-pillar={r.pillar}
-            tabindex="0"
-            role="button"
-            aria-pressed="false"
           >
             <th scope="row" class="py-3 px-4 font-mono text-2xs text-surface-500 dark:text-surface-400 tabular-nums font-normal">{String(r.num).padStart(2, '0')}</th>
             <td class="py-3 px-4">
@@ -141,10 +140,6 @@ const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
   :global(.dark) .checklist-row:hover {
     background-color: rgb(59 130 246 / 0.06);
   }
-  .checklist-row:focus-visible {
-    outline: 2px solid var(--color-accent-500, #3b82f6);
-    outline-offset: -2px;
-  }
   .checklist-row[data-hidden="true"] {
     display: none;
   }
@@ -209,32 +204,25 @@ const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
         const pressed = btn.getAttribute('aria-pressed') === 'true';
         const next = pressed ? 'false' : 'true';
         btn.setAttribute('aria-pressed', next);
-        row.setAttribute('aria-pressed', next);
         row.dataset.done = next;
         updateProgress();
       };
       const onClick = (e: Event) => {
-        const target = e.target as HTMLElement;
-        if (target.closest('a')) return;
+        e.stopPropagation();
         toggle();
       };
-      const onKey = (e: Event) => {
-        const ke = e as KeyboardEvent;
-        if (ke.key === ' ' || ke.key === 'Enter') {
-          ke.preventDefault();
-          toggle();
-        }
-      };
-      row.addEventListener('click', onClick);
-      row.addEventListener('keydown', onKey);
-      handlers.push({ el: row, type: 'click', fn: onClick });
-      handlers.push({ el: row, type: 'keydown', fn: onKey });
+      btn.addEventListener('click', onClick);
+      handlers.push({ el: btn, type: 'click', fn: onClick });
     });
 
     filters.forEach((f) => {
       const fn = () => {
         const pillar = f.dataset.pillarFilter ?? '';
-        filters.forEach((x) => { x.dataset.active = x === f ? 'true' : 'false'; });
+        filters.forEach((x) => {
+          const active = x === f ? 'true' : 'false';
+          x.dataset.active = active;
+          x.setAttribute('aria-pressed', active);
+        });
         rows.forEach((r) => {
           r.dataset.hidden = pillar && r.dataset.pillar !== pillar ? 'true' : 'false';
         });
@@ -249,7 +237,6 @@ const pillars = Array.from(new Set(rows.map((r) => r.pillar)));
         rows.forEach((r) => {
           const btn = r.querySelector<HTMLButtonElement>('[data-check]');
           if (btn) btn.setAttribute('aria-pressed', 'false');
-          r.setAttribute('aria-pressed', 'false');
           r.dataset.done = 'false';
         });
         updateProgress();

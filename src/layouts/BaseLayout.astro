@@ -40,10 +40,6 @@ const {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImageURL = new URL(image, Astro.site);
 const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.name}`;
-const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null;
-const aiSearchSnippetURL = aiSearchConfig
-  ? new URL(`/assets/${aiSearchConfig.snippetVersion}/search-snippet.es.js`, aiSearchConfig.apiUrl).toString()
-  : null;
 const structuredDataItems = structuredData
   ? (Array.isArray(structuredData) ? structuredData : [structuredData])
   : [];
@@ -180,10 +176,6 @@ const structuredDataItems = structuredData
     <!-- View Transitions: Enables smooth page navigation and prefetching -->
     <ClientRouter />
 
-    {aiSearchSnippetURL && (
-      <script type="module" src={aiSearchSnippetURL}></script>
-    )}
-
     <!-- Theme Script (prevent flash and persist across View Transitions) -->
     <script is:inline>
       // Get the user's theme preference
@@ -247,6 +239,7 @@ const structuredDataItems = structuredData
         syncAISearchTheme();
 
         if (!(themeToggle instanceof HTMLButtonElement)) return;
+        syncThemeToggleState(themeToggle);
         if (themeToggle.dataset.themeToggleBound === 'true') return;
 
         themeToggle.dataset.themeToggleBound = 'true';
@@ -254,8 +247,15 @@ const structuredDataItems = structuredData
         themeToggle.addEventListener('click', () => {
           const isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          syncThemeToggleState(themeToggle);
           syncAISearchTheme();
         });
+      }
+
+      function syncThemeToggleState(themeToggle) {
+        const isDark = document.documentElement.classList.contains('dark');
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
       }
 
       function initThemeToggle() {

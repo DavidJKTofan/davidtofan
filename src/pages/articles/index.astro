@@ -74,6 +74,7 @@ const blogJsonLd = {
         <button
           class="tag-filter active"
           data-tag=""
+          aria-pressed="true"
         >
           All ({sortedArticles.length})
         </button>
@@ -83,6 +84,7 @@ const blogJsonLd = {
             <button
               class="tag-filter"
               data-tag={tag}
+              aria-pressed="false"
             >
               {tag} ({count})
             </button>
@@ -190,8 +192,6 @@ const blogJsonLd = {
 <script>
   function setupTagFilters() {
     const filterContainer = document.getElementById('tag-filters');
-    const articlesGrid = document.getElementById('articles-grid');
-    const featuredGrid = document.getElementById('featured-grid');
     const emptyState = document.getElementById('empty-state');
     const articleCount = document.getElementById('article-count');
     const clearFilter = document.getElementById('clear-filter');
@@ -199,18 +199,20 @@ const blogJsonLd = {
     if (!(filterContainer instanceof HTMLElement)) return;
     if (filterContainer.dataset.tagFiltersBound === 'true') return;
 
-  const filtersRoot = filterContainer;
+    const filtersRoot = filterContainer;
 
-  filtersRoot.dataset.tagFiltersBound = 'true';
+    filtersRoot.dataset.tagFiltersBound = 'true';
 
     let currentTag = '';
 
     function filterArticles(selectedTag: string, updateUrl = true) {
       currentTag = selectedTag;
-      let visibleCount = 0;
+      let regularVisibleCount = 0;
+      let totalVisibleCount = 0;
 
       // Get all article items from both grids
       const allArticles = document.querySelectorAll('.article-item');
+      const regularArticles = document.querySelectorAll('#articles-grid .article-item');
 
       allArticles.forEach((article) => {
         const element = article as HTMLElement;
@@ -221,9 +223,16 @@ const blogJsonLd = {
 
         if (shouldShow) {
           element.style.display = '';
-          visibleCount++;
+          totalVisibleCount++;
         } else {
           element.style.display = 'none';
+        }
+      });
+
+      regularArticles.forEach((article) => {
+        const element = article as HTMLElement;
+        if (element.style.display !== 'none') {
+          regularVisibleCount++;
         }
       });
 
@@ -233,14 +242,16 @@ const blogJsonLd = {
         const filterTag = (filter as HTMLElement).getAttribute('data-tag') || '';
         if (filterTag === selectedTag) {
           filter.classList.add('active');
+          filter.setAttribute('aria-pressed', 'true');
         } else {
           filter.classList.remove('active');
+          filter.setAttribute('aria-pressed', 'false');
         }
       });
 
       // Show/hide empty state
       if (emptyState) {
-        if (visibleCount === 0) {
+        if (totalVisibleCount === 0) {
           emptyState.classList.remove('hidden');
         } else {
           emptyState.classList.add('hidden');
@@ -249,7 +260,7 @@ const blogJsonLd = {
 
       // Update count
       if (articleCount) {
-        articleCount.textContent = `(${visibleCount})`;
+        articleCount.textContent = `(${regularVisibleCount})`;
       }
 
       // Update URL without reloading

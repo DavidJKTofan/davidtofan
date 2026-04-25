@@ -117,7 +117,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
 
 <div class="travel-grid not-prose">
   <a href="https://goo.gl/maps/xweG7kQr8jq8omd36" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/cdmx-mexico.webp" alt="Mexico City" loading="lazy">
+    <img src="/img/gmaps-images/cdmx-mexico.webp" alt="Mexico City" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       CDMX
@@ -125,7 +125,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/Rmu2vJUvN9Y8a6bV9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/iceland-country.webp" alt="Iceland" loading="lazy">
+    <img src="/img/gmaps-images/iceland-country.webp" alt="Iceland" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Iceland
@@ -133,7 +133,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/ayVeY3vubnoMDRhK6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/turkey.webp" alt="Turkey" loading="lazy">
+    <img src="/img/gmaps-images/turkey.webp" alt="Turkey" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Türkiye
@@ -141,7 +141,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/D8Fo9d9fbXcT25CM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/morocco.webp" alt="Morocco" loading="lazy">
+    <img src="/img/gmaps-images/morocco.webp" alt="Morocco" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Morocco
@@ -149,7 +149,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/HHyqSqxHs2ZR94UW8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/belize.webp" alt="Belize" loading="lazy">
+    <img src="/img/gmaps-images/belize.webp" alt="Belize" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Belize
@@ -157,7 +157,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/86zTscXooBzyB5rt5" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/guatemala.webp" alt="Guatemala" loading="lazy">
+    <img src="/img/gmaps-images/guatemala.webp" alt="Guatemala" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Guatemala
@@ -165,7 +165,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/qA5qUYUCNLadKLTP9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/jordan.webp" alt="Jordan" loading="lazy">
+    <img src="/img/gmaps-images/jordan.webp" alt="Jordan" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Jordan
@@ -173,7 +173,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/1JEc36CbsZi9HZw27" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/miami-usa.webp" alt="Miami" loading="lazy">
+    <img src="/img/gmaps-images/miami-usa.webp" alt="Miami" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Miami
@@ -181,7 +181,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/qvcjPQ7uvk4XVBKm7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/newyork-usa.webp" alt="New York City" loading="lazy">
+    <img src="/img/gmaps-images/newyork-usa.webp" alt="New York City" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       New York
@@ -189,7 +189,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/6yRd5DN27anUrUYA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/granada.webp" alt="Granada" loading="lazy">
+    <img src="/img/gmaps-images/granada.webp" alt="Granada" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Granada
@@ -197,7 +197,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/5K2mFWgBtBV84AaA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/florence.webp" alt="Florence" loading="lazy">
+    <img src="/img/gmaps-images/florence.webp" alt="Florence" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Florence
@@ -205,7 +205,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/UrjF3Yw5TazsLQPv9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/milan-italy.webp" alt="Milan" loading="lazy">
+    <img src="/img/gmaps-images/milan-italy.webp" alt="Milan" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Milan
@@ -213,7 +213,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/2tC9w1GtTQB1LPaFA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/parma-italy.webp" alt="Parma" loading="lazy">
+    <img src="/img/gmaps-images/parma-italy.webp" alt="Parma" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Parma
@@ -221,7 +221,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/8QbYc92sPVZwr8MLA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/berlin.webp" alt="Berlin" loading="lazy">
+    <img src="/img/gmaps-images/berlin.webp" alt="Berlin" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Berlin
@@ -229,7 +229,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/n4KSVZf3ekJ84hjR7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/cadiz-spain.webp" alt="Cadiz" loading="lazy">
+    <img src="/img/gmaps-images/cadiz-spain.webp" alt="Cadiz" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Cádiz
@@ -237,7 +237,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/mkBBDkF7Qhfo8A5TA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/malaga-spain.webp" alt="Malaga" loading="lazy">
+    <img src="/img/gmaps-images/malaga-spain.webp" alt="Malaga" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Málaga
@@ -245,7 +245,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/uVDZCEa1vLotgps78" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/madrid-spain.webp" alt="Madrid" loading="lazy">
+    <img src="/img/gmaps-images/madrid-spain.webp" alt="Madrid" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Madrid
@@ -253,7 +253,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/hgW4NTkVMnJECMa48" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/seville-spain.webp" alt="Sevilla" loading="lazy">
+    <img src="/img/gmaps-images/seville-spain.webp" alt="Sevilla" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Seville
@@ -261,7 +261,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/nTyJNb5FmzRLmDya6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/barcelona-spain.webp" alt="Barcelona" loading="lazy">
+    <img src="/img/gmaps-images/barcelona-spain.webp" alt="Barcelona" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Barcelona
@@ -269,7 +269,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/R5pfav5PYXFutu5ZA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/salzburg-austria.webp" alt="Salzburg" loading="lazy">
+    <img src="/img/gmaps-images/salzburg-austria.webp" alt="Salzburg" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Salzburg
@@ -277,7 +277,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/EJLfYTQYK52T8v9i6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/lisbon-portugal.webp" alt="Lisbon" loading="lazy">
+    <img src="/img/gmaps-images/lisbon-portugal.webp" alt="Lisbon" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Lisbon
@@ -285,7 +285,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/FP7pv556qRE5tLAU6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/romania.webp" alt="Romania" loading="lazy">
+    <img src="/img/gmaps-images/romania.webp" alt="Romania" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Romania
@@ -293,7 +293,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/jRU7rsrGZeddLUDU6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/rome-italy.webp" alt="Rome" loading="lazy">
+    <img src="/img/gmaps-images/rome-italy.webp" alt="Rome" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Rome
@@ -301,7 +301,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/KmzMJEcfaZ5vkoNy6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/munich-germany.webp" alt="Munich" loading="lazy">
+    <img src="/img/gmaps-images/munich-germany.webp" alt="Munich" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Munich
@@ -309,7 +309,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/4FGi7FsyRsE4spNM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/baden-baden-germany.webp" alt="Baden-Baden" loading="lazy">
+    <img src="/img/gmaps-images/baden-baden-germany.webp" alt="Baden-Baden" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Baden-Baden
@@ -317,7 +317,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/CEKdSx2KLyCCzdT86" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/paris-france.webp" alt="Paris" loading="lazy">
+    <img src="/img/gmaps-images/paris-france.webp" alt="Paris" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Paris
@@ -325,7 +325,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/H7mSw7aMbakJ5EgW8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/biarritz-france.webp" alt="Biarritz" loading="lazy">
+    <img src="/img/gmaps-images/biarritz-france.webp" alt="Biarritz" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Biarritz
@@ -333,7 +333,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/KAUGawBPehRiiXxf8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/london-uk.webp" alt="London" loading="lazy">
+    <img src="/img/gmaps-images/london-uk.webp" alt="London" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       London
@@ -341,7 +341,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/pLRcEdderVNTi7c26" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/zurich-switzerland.webp" alt="Zurich" loading="lazy">
+    <img src="/img/gmaps-images/zurich-switzerland.webp" alt="Zurich" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Zurich
@@ -349,7 +349,7 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     </div>
   </a>
   <a href="https://goo.gl/maps/qWG8QBSKsyZPNLnE8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/galicia-spain.webp" alt="Galicia" loading="lazy">
+    <img src="/img/gmaps-images/galicia-spain.webp" alt="Galicia" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Galicia
