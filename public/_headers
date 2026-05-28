@@ -124,12 +124,12 @@
   X-Content-Type-Options: nosniff
 
 # Images in subdirectories (articles, projects, img)
-/articles/*/*.png
+/articles/:slug/*.png
   Content-Type: image/png
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/projects/*/*.png
+/projects/:slug/*.png
   Content-Type: image/png
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
@@ -144,7 +144,7 @@
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/img/*/*.webp
+/img/:dir/*.webp
   Content-Type: image/webp
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff

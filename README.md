@@ -73,6 +73,33 @@ npm run preview  # Build + run Astro preview locally
 npm run deploy   # Build + deploy to Cloudflare Workers
 ```
 
+### Updating Dependencies
+
+#### Wrangler CLI
+
+Wrangler is installed locally as a dev dependency (not globally), so updates are per-project.
+
+```bash
+npx wrangler --version        # Check the current version
+npm i -D wrangler@latest      # Update to the latest version
+```
+
+#### Astro
+
+Use the official upgrade CLI, which upgrades `astro` together with the official integrations (`@astrojs/cloudflare`, `@astrojs/sitemap`) to compatible versions:
+
+```bash
+npx @astrojs/upgrade          # Recommended: upgrade Astro + official integrations
+```
+
+To update just the core `astro` package manually:
+
+```bash
+npm install astro@latest
+```
+
+After updating, run `npm run build` to regenerate types and confirm the build still passes.
+
 ### Development Workflow
 
 1. **Local development** (Astro dev with Cloudflare's local runtime):
@@ -234,7 +261,7 @@ Add to `src/data/certificates.json`:
 ### Content
 - External links open in new tab with proper rel attributes
 - URL aliases with automatic redirects (Hugo compatibility)
-- Image optimization (compile mode for dev, Cloudflare in production)
+- Image optimization via Cloudflare's edge (`imageService: 'cloudflare'`): images use `/cdn-cgi/image/onerror=redirect,.../_astro/*` URLs, optimized at the edge when [Image Transformations](https://developers.cloudflare.com/images/transform-images/) are enabled on the zone, and transparently falling back to the original image when they are not
 - Custom 404 page with site branding
 - Dark blue accent color (#1e3a8a) with accent borders on article images
 
@@ -331,6 +358,7 @@ These are assumptions:
 - Tailwind's CSS entrypoint is `src/styles/global.css`, which uses `@import "tailwindcss"` and explicitly loads `tailwind.config.mjs` with `@config`
 - The old `postcss.config.cjs` file was removed as part of the Tailwind v4 migration
 - Astro-scoped `<style>` blocks that use Tailwind utilities via `@apply` should add an `@reference` to `src/styles/global.css`
+- **Image service**: this site uses `imageService: 'cloudflare'` in the adapter config. Build-time `imageService: 'compile'` (sharp) was used previously but is broken in Astro 6.2+ for prerendered sites (build fails with `ENOENT … dist/_astro/*` during image generation). The `cloudflare` service keeps the build static (no Worker invocation for images) and relies on Cloudflare edge Image Transformations, with `onerror=redirect` falling back to the original image when Transformations are not enabled. If you prefer no optimization and no Cloudflare dependency, set `imageService: 'passthrough'` — but note that on a fully prerendered site `passthrough` emits `/_image` URLs that require a runtime endpoint.
 
 ### Static Asset Headers (`public/_headers`)
 

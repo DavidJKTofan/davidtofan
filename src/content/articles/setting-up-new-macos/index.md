@@ -6,256 +6,235 @@ tags: ["cybersecurity", "developers", "privacy", "resources"]
 type: "article"
 ---
 
-I predominantly use Apple products, and when transitioning to a new device within the Apple ecosystem, such as a fresh new MacBook, I find myself in the routine task of reinstalling all the essential software and tools crucial for my projects and day to day.
+I predominantly use Apple products, and when transitioning to a new device within the Apple ecosystem — such as a fresh MacBook — I find myself in the familiar routine of reinstalling all the essential software and tools I rely on every day.
 
-This article serves as a general to-do list for my own reference during the setup of a new laptop. Moreover, it can be a valuable source of inspiration for fellow individuals aiming to establish a privacy-conscious developer environment, encompassing the essential and often indispensable tools.
+This article is my own go-to checklist when setting up a new laptop. It can also serve as inspiration for anyone looking to build a privacy-conscious developer environment, with the tools I consider essential.
 
 ## macOS Privacy & Security Settings
 
-Update all devices to the latest version.
+Start by updating macOS to the latest version, then walk through the following:
 
-[Change Privacy & Security Advanced settings on Mac](https://support.apple.com/en-gb/guide/mac-help/mh40595/mac).
+- [Change Privacy & Security Advanced settings on Mac](https://support.apple.com/en-gb/guide/mac-help/mh40595/mac).
+- Turn on [FileVault](https://support.apple.com/en-gb/guide/mac-help/mh11785/mac) to encrypt your disk.
+- Configure a [firmware password](https://support.apple.com/en-au/102384).
+- Enable [Secure Keyboard Entry](https://support.apple.com/en-gb/guide/terminal/trml109/mac) in the Terminal.
 
-Turn on [FileVault](https://support.apple.com/en-gb/guide/mac-help/mh11785/mac) to encrypt your data.
+> For a thorough deep-dive, review the [drduh/macOS-Security-and-Privacy-Guide](https://github.com/drduh/macOS-Security-and-Privacy-Guide) repository.
 
-Configure [firmware password](https://support.apple.com/en-au/102384).
+## Application Firewall & Monitoring
 
-A nice feature is also [Secure Keyboard Entry](https://support.apple.com/en-gb/guide/terminal/trml109/mac) for the Terminal.
+A host-based firewall lets you see and approve every outbound connection your applications make. Two solid options:
 
-> Review the GitHub repository [drduh/macOS-Security-and-Privacy-Guide](https://github.com/drduh/macOS-Security-and-Privacy-Guide).
+- [**LuLu**](https://github.com/objective-see/LuLu) — free and open-source, from Objective-See.
+- [**Little Snitch**](https://www.obdev.at/products/littlesnitch/order.html) — paid, with more granular rules and a richer interface.
 
-## Install Objective-See's Tools
+In addition, install [**BlockBlock**](https://objective-see.org/products/blockblock.html) to monitor for processes attempting to install themselves persistently — useful for catching malware that wants to survive a reboot.
 
-Follow the instructions to install [LuLu](https://github.com/objective-see/LuLu) firewall and [BlockBlock](https://objective-see.org/products/blockblock.html) monitor.
-
-## Install Warp.dev
-
-Install [Warp](https://www.warp.dev/) terminal. Disable telemetry.
-
-## Xcode & Command Line Tools
+## Xcode Command Line Tools
 
 ```bash
 xcode-select --install
 ```
 
-## Homebrew (brew)
+## Homebrew
 
-First start by installing Homebrew. Go to [brew.sh](https://brew.sh/).
-
-Opt out of [analytics](https://docs.brew.sh/Analytics):
+Install [Homebrew](https://brew.sh/), then opt out of [analytics](https://docs.brew.sh/Analytics):
 
 ```bash
 brew analytics off
 ```
 
-### Install cURL
+### Command-Line Tools
+
+**cURL** — install the Homebrew version (newer than the system one):
 
 ```bash
 brew install curl
 ```
 
-Use cURL from Homebrew instead of system:
-
-```bash
-echo 'export PATH="/opt/homebrew/opt/curl/bin:$PATH"' >> ~/.zshrc
-```
-
-> For HTTP/3 support, review experimental [HTTP3 (and QUIC)](https://curl.se/docs/http3.html), preferably `quiche`.
-
-Force Homebrew to use the brewed version of cURL instead of the system version:
+Make the brewed version take precedence over the system one by adding it to your `PATH` (see the Shell section below). Optionally, force Homebrew itself to use this version:
 
 ```bash
 export HOMEBREW_FORCE_BREWED_CURL=1
 ```
 
-Reload `zsh`:
+> For HTTP/3 support, see [HTTP3 (and QUIC)](https://curl.se/docs/http3.html) — `quiche` is the recommended backend.
+
+**git, Python, Node.js:**
+
+```bash
+brew install git python@3.13 node
+```
+
+> Python cleanup script: [clean_python_env.sh](https://raw.githubusercontent.com/DavidJKTofan/CyberSec-resources/refs/heads/master/Projects/macOS-Cleanup/clean_python_env.sh). When developing in Python, use [virtual environments](https://github.com/DavidJKTofan/CyberSec-resources/blob/master/MacOS_Commands.md#virtual-environment).
+
+### Cloudflare Wrangler CLI
+
+[Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) is the CLI for building on Cloudflare Workers. It must be installed via npm — the Homebrew formula named `wrangler` is an unrelated Erlang tool and has been disabled.
+
+```bash
+npm install -g wrangler
+```
+
+### Developer Apps
+
+Install via Homebrew casks:
+
+```bash
+brew install --cask visual-studio-code
+brew install --cask github       # GitHub Desktop
+brew install gh                  # GitHub CLI
+brew install --cask ghostty      # Modern, GPU-accelerated terminal
+brew install --cask claude-code  # Anthropic's terminal coding agent
+brew install --cask codex        # OpenAI's terminal coding agent
+```
+
+### Networking & Security Apps
+
+```bash
+brew install --cask wireshark-app
+brew install --cask silentknight
+```
+
+Wireshark is the standard network protocol analyser. [SilentKnight](https://eclecticlight.co/lockrattler-systhist/) automatically checks the state of macOS firmware and security systems on each launch.
+
+## Shell
+
+Open `~/.zshrc` and set up the `PATH` so Homebrew binaries — including the brewed `curl` — take precedence over the system equivalents:
+
+```bash
+export PATH="/opt/homebrew/bin:/opt/homebrew/opt/curl/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin:$PATH"
+```
+
+Then reload:
 
 ```bash
 source ~/.zshrc
 ```
 
-### Install Visual Studio Code (VS Code)
+## Keeping Everything Updated
+
+A single command to refresh Homebrew, all packages, and npm:
 
 ```bash
-brew install --cask visual-studio-code
+brew update && brew upgrade && brew autoremove && brew cleanup && brew doctor && npm install -g npm@latest && npm update -g
 ```
 
-> Alternatively, install it manually from the [website](https://code.visualstudio.com/docs/setup/mac).
+## Browser: Brave
 
-### Install Wireshark
+Install Brave via Homebrew:
 
 ```bash
-brew install --cask wireshark
+brew install --cask brave-browser
 ```
 
-```bash
-brew install --cask wireshark-chmodbpf
-```
+[Brave Shields](https://brave.com/shields/) blocks ads and trackers by default. If you prefer Firefox or another privacy-respecting browser, install [uBlock Origin](https://github.com/gorhill/uBlock) (or [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home)) as an add-on.
 
-### Install git
-
-```bash
-brew install git
-```
-
-### Install Python
-
-```bash
-brew install python@3.13
-```
-
-> In case of a complete Python cleanup, use something like this [script](https://raw.githubusercontent.com/DavidJKTofan/CyberSec-resources/refs/heads/master/Projects/macOS-Cleanup/clean_python_env.sh).
-
-> When developing with Python, use [virtual environments](https://github.com/DavidJKTofan/CyberSec-resources/blob/master/MacOS_Commands.md#virtual-environment).
-
-### Install npm
-
-```bash
-brew install node
-```
-
-Update npm:
-
-```bash
-npm install -g npm@latest
-```
-
-Update Node.js:
-
-```bash
-sudo n stable
-```
-
-### Install SilentKnight
-
-Fully automatic checks of firmware and security systems:
-
-```text
-https://formulae.brew.sh/cask/silentknight
-```
-
-Reference: [SilentKnight, Skint, silnite, LockRattler, SystHist & Scrub](https://eclecticlight.co/lockrattler-systhist/)
-
-### How `zsh` should look like
-
-```bash
-$ nano ~/.zshrc
-
-export PATH="/opt/homebrew/bin:/opt/homebrew/opt/curl/bin:/usr/local/bin:/usr/sbin:/sbin:/usr/bin:/bin:$PATH"
-
-#export PATH="/usr/sbin:/sbin:/usr/bin:/bin:/opt/homebrew/bin:/usr/local/bin:/Us$
-#export PATH="/opt/homebrew/opt/curl/bin:$PATH"
-```
-
-### Update Everything
-
-Updating `brew`, `npm`, `nvm` and their packages:
-
-```bash
-brew update && brew upgrade && brew autoremove && brew cleanup && brew doctor && npm install -g npm@latest && npm update -g && nvm install --lts --latest-npm && nvm alias default $(nvm version --lts) && npm cache clean
-```
-
-## Private Browser
-
-Install and use [Brave](https://brave.com/) or [Firefox](https://www.mozilla.org/en-US/firefox/new/) – or other privacy-friendly browsers, whichever you feel safer with.
-
-Review browser configurations.
-
-Additionally, install and configure [uBlock Origin](https://github.com/gorhill/uBlock) or [uBlock Origin Lite](https://github.com/uBlockOrigin/uBOL-home) Add-Ons on Firefox, or [Brave Shields](https://brave.com/shields/) on Brave.
-
-> Use the [Startpage](https://www.startpage.com/) or [DuckDuckGo](https://duckduckgo.com/) or [Ecosia](https://www.ecosia.org/) Search Engines.
-
-Additionally, I'd bookmark the following sites...
-
-- https://report.automatic-demo.com/
-- https://web.archive.org/
-- https://redirectdetective.com/
-- https://haveibeenpwned.com/
-- https://canarytokens.org/nest/generate
-- https://gchq.github.io/CyberChef/
-
-DNS:
-
-- https://toolbox.googleapps.com/apps/dig/
-- https://one.one.one.one/purge-cache/
-- https://one.one.one.one/help/
-- https://dns.google/cache
-- https://help.teams.cloudflare.com/
-
-URL Scan:
-
-- https://urlscan.io/
-- https://radar.cloudflare.com/scan
-- https://www.ipqualityscore.com/threat-feeds/malicious-url-scanner
-- https://securityheaders.com/
-- https://www.virustotal.com/gui/home/upload
-- https://host.io/
-- https://urlhaus.abuse.ch/browse/
-
-IP Scan:
-
-- https://ipinfo.io/
-- https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test
-- https://www.abuseipdb.com/
-- https://search.censys.io/
-- https://www.shodan.io/
-- https://intelx.io/
-
-Images:
-
-- https://www.labnol.org/reverse
-- https://sightengine.com/detect-ai-generated-images
-- https://fotoforensics.com/
-- https://contentcredentials.org/verify
-- https://wasitai.com/
-- https://jimpl.com/
-- https://aiimagedetector.org/
-
-AI Text Detector:
-
-- https://gptzero.me/
-- https://www.zerogpt.com/
-
-Malware Analysis:
-
-- https://www.joesandbox.com/#windows
-- https://hybrid-analysis.com/
-- https://app.any.run/
-
-Web Performance:
-
-- https://pagespeed.web.dev/
-- https://www.webpagetest.org/
-- https://www.debugbear.com/test/website-speed
-- https://gtmetrix.com/
-- https://tools.pingdom.com/
-- https://treo.sh/sitespeed
-- https://speedvitals.com/
+> Switch your default search engine to [DuckDuckGo](https://duckduckgo.com/), [Startpage](https://www.startpage.com/), or [Ecosia](https://www.ecosia.org/).
 
 ## Encrypted DNS
 
-Follow the guide on [connect to 1.1.1.1 using DoH clients](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/dns-over-https-client/#cloudflared).
+Follow the guide on [connecting to 1.1.1.1 with DoH](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/dns-over-https-client/#cloudflared). Alternatively, [configure DoH directly in your browser](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/encrypted-dns-browsers/), or use a managed [secure public WiFi profile](https://www.cloudflare.com/zero-trust/solutions/secure-guest-wifi/).
 
-Alternatively, [configure DoH on your browser](https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/encrypted-dns-browsers/). Or this landing page offers more advanced options: [secure guest and public WiFi](https://www.cloudflare.com/zero-trust/solutions/secure-guest-wifi/).
+## Email, Calendar, Drive, VPN, Password Manager
 
-## E-Mail, Calendar, Drive, VPN, Password Manager
+Sign up for the [Proton](https://proton.me/) suite for end-to-end-encrypted Mail, Calendar, Drive, VPN, and Pass. Use my [invitation link](https://pr.tn/ref/T9EEJ6CB5Q3G) if you'd like.
 
-Sign up, configure and use the entire [Proton](https://proton.me/) suite of products. Check out my [invitation to join Proton](https://pr.tn/ref/T9EEJ6CB5Q3G).
+Alternatives worth considering:
 
-Some additional options are:
+- [Cloudflare Zero Trust](https://www.cloudflare.com/plans/zero-trust-services/) (free tier) — WARP VPN client, Gateway filtering, and [Email Routing](https://developers.cloudflare.com/email-routing/).
+- [NextDNS](https://nextdns.io/) (free tier) — encrypted DNS with custom blocklists.
 
-- Configure and use the FREE [Cloudflare Zero Trust](https://www.cloudflare.com/plans/zero-trust-services/) plan, using the WARP VPN client and Gateway filtering to protect oneself from threats on the Internet. Including building your own email system with [Email Routing](https://developers.cloudflare.com/email-routing/).
-- Configure and use the FREE [NextDNS](https://nextdns.io/) plan, which also has an encrypted DNS option.
+## Useful Tools & Bookmarks
 
-## More...
+A curated list of browser-based tools I keep bookmarked for security research, web debugging, and OSINT work.
 
-I also enabled [Hot Corners](https://support.apple.com/en-gb/guide/notes/apdf028f7034/mac) Shortcuts to immediately lockdown my laptop. Very practical when I need to just look away for a minute.
+### General Toolkit
 
-Read more on [A Journey into Digital Privacy & CyberSec](/articles/a-journey-into-digital-privacy/).
+- [CyberChef](https://gchq.github.io/CyberChef/) — the Swiss army knife for encoding, encryption, and data analysis.
+- [CanaryTokens](https://canarytokens.org/nest/generate) — generate honeytokens that alert when triggered.
+- [Wayback Machine](https://web.archive.org/) ([save URL](https://web.archive.org/save)) — view or archive any page in time.
+- [Have I Been Pwned](https://haveibeenpwned.com/) — check if your email or passwords have leaked.
+- [Privacy.com](https://www.privacy.com/) — generate virtual cards for online purchases.
 
-More information and examples on my [GitHub Repository](https://github.com/DavidJKTofan/CyberSec-resources/blob/master/MacOS_Commands.md).
+### Website Tech Stack
 
-Another very cool resource is [macos_hardening](https://github.com/ataumo/macos_hardening), where you can manually check the [policies](https://github.com/ataumo/macos_hardening/blob/main/POLICIES.md).
+- [BuiltWith](https://builtwith.com/)
+- [Wappalyzer](https://www.wappalyzer.com/)
+- [W3Techs](https://w3techs.com/sites)
+- [SSL Certificate Chain Lookup](https://ssl-certificates.whoisxmlapi.com/lookup)
+
+### URL & Site Scanning
+
+- [urlscan.io](https://urlscan.io/)
+- [Cloudflare Radar URL Scanner](https://radar.cloudflare.com/scan)
+- [VirusTotal](https://www.virustotal.com/gui/home/upload)
+- [URLhaus](https://urlhaus.abuse.ch/browse/)
+- [Web Check](https://web-check.xyz/)
+- [Security Headers](https://securityheaders.com/)
+- [Redirect Detective](https://redirectdetective.com/)
+
+### DNS
+
+- [Google Dig](https://toolbox.googleapps.com/apps/dig/)
+- [1.1.1.1 — Purge Cache](https://one.one.one.one/purge-cache/) · [Help](https://one.one.one.one/help/)
+- [dns.google/cache](https://dns.google/cache)
+- [DNSDumpster](https://dnsdumpster.com/)
+
+### IP Intelligence
+
+- [ipinfo.io](https://ipinfo.io/)
+- [AbuseIPDB](https://www.abuseipdb.com/)
+- [Shodan](https://www.shodan.io/)
+- [Censys](https://search.censys.io/)
+- [GreyNoise](https://check.labs.greynoise.io/)
+- [IntelX](https://intelx.io/)
+
+### Image Forensics
+
+- [FotoForensics](https://fotoforensics.com/)
+- [TinEye](https://tineye.com/) — reverse image search
+- [Content Credentials](https://contentcredentials.org/verify)
+- [Jimpl](https://jimpl.com/) — EXIF metadata viewer
+
+### AI Content Detection
+
+- [GPTZero](https://gptzero.me/) — AI-generated text
+- [AI or Not](https://www.aiornot.com/dashboard/home) — AI-generated images
+
+### Malware Analysis
+
+- [Joe Sandbox](https://www.joesandbox.com/#windows)
+- [Hybrid Analysis](https://hybrid-analysis.com/)
+- [ANY.RUN](https://app.any.run/)
+
+### Threat Intelligence
+
+- [CVE.org](https://www.cve.org/)
+- [Exploit-DB](https://www.exploit-db.com/)
+- [AlienVault OTX](https://otx.alienvault.com/)
+- [MISP Global Search](https://search.misp-community.org/?q=&index=all&page=1)
+
+### Data Breaches
+
+- [BreachDirectory](https://breachdirectory.org/)
+- [OCCRP Aleph](https://aleph.occrp.org/) — public records and leaks
+
+### Web Performance
+
+- [PageSpeed Insights](https://pagespeed.web.dev/)
+- [WebPageTest](https://www.webpagetest.org/)
+- [DebugBear Website Speed Test](https://www.debugbear.com/test/website-speed)
+
+## More
+
+Enable [Hot Corners](https://support.apple.com/en-gb/guide/notes/apdf028f7034/mac) to instantly lock the screen — handy when stepping away briefly.
+
+Further reading:
+
+- [A Journey into Digital Privacy & CyberSec](/articles/a-journey-into-digital-privacy/) — companion article.
+- [DavidJKTofan/CyberSec-resources](https://github.com/DavidJKTofan/CyberSec-resources/blob/master/MacOS_Commands.md) — more commands and examples.
+- [ataumo/macos_hardening](https://github.com/ataumo/macos_hardening) — manual policy checks, see the [policy list](https://github.com/ataumo/macos_hardening/blob/main/POLICIES.md).
 
 ---
 

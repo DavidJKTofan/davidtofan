@@ -10,17 +10,17 @@
 		"deploy": "npm run build && wrangler deploy"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^13.1.7",
-		"@astrojs/sitemap": "^3.7.0",
+		"@astrojs/cloudflare": "^13.6.0",
+		"@astrojs/sitemap": "^3.7.3",
 		"@tailwindcss/typography": "^0.5.19",
-		"astro": "^6.1.1",
+		"astro": "^6.4.2",
 		"rehype-external-links": "^3.0.0",
 		"tailwindcss": "^4.1.13"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.13",
 		"@types/node": "^25.3.0",
-		"wrangler": "^4.83.0"
+		"wrangler": "^4.95.0"
 	},
 	"engines": {
 		"node": ">=22.12.0"

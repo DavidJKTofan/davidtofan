@@ -5,6 +5,7 @@ import sitemap from '@astrojs/sitemap';
 import { EnumChangefreq } from 'sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
+import { unified } from '@astrojs/markdown-remark';
 import { buildSitemapLastmodMap } from './src/lib/contentMetadata.js';
 
 const siteUrl = 'https://davidtofan.com';
@@ -13,9 +14,12 @@ const cloudflareAdapterOptions = /** @type {import('@astrojs/cloudflare').Option
   platformProxy: {
     enabled: true,
   },
-  // Use 'compile' for local dev compatibility (sharp at build time)
-  // Images are optimized at build, works both locally and in production
-  imageService: 'compile',
+  // Build-time 'compile' (sharp) is broken in Astro 6.2+ for this prerendered
+  // site, so optimization is offloaded to Cloudflare's edge. This emits
+  // /cdn-cgi/image/onerror=redirect,.../_astro/* URLs handled at the edge (no
+  // Worker invocation). If Image Transformations are enabled on the zone, images
+  // are optimized; if not, onerror=redirect transparently serves the original.
+  imageService: 'cloudflare',
 });
 
 // https://astro.build/config
@@ -85,15 +89,22 @@ export default defineConfig({
       theme: 'github-dark-default',
       wrap: true,
     },
-    rehypePlugins: [
-      [
-        rehypeExternalLinks,
-        {
-          target: '_blank',
-          rel: ['nofollow', 'noopener', 'external'],
-        },
+    // Astro 6.4+ deprecated top-level remarkPlugins/rehypePlugins/gfm/smartypants
+    // in favor of a unified() processor (removed in Astro 8.0). gfm/smartypants
+    // are set explicitly to preserve Astro's previous defaults.
+    processor: unified({
+      gfm: true,
+      smartypants: true,
+      rehypePlugins: [
+        [
+          rehypeExternalLinks,
+          {
+            target: '_blank',
+            rel: ['nofollow', 'noopener', 'external'],
+          },
+        ],
       ],
-    ],
+    }),
   },
   // Optimize for Core Web Vitals
   compressHTML: true,
