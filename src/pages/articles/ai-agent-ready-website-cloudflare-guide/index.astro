@@ -765,6 +765,20 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
               </li>
             </ul>
 
+            <h3>A grounding counterpoint</h3>
+            <p>
+              Read all of the above alongside
+              <a href="https://walshy.dev/blog/stop-shipping-ai-files-nobody-reads/#make-your-site-human-friendly-you-get-agent-friendly-for-free" target="_blank" rel="noopener noreferrer">Stop shipping AI files nobody reads</a>
+              by Walshy. The core argument: most AI-specific files (<code>llms.txt</code> and friends) largely go unread, and the durable win is to make your site human-friendly — you get agent-friendly for free. I personally agree with these findings, especially two of them:
+            </p>
+            <ul>
+              <li>"<em>Write clean HTML, use semantic markup, write content humans want to read.</em>"</li>
+              <li>"<em>If you really want to do something agent-specific, the right shape is content negotiation, not a separate file.</em>"</li>
+            </ul>
+            <p>
+              That lands squarely on Pillar 2 of this walkthrough: the strongest agent-readiness move isn't a pile of bespoke files to maintain — it's clean, semantic content plus content negotiation (<code>Accept: text/markdown</code>), so one canonical URL serves humans and agents alike. Treat the well-knowns and capability surfaces here as deliberate, high-value additions, not a checklist of files to litter your site with.
+            </p>
+
             <blockquote class="not-prose rounded-xl border-l-2 border-accent-500 bg-accent-50/40 dark:bg-accent-950/30 p-5 sm:p-6 my-6">
               <p class="font-display text-base sm:text-lg text-surface-800 dark:text-surface-100 leading-relaxed m-0">
                 This is a non-exhaustive practitioner's intro to making your website AI agent-ready. Educational purposes only — the standards above will keep shifting, and that's the point. Audit your site at <a href="https://isitagentready.com/" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">isitagentready.com</a>, read your crawl-to-refer ratio on <a href="https://radar.cloudflare.com/ai-insights" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">Cloudflare Radar AI Insights</a>, then decide consciously what you want to expose, monetize, or block. Properly inform yourself, keep learning, keep testing — and, as always, secure before you ship.
@@ -789,20 +803,6 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
                 Live check: <a href="https://isitagentready.com/davidtofan.com?profile=content" target="_blank" rel="noopener noreferrer" class="underline decoration-accent-400 hover:decoration-accent-500">isitagentready.com/davidtofan.com</a>
               </figcaption>
             </figure>
-
-            <h3>A grounding counterpoint</h3>
-            <p>
-              Read all of the above alongside
-              <a href="https://walshy.dev/blog/stop-shipping-ai-files-nobody-reads/#make-your-site-human-friendly-you-get-agent-friendly-for-free" target="_blank" rel="noopener noreferrer">Stop shipping AI files nobody reads</a>
-              by Walshy. The core argument: most AI-specific files (<code>llms.txt</code> and friends) largely go unread, and the durable win is to make your site human-friendly — you get agent-friendly for free. I personally agree with these findings, especially two of them:
-            </p>
-            <ul>
-              <li>"<em>Write clean HTML, use semantic markup, write content humans want to read.</em>"</li>
-              <li>"<em>If you really want to do something agent-specific, the right shape is content negotiation, not a separate file.</em>"</li>
-            </ul>
-            <p>
-              That lands squarely on Pillar 2 of this walkthrough: the strongest agent-readiness move isn't a pile of bespoke files to maintain — it's clean, semantic content plus content negotiation (<code>Accept: text/markdown</code>), so one canonical URL serves humans and agents alike. Treat the well-knowns and capability surfaces here as deliberate, high-value additions, not a checklist of files to litter your site with.
-            </p>
           </div>
         </SectionBlock>
 
