@@ -17,6 +17,16 @@
 		"html_handling": "auto-trailing-slash",
 		"not_found_handling": "404-page"
 	},
+	// Astro Sessions are backed by Cloudflare KV via the SESSION binding (the
+	// @astrojs/cloudflare adapter enables this automatically). Pin the existing
+	// namespace id so deploys reuse it instead of trying to re-create it, which
+	// fails with "a namespace with this title already exists" [code: 10014].
+	"kv_namespaces": [
+		{
+			"binding": "SESSION",
+			"id": "3198ea8b77fb4040974377ab70d9b93c"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},
