@@ -14,6 +14,28 @@ Here is a list of webinars I was involved in:
 
 ## Webinars
 
+### Cloudflare Immerse Berlin 2026 - Securing the AI Era: From Workforce Protection to Agentic Control
+
+_A session from the Cloudflare Immerse Berlin roadshow on securing the AI era: protecting employees who use AI tools and keeping AI agents under control._
+
+- **Date: 03.03.2026**
+
+- **Language: English**
+
+- **Event link**: https://fieldmarketing.www.cloudflare.com/immerseberlin2026
+
+<div style="position: relative; padding-top: 56.25%;">
+  <iframe
+    src="https://customer-px4ru5rucxtgoo68.cloudflarestream.com/c732d88c5074f0be0b21d4339987e055/iframe?poster=https%3A%2F%2Fcustomer-px4ru5rucxtgoo68.cloudflarestream.com%2Fc732d88c5074f0be0b21d4339987e055%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
+    loading="lazy"
+    style="border: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"
+    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+    allowfullscreen="true"
+  ></iframe>
+</div>
+
+---
+
 ### Cloudflare - Künstliche Intelligenz ohne Risiko
 
 _Erfahre im Cloudflare Webinar, wie Zero Trust und SASE deine Unternehmensdaten schützen und sich KI-Tools wie ChatGPT sicher einsetzen lassen._
