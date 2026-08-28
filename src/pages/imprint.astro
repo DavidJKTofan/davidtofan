@@ -1,0 +1,250 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
+import { sitePageMetadata } from '../lib/contentMetadata.js';
+
+const { route, lastModified } = sitePageMetadata.imprint;
+const lastUpdated = lastModified;
+const lastUpdatedIso = new Date(`${lastUpdated}T00:00:00.000Z`).toISOString();
+
+const imprintDescription =
+  'Who publishes davidtofan.com, how to get in touch, and how visitor data is handled.';
+
+const linkedInUrl = `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`;
+const contactEmail = siteConfig.author.email;
+
+const imprintJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Imprint & Privacy',
+  description: imprintDescription,
+  url: `${siteConfig.url}${route}`,
+  dateModified: lastUpdatedIso,
+  inLanguage: siteConfig.locale,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: siteConfig.name,
+    url: siteConfig.url,
+  },
+  author: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+    url: siteConfig.url,
+    sameAs: [
+      `https://github.com/${siteConfig.author.github}`,
+      linkedInUrl,
+      `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
+    ],
+  },
+};
+---
+
+<BaseLayout
+  title="Imprint & Privacy"
+  description={imprintDescription}
+  noIndex={true}
+  noPersonSchema={true}
+  structuredData={imprintJsonLd}
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <header class="mb-10">
+      <p class="text-xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-3">
+        Legal · who runs this site and how your data is handled
+      </p>
+      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-4 text-balance">
+        Imprint & Privacy
+      </h1>
+      <p class="text-lg text-surface-600 dark:text-surface-400 leading-relaxed">
+        Who publishes <strong>davidtofan.com</strong>, how to reach them, and what happens to data
+        when you visit.
+      </p>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mt-3">
+        Last updated: <time datetime={lastUpdated}>{lastUpdated}</time>
+      </p>
+    </header>
+
+    <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+      <h2 id="owner">Site owner</h2>
+      <p>
+        <strong>{siteConfig.author.name}</strong><br />
+        Private individual, resident in the European Union
+      </p>
+
+      <h2 id="contact">Contact</h2>
+      <p>
+        For questions, corrections, privacy requests, or legal notices, reach me by email:
+      </p>
+      <p>
+        <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+      </p>
+
+
+      <h2 id="responsible">Responsible for the content</h2>
+      <p>
+        {siteConfig.author.name} is responsible for all editorial content published on this website,
+        and can be reached through the contact channel above.
+      </p>
+      <p>
+        Content here is published to the best of my knowledge and belief, and in good faith. At the
+        time of publication I was not aware of any of it being unlawful, infringing the rights of
+        others, or otherwise objectionable, and nothing is published with that intent.
+      </p>
+      <p>
+        If you believe something on this website is unlawful, infringing, inaccurate, or out of date,
+        please tell me at
+        <a href={`mailto:${siteConfig.author.email}`}>{siteConfig.author.email}</a>. I will review it
+        promptly and correct or remove it without undue delay. The same applies to the third-party
+        content this site links to, as set out in the <a href="/disclaimer/#external-links">Disclaimer</a>.
+      </p>
+
+      <h2 id="nature">Nature of this website</h2>
+      <p>
+        This is a personal website, published in a private capacity. There is no account system, no
+        newsletter, no contact form, no advertising network, and nothing is sold here. It is not
+        registered in any commercial register and holds no VAT identification number.
+      </p>
+      <p>
+        One exception to note: some outbound links on the
+        <a href="/projects/referrals/">Referrals</a> page are <strong>referral links</strong>. If you
+        sign up for a service through one of them, I may receive a credit, discount, or similar
+        benefit — at no additional cost to you. This never affects what I recommend or write.
+      </p>
+
+      <h2 id="independence">Independence</h2>
+      <p>
+        This website is published in a purely personal capacity. It is not operated, sponsored,
+        reviewed, or endorsed by my employer or by any other organisation, and it does not represent
+        their views. See the <a href="/disclaimer/">Disclaimer</a> for details.
+      </p>
+
+      <h2 id="privacy">Privacy</h2>
+      <p>
+        Short version: this site has no tracking, no advertising, no profiling, and no cookie banner
+        — because it sets no cookies of its own and collects nothing about you beyond what is
+        technically needed to serve and protect the page.
+      </p>
+
+      <h3 id="controller">Who is responsible</h3>
+      <p>
+        The controller for the purposes of the
+        <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj" target="_blank" rel="noopener noreferrer">General Data Protection Regulation (GDPR), Regulation (EU) 2016/679</a>
+        is {siteConfig.author.name}, reachable via the contact channel above.
+      </p>
+
+      <h3 id="hosting">What is processed when you visit</h3>
+      <p>
+        This website is delivered through <a href="https://www.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare</a>,
+        which acts as my processor. To serve the page and protect it against attack and abuse,
+        Cloudflare processes the connection data every web request necessarily carries: your IP
+        address, a derived two-letter country code, the requested URL, referrer, user agent,
+        timestamp, and a request identifier.
+      </p>
+      <p>
+        Legal basis: <strong>Article 6(1)(f) GDPR</strong> — my legitimate interest in delivering
+        this website securely and reliably. I do not maintain my own separate visitor logs, and I do
+        not attempt to identify individual visitors.
+      </p>
+
+      <h3 id="cookies">Cookies and local storage</h3>
+      <p>
+        This website sets <strong>no cookies of its own</strong>. Cloudflare may set
+        <em>strictly necessary</em> security and delivery cookies — such as <code>__cf_bm</code>
+        (bot detection, expires after 30 minutes of inactivity), <code>cf_clearance</code>
+        (proof of passing a challenge), or <code>_cfuvid</code> (rate limiting). Per
+        <a href="https://developers.cloudflare.com/fundamentals/reference/policies-compliances/cloudflare-cookies/" target="_blank" rel="noopener noreferrer">Cloudflare's documentation</a>
+        these are used solely for security and performance, and <code>__cf_bm</code>
+        does not track users from site to site or session to session.
+      </p>
+      <p>
+        Your light/dark theme choice is stored in your browser's <code>localStorage</code> under the
+        key <code>theme</code>. It never leaves your device and is never sent to me.
+      </p>
+      <p>
+        Because all of the above is strictly necessary or a preference you actively requested, it is
+        exempt from the consent requirement in Article 5(3) of the ePrivacy Directive 2002/58/EC —
+        which is why you are not asked to click through a cookie banner.
+      </p>
+
+      <h3 id="search">Site search</h3>
+      <p>
+        The search function is powered by <a href="https://developers.cloudflare.com/ai-search/" target="_blank" rel="noopener noreferrer">Cloudflare AI Search</a>.
+        If you open it and type a query, that
+        query is sent to a Cloudflare endpoint in order to return results. Nothing is searched or
+        transmitted until you use it. Please do not enter personal or confidential information into
+        the search box. Legal basis: <strong>Article 6(1)(f) GDPR</strong>.
+      </p>
+
+      <h3 id="analytics">Analytics</h3>
+      <p>
+        This website uses <strong><a href="https://developers.cloudflare.com/web-analytics/" target="_blank" rel="noopener noreferrer">Cloudflare Web Analytics</a></strong> to understand aggregate traffic
+        and page performance. It is enabled through Cloudflare's automatic setup, so the measurement
+        script is inserted as the page is served rather than forming part of the site's source code.
+      </p>
+      <p>
+        It is privacy-preserving by design: per Cloudflare's documentation it uses
+        <strong>no cookies</strong>, stores nothing in your browser, performs no fingerprinting, and
+        discards your IP address at the nearest Cloudflare data center. It measures page views and
+        performance metrics, not people — there is no cross-site or cross-session tracking, and no
+        profile of you is built.
+      </p>
+      <p>
+        Because it writes nothing to and reads nothing from your device, it does not trigger the
+        consent requirement in Article 5(3) of the ePrivacy Directive. No other analytics,
+        advertising, or tracking scripts are used.
+      </p>
+
+      <h3 id="third-parties">External and referral links</h3>
+      <p>
+        Following a link to another website — including the referral links described above, and my
+        social profiles linked in the site footer — hands you over to that operator, whose own privacy
+        policy then applies. Referral links may let the destination service attribute your sign-up to
+        me. I receive no personal data about you in that process beyond, at most, an anonymous count.
+      </p>
+
+      <h3 id="transfers">International transfers</h3>
+      <p>
+        Cloudflare operates a global network, so processing may take place outside the European
+        Economic Area. Such transfers are covered by the
+        <a href="https://www.cloudflare.com/trust-hub/gdpr/" target="_blank" rel="noopener noreferrer">safeguards Cloudflare maintains for this purpose</a>,
+        including EU Standard Contractual Clauses.
+      </p>
+
+      <h3 id="retention">Retention</h3>
+      <p>
+        Connection and security data is retained only briefly by Cloudflare for operational and
+        security purposes and is not archived by me. If you email me, I keep that correspondence only
+        as long as needed to deal with your request.
+      </p>
+
+      <h3 id="rights">Your rights</h3>
+      <p>
+        Under Articles 15 to 21 GDPR you have the right to request access to your personal data, and
+        its rectification or erasure; to request restriction of processing; to data portability; and
+        to object to processing based on legitimate interests. Use the contact channel above.
+      </p>
+      <p>
+        You also have the right to lodge a complaint with a data protection supervisory authority
+        (Article 77 GDPR), normally the one for your country of residence.
+      </p>
+      <p>
+        There is no automated decision-making or profiling on this website, and no personal data is
+        sold or shared for advertising.
+      </p>
+
+      <h2 id="liability">Liability and links</h2>
+      <p>
+        Liability for the content of this website, and for the content of third-party sites linked
+        from it, is governed by the <a href="/disclaimer/">Disclaimer</a>, which forms part of this
+        imprint. Terms for AI crawlers, retrieval, and training are set out on the
+        <a href="/ai-licensing-terms/">AI Licensing Terms</a> page.
+      </p>
+
+      <h2 id="copyright">Copyright</h2>
+      <p>
+        Unless stated otherwise, original content on this website is protected by copyright and
+        remains the property of {siteConfig.author.name}. Trademarks, logos, and brand names are the
+        property of their respective owners and are used for identification and commentary only.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

@@ -5,7 +5,7 @@ import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
 import { unified } from '@astrojs/markdown-remark';
-import { buildSitemapLastmodMap } from './src/lib/contentMetadata.js';
+import { buildSitemapLastmodMap, noIndexRoutes } from './src/lib/contentMetadata.js';
 
 const siteUrl = 'https://davidtofan.com';
 const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl);
@@ -41,6 +41,10 @@ export default defineConfig({
   }),
   integrations: [
     sitemap({
+      // Legal pages are served with `noindex, nofollow` (meta tag + X-Robots-Tag),
+      // so listing them here would tell crawlers to index what the page itself
+      // forbids. Keep the sitemap and the robots directives in agreement.
+      filter: (page) => !noIndexRoutes.has(new URL(page).pathname),
       // Default change frequency for all pages
       changefreq: ChangeFreqEnum.MONTHLY,
       // Default priority

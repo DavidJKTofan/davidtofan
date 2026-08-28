@@ -8,7 +8,7 @@
     1. Free tier — search indexing and AI retrieval (RAG / grounding with citation)
        are permitted, subject to attribution + a link back to the canonical URL.
     2. AI training tier — training and fine-tuning require a commercial license.
-       Contact via the custom URL.
+       The custom URL points at the prose terms, which carry the contact address.
 
   The IETF AIPREF Content-Signal declaration in /robots.txt carries the same
   intent. This file is the machine-readable licensing layer; the terms page at
@@ -26,7 +26,7 @@
     <license>
       <permits type="usage">ai-train</permits>
       <payment type="training">
-        <custom>https://linkedin.com/in/davidtofan</custom>
+        <custom>https://davidtofan.com/ai-licensing-terms/</custom>
       </payment>
     </license>
   </content>

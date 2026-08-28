@@ -8,7 +8,26 @@ export const sitePageMetadata = {
     route: '/ai-licensing-terms/',
     lastModified: '2026-04-19',
   },
+  disclaimer: {
+    route: '/disclaimer/',
+    lastModified: '2026-08-28',
+  },
+  imprint: {
+    route: '/imprint/',
+    lastModified: '2026-08-28',
+  },
 };
+
+/**
+ * Routes rendered with `noIndex` (see BaseLayout) and an `X-Robots-Tag` in
+ * public/_headers. Exported so the sitemap can exclude them — advertising a
+ * `noindex` URL in the sitemap sends crawlers two contradicting instructions.
+ */
+export const noIndexRoutes = new Set([
+  sitePageMetadata.aiLicensingTerms.route,
+  sitePageMetadata.disclaimer.route,
+  sitePageMetadata.imprint.route,
+]);
 
 /**
  * Return the explicit image when provided, otherwise use the conventional
@@ -51,6 +70,8 @@ export async function buildSitemapLastmodMap(siteUrl) {
   const projectRoot = fileURLToPath(new URL('../..', import.meta.url));
   const contentRoot = join(projectRoot, 'src', 'content');
   const lastmodMap = new Map();
+  /** @type {Map<ContentKind, Date>} */
+  const newestByKind = new Map();
 
   for (const contentKind of /** @type {ContentKind[]} */ (['articles', 'projects'])) {
     const contentDir = join(contentRoot, contentKind);
@@ -73,10 +94,34 @@ export async function buildSitemapLastmodMap(siteUrl) {
         continue;
       }
 
-      const lastmod = getEffectiveModifiedTime(dates).toISOString();
+      const effectiveDate = getEffectiveModifiedTime(dates);
       const route = `/${contentKind}/${slug}/`;
-      lastmodMap.set(new URL(route, siteUrl).toString(), lastmod);
+      lastmodMap.set(new URL(route, siteUrl).toString(), effectiveDate.toISOString());
+
+      const currentNewest = newestByKind.get(contentKind);
+      if (!currentNewest || effectiveDate > currentNewest) {
+        newestByKind.set(contentKind, effectiveDate);
+      }
     }
+  }
+
+  // Listing pages have no frontmatter of their own, so without this they ship
+  // with no `lastmod` at all — worst on exactly the highest-priority routes.
+  // Their freshness is the freshness of the newest entry they list.
+  const newestArticle = newestByKind.get('articles');
+  const newestProject = newestByKind.get('projects');
+  const listingLastmods = new Map([
+    ['/', newestDate([newestArticle, newestProject])],
+    ['/articles/', newestArticle],
+    ['/projects/', newestProject],
+    ['/certificates/', readNewestCertificateDate(readFileSync, existsSync, join(projectRoot, 'src', 'data', 'certificates.json'))],
+  ]);
+
+  for (const [route, lastmod] of listingLastmods) {
+    if (!lastmod) {
+      continue;
+    }
+    lastmodMap.set(new URL(route, siteUrl).toString(), lastmod.toISOString());
   }
 
   for (const page of Object.values(sitePageMetadata)) {
@@ -155,6 +200,65 @@ function parseDateLiteral(value) {
     return undefined;
   }
   return parsedDate;
+}
+
+/**
+ * Newest of a sparse list of dates, ignoring undefined entries.
+ *
+ * @param {(Date | undefined)[]} dates
+ */
+function newestDate(dates) {
+  return dates.reduce(
+    (newest, date) => (date && (!newest || date > newest) ? date : newest),
+    /** @type {Date | undefined} */ (undefined),
+  );
+}
+
+/**
+ * Certificates carry human-readable dates ("Feb 2026") rather than frontmatter,
+ * so the listing page's freshness is derived from the newest entry in the JSON.
+ *
+ * @param {(path: string, encoding: string) => string} readFileSync
+ * @param {(path: string) => boolean} existsSync
+ * @param {string} filePath
+ */
+function readNewestCertificateDate(readFileSync, existsSync, filePath) {
+  if (!existsSync(filePath)) {
+    return undefined;
+  }
+
+  let entries;
+  try {
+    const parsed = JSON.parse(readFileSync(filePath, 'utf8'));
+    entries = Array.isArray(parsed) ? parsed : parsed?.certificates;
+  } catch {
+    return undefined;
+  }
+
+  if (!Array.isArray(entries)) {
+    return undefined;
+  }
+
+  return newestDate(entries.map((entry) => parseCertificateDate(entry?.date)));
+}
+
+/**
+ * Normalize a "Mon YYYY" certificate date to UTC midnight so the emitted
+ * lastmod does not shift by a day depending on the build machine's timezone.
+ *
+ * @param {unknown} value
+ */
+function parseCertificateDate(value) {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.valueOf())) {
+    return undefined;
+  }
+
+  return new Date(Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()));
 }
 
 /**

@@ -548,6 +548,7 @@ Prioritize resilience strategies in this order:
 - [Partial (CNAME) setup](https://developers.cloudflare.com/dns/zone-setups/partial-setup/)
 - [Cloudflare as Secondary DNS provider](https://developers.cloudflare.com/dns/zone-setups/zone-transfers/cloudflare-as-secondary/)
 - [Cloudflare Status](https://www.cloudflarestatus.com/)
+- [Cloudflare Resilience Matrix](https://failover.automatic-demo.com/): third-party resource guide, as a general reference, with a break-glass decision matrix and failover strategies for disruption scenarios.
 
 ---
 

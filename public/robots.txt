@@ -45,6 +45,13 @@ Disallow: /cdn-cgi/
 # imagery is invisible to search engines.
 Allow: /cdn-cgi/image/
 
+# Legal pages (/ai-licensing-terms/, /disclaimer/, /imprint/) are deliberately NOT
+# disallowed here. They are served with `noindex, nofollow` (meta tag + X-Robots-Tag)
+# and are excluded from the sitemap. Disallowing them would stop crawlers from
+# fetching the page, so the noindex would never be read and the URL could still be
+# indexed without a description. Crawlable + noindex is what actually de-indexes.
+# Do not add Disallow rules for them.
+
 # Machine-readable licensing
 # Prose terms:   https://davidtofan.com/ai-licensing-terms/
 # RSL 1.0 doc:   https://davidtofan.com/rsl.xml  (spec: https://rslstandard.org/rsl)

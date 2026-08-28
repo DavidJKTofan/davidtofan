@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/site';
+import { sitePageMetadata } from '../lib/contentMetadata.js';
+
+const { route, lastModified } = sitePageMetadata.disclaimer;
+const lastUpdated = lastModified;
+const lastUpdatedIso = new Date(`${lastUpdated}T00:00:00.000Z`).toISOString();
+
+const disclaimerDescription =
+  'Personal opinions, no professional advice, no warranty, and the limits of liability for content published on davidtofan.com.';
+
+const disclaimerJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Disclaimer',
+  description: disclaimerDescription,
+  url: `${siteConfig.url}${route}`,
+  dateModified: lastUpdatedIso,
+  inLanguage: siteConfig.locale,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: siteConfig.name,
+    url: siteConfig.url,
+  },
+  author: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+    url: siteConfig.url,
+    sameAs: [
+      `https://github.com/${siteConfig.author.github}`,
+      `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
+      `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
+    ],
+  },
+};
+---
+
+<BaseLayout
+  title="Disclaimer"
+  description={disclaimerDescription}
+  noIndex={true}
+  noPersonSchema={true}
+  structuredData={disclaimerJsonLd}
+>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <header class="mb-10">
+      <p class="text-xs font-mono uppercase tracking-wider text-accent-600 dark:text-accent-400 mb-3">
+        Legal · please read before relying on anything here
+      </p>
+      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-4 text-balance">
+        Disclaimer
+      </h1>
+      <p class="text-lg text-surface-600 dark:text-surface-400 leading-relaxed">
+        <strong>davidtofan.com</strong> is a personal, non-commercial website published by
+        {siteConfig.author.name}. Everything on it is shared in a private capacity, for information
+        and educational purposes only.
+      </p>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mt-3">
+        Last updated: <time datetime={lastUpdated}>{lastUpdated}</time>
+      </p>
+    </header>
+
+    <div class="prose prose-base sm:prose-lg dark:prose-invert max-w-none">
+      <h2 id="tldr">TL;DR</h2>
+      <ul>
+        <li>Opinions here are <strong>my own</strong>, not my employer's.</li>
+        <li>Nothing here is <strong>professional advice</strong> — it is general information.</li>
+        <li><strong>Verify everything</strong> against official sources before you act on it.</li>
+        <li>You use this content <strong>at your own risk</strong>; liability is limited to what the law requires.</li>
+      </ul>
+
+      <h2 id="personal-opinions">1. Personal opinions</h2>
+      <p>
+        All views, opinions, and statements published on this website are my own and are made in a
+        purely personal capacity. They do not represent the views, positions, or official
+        communication of my employer, my clients, or any organisation I am or have been affiliated
+        with, and they are not endorsed or reviewed by them.
+      </p>
+      <p>
+        Product names, company names, logos, and trademarks are the property of their respective
+        owners and are used here for identification, reference, and commentary only. Their use does
+        not imply any affiliation with, sponsorship by, or endorsement from those owners.
+      </p>
+
+      <h2 id="no-advice">2. No professional advice</h2>
+      <p>
+        The content on this website — including articles, guides, code samples, configuration
+        examples, diagrams, presentations, and webinars or talks referenced here — is general
+        information and educational commentary. It is <strong>not</strong> professional, legal,
+        financial, tax, or security advice, and it is not tailored to your circumstances.
+      </p>
+      <p>
+        Reading this website, contacting me, or using anything published here does not create any
+        advisory, consulting, contractual, or client relationship. For decisions that matter to you
+        or your organisation, please consult a suitably qualified professional.
+      </p>
+
+      <h2 id="verify">3. Verify before you act</h2>
+      <p>
+        Content reflects my understanding at the time of writing or publishing. Technology, products, pricing,
+        default settings, and regulation change quickly, so content may become outdated, incomplete,
+        or simply wrong — including after it was correct when published.
+      </p>
+      <p>Before applying anything you find here, you are responsible for:</p>
+      <ul>
+        <li>verifying it against the current official documentation of the vendor or authority concerned;</li>
+        <li>testing it in a non-production environment; and</li>
+        <li>assessing whether it fits your own technical, security, and legal requirements.</li>
+      </ul>
+      <p>
+        Any use you make of this content — following a guide, copying a configuration, running a
+        code sample — is your own decision, made on your own responsibility and at your own risk.
+      </p>
+
+      <h2 id="no-warranty">4. No warranty</h2>
+      <p>
+        This website and all of its content are provided <em>"as is"</em> and
+        <em>"as available"</em>, without warranty or guarantee of any kind, whether express or
+        implied. In particular, I give no guarantee as to the accuracy, completeness, timeliness,
+        merchantability, or fitness for a particular purpose of the content, nor as to the
+        uninterrupted or error-free availability of the website itself.
+      </p>
+
+      <h2 id="liability">5. Limitation of liability</h2>
+      <p>
+        To the fullest extent permitted by applicable law, I accept no liability for any damage or
+        loss — whether direct or indirect, material or immaterial, including loss of profit, loss or
+        corruption of data, security incidents, service outages, or business interruption — arising
+        from the use of, reliance on, or inability to use content published on or reachable from this
+        website.
+      </p>
+      <p>This limitation does <strong>not</strong> apply to, and nothing on this page excludes or limits:</p>
+      <ul>
+        <li>liability for damage caused intentionally or by gross negligence;</li>
+        <li>liability for injury to life, body, or health;</li>
+        <li>liability under mandatory statutory provisions, including applicable product liability law; and</li>
+        <li>
+          any other liability that cannot lawfully be excluded or limited, including your mandatory
+          rights as a consumer.
+        </li>
+      </ul>
+
+      <h2 id="external-links">6. External links and third-party content</h2>
+      <p>
+        This website links to third-party websites, documentation, repositories, videos, and
+        services that I neither operate nor control. Those links are offered for convenience and
+        reference. The respective operators are solely responsible for their content, and no
+        unlawful content was apparent to me at the time of linking.
+      </p>
+      <p>
+        I do not adopt third-party content as my own, and I am under no general obligation to
+        monitor it — see Article 8 of
+        <a href="https://eur-lex.europa.eu/eli/reg/2022/2065/oj" target="_blank" rel="noopener noreferrer">Regulation (EU) 2022/2065 (Digital Services Act)</a>.
+        If you become aware of unlawful content behind a link on this website, please
+        <a href={`mailto:${siteConfig.author.email}`}>let me know</a>
+        and I will remove the link as fast as possible.
+      </p>
+
+      <h2 id="referral-links">7. Referral links</h2>
+      <p>
+        Some outbound links on this website — principally on the
+        <a href="/projects/referrals/">Referrals</a> page — are referral links. If you sign up for a
+        service through one of them, I may receive a credit, discount, or similar benefit, at no
+        additional cost to you.
+      </p>
+      <p>
+        I only link to services I use myself, and a referral benefit never changes what I recommend
+        or write. It does not make me a party to any contract you enter into with that provider:
+        their terms, pricing, and support are theirs alone, and the limitations in section 5 apply to
+        referral links exactly as they do to any other content here.
+      </p>
+
+      <h2 id="copyright">8. Copyright and reuse</h2>
+      <p>
+        Unless stated otherwise, original content on this website is protected by copyright and
+        remains the property of the author. Short quotations with attribution and a link back to the
+        canonical URL are welcome. Terms for AI crawlers, retrieval, and training are set out
+        separately on the
+        <a href="/ai-licensing-terms/">AI Licensing Terms</a> page.
+      </p>
+
+      <h2 id="changes">9. Changes to this disclaimer</h2>
+      <p>
+        I may update this disclaimer at any time to reflect changes to the website or to the law.
+        The version published on this page at the time you access the website is the version that
+        applies.
+      </p>
+
+      <h2 id="governing-law">10. Applicable law</h2>
+      <p>
+        This disclaimer and any matter arising from it are governed by the law of the author's
+        country of residence in the European Union (EU). This choice of law does not deprive you of the
+        protection of mandatory provisions of the law of the country in which you have your habitual
+        residence, in particular where you act as a consumer — see Article 6 of
+        <a href="https://eur-lex.europa.eu/eli/reg/2008/593/oj" target="_blank" rel="noopener noreferrer">Regulation (EC) No 593/2008 (Rome I)</a>.
+      </p>
+      <p>
+        Should any provision of this disclaimer be or become invalid, the validity of the remaining
+        provisions is unaffected.
+      </p>
+
+      <h2 id="contact">11. Contact</h2>
+      <p>
+        Questions about this disclaimer, corrections to an article, or takedown requests can be sent
+        by email to
+        <a href={`mailto:${siteConfig.author.email}`}>{siteConfig.author.email}</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>

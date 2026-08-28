@@ -8,6 +8,7 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com) via `@tailwindcss/vite` with the Typography plugin
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with the official `@astrojs/cloudflare` adapter
 - **Search**: [Cloudflare AI Search](https://developers.cloudflare.com/ai-search/) modal via Web Components
+- **Analytics**: [Cloudflare Web Analytics](https://developers.cloudflare.com/web-analytics/) — cookieless; enabled via dashboard *automatic setup*, so the beacon is injected at the edge and does **not** appear anywhere in this repo
 - **Content**: Markdown with Zod validation (Content Collections), rendered through the `unified()` pipeline (`@astrojs/markdown-remark`)
 - **Fonts**: System font stack (no external CDN dependencies)
 - **Design**: [Canva](https://www.canva.com)
@@ -27,13 +28,15 @@ src/
 │   ├── ProjectCard.astro
 │   ├── ReadingProgress.astro
 │   ├── ScrollToTop.astro
-│   └── TableOfContents.astro
+│   ├── TableOfContents.astro
+│   └── agent-ready-guide/  # Interactive components for the AI-agent-ready guide
 ├── config/
-│   └── site.ts           # Site config (name, URLs, nav)
+│   └── site.ts           # Site config (name, URLs, nav, AI Search)
 ├── content/              # Markdown content
 │   ├── articles/         # Blog articles
 │   │   └── [slug]/
 │   │       ├── index.md
+│   │       ├── featured.png
 │   │       └── img/      # Article images
 │   └── projects/
 │       └── [slug]/
@@ -43,14 +46,21 @@ src/
 ├── layouts/
 │   └── BaseLayout.astro  # Main layout with SEO
 ├── lib/
-│   └── certificates.ts   # Certificate utilities
+│   ├── certificates.ts     # Certificate utilities
+│   ├── contentMetadata.js  # Sitemap lastmod map, static page metadata, noindex routes
+│   └── readingTime.ts      # Reading time estimation
 ├── pages/
 │   ├── 404.astro
 │   ├── index.astro
 │   ├── certificates.astro
+│   ├── ai-licensing-terms.astro  # Legal — AI/crawler licensing (noindex)
+│   ├── disclaimer.astro          # Legal — disclaimer (noindex)
+│   ├── imprint.astro             # Legal — site identification (noindex)
 │   ├── articles/
 │   │   ├── index.astro
-│   │   └── [...slug].astro
+│   │   ├── [...slug].astro
+│   │   └── ai-agent-ready-website-cloudflare-guide/
+│   │       └── index.astro       # Custom-designed landing page for that guide
 │   └── projects/
 │       ├── index.astro
 │       └── [...slug].astro
@@ -58,10 +68,21 @@ src/
 │   └── global.css
 ├── types/
 │   └── index.ts          # Shared TypeScript types
+├── env.d.ts
 └── content.config.ts     # Content collection schemas
-
-src/config/site.ts also contains the AI Search feature flag and endpoint configuration.
 ```
+
+`src/config/site.ts` also contains the AI Search feature flag and endpoint configuration.
+
+Notable files outside `src/`:
+
+| Path | Purpose |
+|:--|:--|
+| `public/robots.txt` | Crawl rules, IETF AIPREF Content Signals, `License:` directive, sitemaps |
+| `public/rsl.xml` | RSL 1.0 machine-readable license document |
+| `public/_headers` | Cache, security, `Link`, and `X-Robots-Tag` headers for Static Assets |
+| `scripts/copy-featured-images.mjs` | `prebuild` — copies `featured.png` into `public/` |
+| `scripts/update-deps.sh` | Dependency upgrade + verification harness |
 
 ## Commands
 
@@ -400,8 +421,12 @@ All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 ### Sitemap & Robots
 
 - **Sitemap**: Auto-generated via `@astrojs/sitemap` integration (`/sitemap-index.xml`)
-- **Freshness**: article and project `lastmod` values come from frontmatter `modified` when set, otherwise from the original content `date`
-- **robots.txt**: Located at `public/robots.txt` with sitemap reference
+- **Freshness**: every URL in the sitemap carries a `lastmod`, resolved in `src/lib/contentMetadata.js`:
+  - **Articles / projects** — frontmatter `modified` when set, otherwise the original `date`
+  - **Listing pages** (`/`, `/articles/`, `/projects/`, `/certificates/`) — derived from the newest entry each one lists, so they stay fresh automatically as content is added
+  - **Static pages** — the explicit `lastModified` in `sitePageMetadata`; bump it by hand when editing one
+- **Exclusions**: the `filter` in `astro.config.mjs` drops every route in `noIndexRoutes` (the legal pages), so the sitemap never advertises a URL that is served `noindex`
+- **robots.txt**: `public/robots.txt` — carries the crawl rules, the IETF AIPREF **Content Signals** declaration, the `License:` directive pointing at `/rsl.xml`, and the sitemap references
 - **Sitemap link**: Added to `<head>` for discovery
 
 ### Featured Thumbnail Images
@@ -529,13 +554,61 @@ single value.
 
 ### Robots & Indexing
 
-- **Default**: All pages have `<meta name="robots" content="index, follow, max-image-preview:large">` for full search engine indexing
-- **noIndex option**: Pages with `noIndex: true` prop get `noindex, nofollow`
+- **Default**: All pages have `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">` for full search engine indexing
+- **noIndex option**: Pages passing `noIndex={true}` to `BaseLayout` get `noindex, nofollow` instead
+- **Legal pages**: `/ai-licensing-terms/`, `/disclaimer/`, and `/imprint/` are kept out of search results by three agreeing mechanisms — the `noIndex` prop, an `X-Robots-Tag: noindex, nofollow` header in `public/_headers`, and exclusion from the sitemap
 - **Preview URLs**: no `X-Robots-Tag` rule is active; see **Static Asset Headers** above for why, and for the two ways to close it
+
+> **Why not `Disallow:` in robots.txt?** Disallowing a path stops crawlers from *fetching* it, which
+> means they never read the `noindex` directive — so a linked URL can still end up in the index,
+> listed without a description. Keeping these pages crawlable while serving `noindex` is what
+> actually removes them from search results.
 
 ### Early Hints
 
 Enable in Cloudflare Dashboard: **Speed > Optimization > Content Optimization > Early Hints**. Cloudflare automatically caches and sends 103 Early Hints based on Link headers.
+
+## Legal & AI Licensing
+
+Three standalone pages carry the site's legal and machine-readable licensing layer. All three are
+served `noindex, nofollow` and excluded from the sitemap — they exist to be *read*, not ranked.
+
+| Route | Source | Purpose |
+|:--|:--|:--|
+| `/disclaimer/` | `src/pages/disclaimer.astro` | Personal opinions, no professional advice, no warranty, limitation of liability, third-party and referral links |
+| `/imprint/` | `src/pages/imprint.astro` | Site owner, contact, referral-link disclosure, and the GDPR Art. 13 privacy notice |
+| `/ai-licensing-terms/` | `src/pages/ai-licensing-terms.astro` | Prose terms for AI crawlers, retrieval, and training |
+
+`/disclaimer/` and `/imprint/` are linked from the footer. `/ai-licensing-terms/` is discovered by
+machines instead, through three channels that all point at the same terms:
+
+- `Link: <…>; rel="describedby"` and `rel="license"` response headers (`public/_headers`), mirrored
+  as `<link>` tags in `BaseLayout.astro`
+- the `License:` directive and `Content-Signal: search=yes, ai-input=yes, ai-train=no` declaration in
+  `public/robots.txt`
+- `public/rsl.xml` — the [RSL 1.0](https://rslstandard.org/rsl) machine-readable license document
+
+### Editing the legal pages
+
+1. Edit the `.astro` page.
+2. Bump `lastModified` for that route in `sitePageMetadata` (`src/lib/contentMetadata.js`) — it feeds
+   the "Last updated" line and the page's JSON-LD `dateModified`.
+3. If the licensing *stance* changed, update `public/robots.txt` and `public/rsl.xml` to match, since
+   they restate the same terms for machines.
+
+Adding another legal page means: create the page with `noIndex={true}`, add it to `sitePageMetadata`
+and `noIndexRoutes` in `src/lib/contentMetadata.js`, and add an `X-Robots-Tag` block for it in
+`public/_headers`.
+
+> **Note**: The jurisdiction in `/disclaimer/` is deliberately kept generic ("the author's country of
+> residence in the European Union") rather than naming a country. The imprint likewise gives a name
+> and a LinkedIn contact only, with no postal address.
+
+The GDPR Art. 13 privacy notice lives in `/imprint/` under the `#privacy` anchor rather than on its
+own page — Art. 12(1) requires it to be "easily accessible", not separately hosted, and the imprint
+already carries the controller identity and contact that Art. 13(1)(a) asks for. If the site ever
+gains a contact form, newsletter, account system, or third-party analytics, split it into its own
+`/privacy` page: the notice will grow past what belongs inside an imprint.
 
 * * * *
 

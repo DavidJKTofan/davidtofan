@@ -16,7 +16,7 @@ export interface SiteConfig {
   };
   author: {
     name: string;
-    // email: string;
+    email: string;
     twitter: string;
     github: string;
     linkedin: string;

@@ -45,6 +45,7 @@ const licensingTermsJsonLd = {
 <BaseLayout
   title="AI Licensing Terms"
   description="How davidtofan.com grants use to AI crawlers, retrievers, and training pipelines — and how to license what isn't granted by default."
+  noIndex={true}
   noPersonSchema={true}
   structuredData={licensingTermsJsonLd}
 >
@@ -135,8 +136,8 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no</code></pre>
 
       <h2 id="contact">Commercial licensing</h2>
       <p>
-        For a commercial training or redistribution license, reach out via
-        <a href={`https://www.linkedin.com/in/${siteConfig.author.linkedin}/`} target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+        For a commercial training or redistribution license, reach out by email to
+        <a href={`mailto:${siteConfig.author.email}`}>{siteConfig.author.email}</a>.
         Please include: the content you want to license, the intended use (training, fine-tuning,
         product), and the expected scale.
       </p>
@@ -176,7 +177,7 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no</code></pre>
       "ai_training": "requires-written-license",
       "bulk_redistribution": "not-allowed"
     },
-    "commercial_contact": "https://www.linkedin.com/in/${siteConfig.author.linkedin}/",
+    "commercial_contact": "mailto:${siteConfig.author.email}",
     "rsl": "https://davidtofan.com/rsl.xml"
   }
 }`}</code></pre>

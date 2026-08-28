@@ -14,13 +14,16 @@ export const aiSearchConfig: NonNullable<SiteConfig['aiSearch']> = {
 
 export const siteConfig: SiteConfig = {
   name: 'David Tofan',
-  title: 'David Tofan - Solutions Engineer & Digital Consultant',
+  title: 'David Tofan - Senior Customer Engineer & Digital Consultant',
   description:
-    'Personal website of David Tofan, Solutions Engineer at Cloudflare. Passionate about Cloud, Data Science, and Cybersecurity.',
+    'Personal website of David Tofan, Senior Customer Engineer at Cloudflare. Passionate about Cloud, Data Science, and Cybersecurity.',
   url: 'https://davidtofan.com',
   aiSearch: aiSearchConfig,
   author: {
     name: 'David Tofan',
+    // Contact address published on the legal pages (imprint, disclaimer,
+    // AI licensing terms). Not rendered anywhere else on the site.
+    email: 'personal.implicit244@passmail.net',
     twitter: '@davidjktofan',
     github: 'DavidJKTofan',
     linkedin: 'davidtofan',

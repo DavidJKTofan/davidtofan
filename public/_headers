@@ -43,12 +43,33 @@
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
 
+# Legal pages (/ai-licensing-terms/, /disclaimer/, /imprint/) are deliberately kept
+# out of search results. They carry `noindex, nofollow` both as a meta tag (via the
+# BaseLayout `noIndex` prop) and as an X-Robots-Tag header, and they are excluded from
+# the sitemap in astro.config.mjs. They are intentionally NOT disallowed in robots.txt:
+# a disallowed URL cannot be crawled, so the noindex directive would never be read and
+# the URL could still surface in results. Crawlable + noindex is what actually de-indexes.
+
 /ai-licensing-terms/
   Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
-  X-Robots-Tag: noindex
+  X-Robots-Tag: noindex, nofollow
+
+/disclaimer/
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex, nofollow
+
+/imprint/
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex, nofollow
 
 # Preview protection: _headers supports absolute-URL (host) matching, e.g.
 #   https://<worker>.<account-subdomain>.workers.dev/*
