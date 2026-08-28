@@ -4,11 +4,11 @@ Personal website built with [Astro](https://astro.build) and deployed on [Cloudf
 
 ## Tech Stack
 
-- **Framework**: [Astro 6](https://astro.build) with TypeScript
+- **Framework**: [Astro 7](https://astro.build) with TypeScript
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com) via `@tailwindcss/vite` with the Typography plugin
 - **Deployment**: [Cloudflare Workers](https://workers.cloudflare.com) with the official `@astrojs/cloudflare` adapter
 - **Search**: [Cloudflare AI Search](https://developers.cloudflare.com/ai-search/) modal via Web Components
-- **Content**: Markdown with Zod validation (Content Collections)
+- **Content**: Markdown with Zod validation (Content Collections), rendered through the `unified()` pipeline (`@astrojs/markdown-remark`)
 - **Fonts**: System font stack (no external CDN dependencies)
 - **Design**: [Canva](https://www.canva.com)
 - **Stock Images**: [Unsplash](https://unsplash.com) (Travel project)
@@ -73,9 +73,100 @@ npm run preview  # Build + run Astro preview locally
 npm run deploy   # Build + deploy to Cloudflare Workers
 ```
 
+### Verifying a Build Before Deploying
+
+Run these after `npm run build` — none of them deploy anything:
+
+```bash
+npx wrangler dev              # Serve the built site on localhost:8787 via workerd
+```
+
+```bash
+npx wrangler deploy --dry-run # Resolve config + bundle without uploading
+```
+
+```bash
+npx wrangler check startup    # Report bundle size and Worker startup CPU time
+```
+
+`wrangler check startup` writes a `worker-startup.cpuprofile` flamegraph to the repo root
+(gitignored) that can be opened in Chrome DevTools or VS Code.
+
+`wrangler dev` serves the real build output, so it is the closest local check to production.
+Two expected differences from production:
+
+- **Article images 404.** They are emitted as `/cdn-cgi/image/...` URLs, which only
+  Cloudflare's edge can serve; the local asset router cannot match that path. Images render
+  normally under `npm run dev` (served via `/_image`) and in production. See the image service
+  note below.
+- **Cloudflare AI Search** calls the live endpoint, so it needs network access.
+
 ### Updating Dependencies
 
-#### Wrangler CLI
+Use the helper script — it upgrades, verifies the result end to end, and rolls back if
+anything breaks.
+
+```bash
+npm run deps:check
+```
+
+Reports what is outdated and whether `compatibility_date` is behind. **Writes nothing.**
+
+```bash
+npm run deps:update
+```
+
+Applies updates *within* the `^` ranges in `package.json`, then runs the full verification
+chain. To include major version bumps:
+
+```bash
+./scripts/update-deps.sh --apply --latest
+```
+
+Other flags: `--force` (allow a dirty `package.json`/`package-lock.json`), `--help`.
+
+**What it verifies**, in order — any failure stops the run:
+
+1. `npm run build` completes and produces `dist/client`
+2. `npx wrangler deploy --dry-run` resolves the config and bundles
+3. `npx wrangler check startup` reports bundle size and startup CPU
+4. `npx wrangler dev` boots and serves 10 routes (pages, a 301, a 307, a 404)
+5. `/_astro/*` assets return exactly one `Cache-Control` — guards against the overlapping
+   `_headers` rules described under [Splats vs. placeholders](#splats-vs-placeholders-avoid-duplicate-headers)
+
+**What it will never do:** deploy (only ever `--dry-run`), touch the Cloudflare API, run any
+`git` write command, edit `wrangler.jsonc` / `astro.config.mjs` / `public/_headers` / `src/`,
+delete `.wrangler/` (local KV and deploy state), or kill a dev server it did not start.
+
+On failure it restores `package.json` + `package-lock.json` from its snapshot, reinstalls with
+`npm ci`, and exits non-zero. Logs and snapshots land in `.deps-update/` (gitignored).
+
+It deliberately **reports** a suggested `compatibility_date` rather than editing it, because
+that changes runtime behavior — see [Compatibility date](#compatibility-date) below.
+
+#### Compatibility date
+
+`compatibility_date` in `wrangler.jsonc` is pinned to the date implemented by the installed
+`workerd` (the version string `1.20260826.1` maps to `2026-08-26`), so `wrangler dev` and the
+deployed Worker agree. `npm run deps:check` prints both values when they drift.
+
+Bump it deliberately, not automatically: read the
+[compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/)
+that became default in between, then edit `wrangler.jsonc` and re-run `npm run deps:check`.
+
+Two flags matter here:
+
+- `nodejs_compat` — **redundant** for compatibility dates ≥ `2026-08-04`, where Workers enables
+  it (and `nodejs_compat_v2`) by default. Kept in the config so Node APIs stay available if the
+  date is ever lowered; the tooling ignores it.
+- `global_fetch_strictly_public` — has **no** "default as of" date, so it only ever applies
+  while listed explicitly. Do not remove it.
+
+#### Manual upgrades
+
+The commands below are what the script automates; use them for one-off bumps.
+
+##### Wrangler CLI
 
 Wrangler is installed locally as a dev dependency (not globally), so updates are per-project.
 
@@ -84,7 +175,10 @@ npx wrangler --version        # Check the current version
 npm i -D wrangler@latest      # Update to the latest version
 ```
 
-#### Astro
+`@astrojs/cloudflare` v14 declares a peer dependency on `wrangler ^4.125.0`, so keep Wrangler
+at or above that when upgrading the adapter.
+
+##### Astro
 
 Use the official upgrade CLI, which upgrades `astro` together with the official integrations (`@astrojs/cloudflare`, `@astrojs/sitemap`) to compatible versions:
 
@@ -99,6 +193,24 @@ npm install astro@latest
 ```
 
 After updating, run `npm run build` to regenerate types and confirm the build still passes.
+
+##### Approving install scripts (npm 11+)
+
+npm 11 blocks lifecycle scripts until they are approved. A fresh `npm install` will report that
+`esbuild` (Astro's bundler) and `workerd` (the Workers runtime behind `wrangler dev`) have
+pending install scripts, and **both are required** — without them the native binaries are never
+placed and `astro build` / `wrangler dev` fail:
+
+```bash
+npm install-scripts ls        # Review what is pending
+```
+
+```bash
+npm install-scripts approve esbuild workerd
+```
+
+Approvals are recorded per exact version in the `allowScripts` field of `package.json`, so they
+need re-approving after a version bump of either package.
 
 ### Development Workflow
 
@@ -149,7 +261,9 @@ The search button, modal markup, and snippet loader all read from this config, s
 
 > **Note**: `npm run build` automatically runs `wrangler types` first to ensure TypeScript types are up-to-date with your `wrangler.jsonc` configuration.
 >
-> **Note**: On the first `npm run dev` after dependency or config changes, Vite may re-optimize dependencies and trigger a couple of automatic reloads. That is expected.
+> **Note**: On the first `npm run dev` after dependency or config changes, Vite may re-optimize dependencies and trigger a couple of automatic reloads. That is expected — if the CLI reports `Dev server process exited before becoming ready`, simply run it again.
+>
+> **Note**: Astro 7 can run the dev server as a background daemon (it does this automatically in non-interactive shells, and on demand with `astro dev --background`). Manage it with `npx astro dev status`, `npx astro dev logs`, and `npx astro dev stop`; the daemon writes its own log to `.astro/dev.log`.
 
 ## Adding Content
 
@@ -328,37 +442,48 @@ These are assumptions:
 | Astro assets (`/_astro/*.js`, `*.css`) | Static Assets | **FREE** |
 | Images, fonts, favicons | Static Assets | **FREE** |
 | 404 errors | Static Assets (`404.html`) | **FREE** |
-| Redirects (`/world` → `/projects/...`) | Worker | Paid (minimal) |
+| Redirects (`/world` → `/projects/...`) | Static Assets (`_redirects`) | **FREE** |
 
 **Key points:**
 - All prerendered pages are served as static files (free, unlimited)
-- Worker is only invoked for redirects and unmatched requests
+- Astro's configured `redirects` are compiled to a `_redirects` file and served by Static Assets — no Worker invocation. `wrangler dev` reports `Parsed 14 valid redirect rules`
+- The deployed Worker is Wrangler's `no-op-worker.js`; it exists only so the assets router has something to fall back to
 - No `run_worker_first` = assets served directly without Worker overhead
 - File storage is free; only Worker invocations are billed
 
 #### Configuration (`wrangler.jsonc`)
 
+Since `@astrojs/cloudflare` v14 this file only declares **custom** settings. The adapter
+resolves `main` and `assets.directory` itself and writes a deploy-ready config to
+`dist/client/wrangler.json`; Wrangler picks that up automatically via the redirect in
+`.wrangler/deploy/config.json`.
+
 ```jsonc
 {
-  "main": "@astrojs/cloudflare/entrypoints/server",
+  "name": "davidtofan-astro",
   "assets": {
-    "directory": "./dist",
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"  // Serves nearest 404.html
   }
+  // plus: compatibility_date, compatibility_flags, kv_namespaces, observability, routes
 }
 ```
 
-#### Astro 6 / Cloudflare Notes
+#### Astro 7 / Cloudflare Notes
 
-- Astro 6 requires Node `22.12.0+`
-- The Cloudflare adapter now uses the unified Worker entrypoint `@astrojs/cloudflare/entrypoints/server`
-- `npm run dev` runs against Cloudflare's local runtime, so development behavior is closer to production than in older Astro versions
+- Astro 7 requires Node `22.12.0+` and builds on Vite 8
+- **Build output is split**: `astro build` now emits `dist/client` (all static assets) and `dist/server`. Because every page is prerendered, `dist/server` is empty and the site deploys as an **assets-only Worker** — Wrangler uploads a `no-op-worker.js` (0.31 KiB) that never runs in practice
+- **`wrangler.jsonc` no longer needs `main` or `assets.directory`.** The adapter (via `@cloudflare/vite-plugin`) resolves both and writes `dist/client/wrangler.json`; `.wrangler/deploy/config.json` redirects Wrangler to it. Wrangler prints `Using redirected Wrangler configuration` to confirm
+- **Markdown**: Astro 7 makes [Sätteri](https://satteri.bruits.org/) the default processor and no longer bundles `@astrojs/markdown-remark`. This site keeps the `unified()` pipeline for `rehype-external-links`, so `@astrojs/markdown-remark` is now an **explicit dependency** in `package.json`
+- The adapter's `platformProxy` option no longer exists in v14 (the Cloudflare Vite plugin provides the real `workerd` runtime in dev) and has been removed from `astro.config.mjs`
+- `astro.config.mjs` imports `ChangeFreqEnum` from `@astrojs/sitemap` rather than reaching into the transitive `sitemap` package, so every import resolves to a declared dependency
+- `npm run dev` runs against Cloudflare's local `workerd` runtime, so development behavior is closer to production than in older Astro versions
 - Tailwind is wired through the `@tailwindcss/vite` plugin in `astro.config.mjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
 - Tailwind's CSS entrypoint is `src/styles/global.css`, which uses `@import "tailwindcss"` and explicitly loads `tailwind.config.mjs` with `@config`
 - The old `postcss.config.cjs` file was removed as part of the Tailwind v4 migration
 - Astro-scoped `<style>` blocks that use Tailwind utilities via `@apply` should add an `@reference` to `src/styles/global.css`
-- **Image service**: this site uses `imageService: 'cloudflare'` in the adapter config. Build-time `imageService: 'compile'` (sharp) was used previously but is broken in Astro 6.2+ for prerendered sites (build fails with `ENOENT … dist/_astro/*` during image generation). The `cloudflare` service keeps the build static (no Worker invocation for images) and relies on Cloudflare edge Image Transformations, with `onerror=redirect` falling back to the original image when Transformations are not enabled. If you prefer no optimization and no Cloudflare dependency, set `imageService: 'passthrough'` — but note that on a fully prerendered site `passthrough` emits `/_image` URLs that require a runtime endpoint.
+- **Image service**: this site uses `imageService: 'cloudflare'` in the adapter config. Build-time `imageService: 'compile'` (sharp) was used previously but broke for prerendered sites (build fails with `ENOENT … dist/_astro/*` during image generation). Note that `@astrojs/cloudflare` v14 changed the *default* to `cloudflare-binding`, which transforms at runtime and would invoke the Worker; this site pins `'cloudflare'`, which keeps the build fully static and relies on Cloudflare edge Image Transformations, with `onerror=redirect` falling back to the original image when Transformations are not enabled. Because `/cdn-cgi/image/` only exists at the edge, these images 404 under `npx wrangler dev` but render normally under `npm run dev` and in production. If you prefer no optimization and no Cloudflare dependency, set `imageService: 'passthrough'` — but note that on a fully prerendered site `passthrough` emits `/_image` URLs that require a runtime endpoint.
 
 ### Static Asset Headers (`public/_headers`)
 
@@ -370,7 +495,35 @@ Custom headers for Cloudflare Workers Static Assets:
   - `X-Content-Type-Options: nosniff`
   - `X-Frame-Options: SAMEORIGIN`
   - `Referrer-Policy: strict-origin-when-cross-origin`
-- **Preview protection**: `X-Robots-Tag: noindex` for workers.dev URLs
+- **Preview protection**: *not currently enabled* — see the note in `public/_headers`. `_headers` supports host matching (`https://<worker>.<account>.workers.dev/*`), but it cannot be verified with `wrangler dev`, and an over-matching rule would `noindex` the production domain. Setting `"workers_dev": false` in `wrangler.jsonc` is the safer way to remove the preview URL.
+
+#### Splats vs. placeholders (avoid duplicate headers)
+
+Every rule that matches a request is applied, and duplicate header names are **joined with a
+comma** — there is no "most specific rule wins". Two patterns behave very differently:
+
+| Pattern | Matches | Use for |
+|:--|:--|:--|
+| `*` (splat) | greedily, **including `/`** | whole subtrees (`/_astro/*`, `/img/*.webp`) |
+| `:name` (placeholder) | everything **except `/`** | a single segment (`/:file.png` = root level only) |
+
+So `/*.png` does **not** mean "root-level PNGs" — it also matches `/_astro/<name>.<hash>.png`
+and `/img/<dir>/<name>.png`. That previously produced conflicting values like:
+
+```text
+Cache-Control: public, max-age=31536000, immutable, public, max-age=36000
+Content-Type: image/webp, image/webp, image/webp
+```
+
+Root-level rules therefore use `/:file.<ext>`, and each nested location has exactly one rule per
+extension. When adding a rule, check it does not overlap an existing one, then verify with:
+
+```bash
+curl -sI http://localhost:8787/_astro/<some-fingerprinted-file>.png
+```
+
+Each of `Cache-Control`, `Content-Type`, and `X-Content-Type-Options` should appear once, with a
+single value.
 
 > **Note**: All pages are prerendered (no SSR), so security headers are applied via `_headers` file, not middleware. For additional headers, use Cloudflare [Transform Rules](https://developers.cloudflare.com/rules/transform/).
 
@@ -378,7 +531,7 @@ Custom headers for Cloudflare Workers Static Assets:
 
 - **Default**: All pages have `<meta name="robots" content="index, follow, max-image-preview:large">` for full search engine indexing
 - **noIndex option**: Pages with `noIndex: true` prop get `noindex, nofollow`
-- **Preview URLs**: workers.dev URLs have `X-Robots-Tag: noindex` header
+- **Preview URLs**: no `X-Robots-Tag` rule is active; see **Static Asset Headers** above for why, and for the two ways to close it
 
 ### Early Hints
 

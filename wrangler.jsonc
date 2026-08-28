@@ -1,19 +1,32 @@
 /**
  * For more details on how to configure Wrangler, refer to:
  * https://developers.cloudflare.com/workers/wrangler/configuration/
+ *
+ * Since @astrojs/cloudflare v14 this file only needs to declare *custom*
+ * settings. The adapter (via @cloudflare/vite-plugin) resolves `main` and
+ * `assets.directory` itself and writes a deploy-ready config to
+ * `dist/client/wrangler.json`, which Wrangler picks up automatically through
+ * the redirect in `.wrangler/deploy/config.json`.
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "davidtofan-astro",
-	"main": "@astrojs/cloudflare/entrypoints/server",
-	"compatibility_date": "2026-04-08",
+	// Pinned to the compatibility date implemented by the installed workerd
+	// (node_modules/workerd -> 1.20260826.1), so `wrangler dev` locally and the
+	// deployed Worker agree on runtime behavior. Bump this alongside Wrangler:
+	// `npm run deps:check` reports the newest date the installed runtime supports.
+	"compatibility_date": "2026-08-26",
 	"compatibility_flags": [
+		// Redundant for compatibility dates >= 2026-08-04 (Workers enables
+		// nodejs_compat + nodejs_compat_v2 by default from that date; the tooling
+		// ignores the flag). Kept so Node APIs stay on if the date is ever lowered.
 		"nodejs_compat",
+		// Has no "default as of" date - it only ever applies when set explicitly.
+		// Routes global fetch() as if from the public Internet.
 		"global_fetch_strictly_public"
 	],
 	"assets": {
 		"binding": "ASSETS",
-		"directory": "./dist",
 		"html_handling": "auto-trailing-slash",
 		"not_found_handling": "404-page"
 	},

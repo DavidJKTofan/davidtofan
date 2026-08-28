@@ -40,6 +40,10 @@ Content-Signal: search=yes, ai-input=yes, ai-train=no
 Allow: /
 # https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/#recommended-exclusions
 Disallow: /cdn-cgi/
+# Exception: article/project images are served through Cloudflare Image
+# Transformations at /cdn-cgi/image/, so this path must stay crawlable or the
+# imagery is invisible to search engines.
+Allow: /cdn-cgi/image/
 
 # Machine-readable licensing
 # Prose terms:   https://davidtofan.com/ai-licensing-terms/

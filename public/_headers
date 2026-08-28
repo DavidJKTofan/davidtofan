@@ -50,6 +50,16 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Robots-Tag: noindex
 
+# Preview protection: _headers supports absolute-URL (host) matching, e.g.
+#   https://<worker>.<account-subdomain>.workers.dev/*
+#     X-Robots-Tag: noindex
+# Not enabled here because it cannot be verified locally — `wrangler dev` does not
+# do production-faithful host matching (a literal host rule matches every host,
+# including localhost), and a rule that over-matched would apply `noindex` to
+# davidtofan.com. Prefer `"workers_dev": false` in wrangler.jsonc, which removes
+# the preview URL entirely; or add the rule with the exact literal host.
+# https://developers.cloudflare.com/workers/static-assets/headers/
+
 /welcome
   X-Robots-Tag: noindex
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
@@ -69,82 +79,97 @@
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
+# NOTE: /cdn-cgi/* is reserved and served by Cloudflare (image transformations,
+# trace, challenge platform). It never reaches static-asset routing, so it cannot
+# and must not be targeted by rules here.
+# https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/
+#
+# Content-Type is intentionally NOT set below: Wrangler determines the MIME type
+# from each file's extension at upload time. Declaring it again also mislabelled
+# 404 responses on missing paths.
+#
 # Astro optimized/fingerprinted assets (hashed filenames) - cache for 1 year
-# These files have content hashes in their names, so they can be cached indefinitely
+# These files have content hashes in their names, so they can be cached indefinitely.
+# Content-Type is attached automatically by Wrangler from the file extension.
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# All static assets at root level (favicons, manifest, etc.) - cache for 10 hours
-/*.png
-  Content-Type: image/png
+# Static assets at the ROOT level only (favicons, manifest, etc.) - cache for 10 hours
+#
+# These use a `:file` placeholder rather than a `*` splat on purpose. A splat greedily
+# matches across `/`, so `/*.png` also matched `/_astro/<name>.<hash>.png` and
+# `/img/<dir>/<name>.png`. Every rule that matches is applied and duplicate headers are
+# joined with commas, which produced conflicting values such as:
+#   Cache-Control: public, max-age=31536000, immutable, public, max-age=36000
+#   Content-Type: image/webp, image/webp, image/webp
+# A placeholder matches everything except `/`, so these stay at the root.
+# https://developers.cloudflare.com/workers/static-assets/headers/
+/:file.png
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/*.jpg
-  Content-Type: image/jpeg
+/:file.jpg
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/*.jpeg
-  Content-Type: image/jpeg
+/:file.jpeg
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/*.svg
-  Content-Type: image/svg+xml
+/:file.svg
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/*.ico
+/:file.ico
+  # Override: Wrangler infers the IANA-registered image/vnd.microsoft.icon;
+  # image/x-icon is the long-standing de-facto type with the widest support.
   Content-Type: image/x-icon
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/*.webp
-  Content-Type: image/webp
+/:file.webp
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
 # Web manifest
-/*.webmanifest
-  Content-Type: application/manifest+json
+/:file.webmanifest
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-# Web fonts (if added in future) - cache for 1 year
-/*.woff
-  Content-Type: font/woff
+# Web fonts (if added in future) - cache for 1 year.
+# Fingerprinted fonts emitted under /_astro/ are already covered by the rule above.
+/:file.woff
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-/*.woff2
-  Content-Type: font/woff2
+/:file.woff2
   Cache-Control: public, max-age=31536000, immutable
   X-Content-Type-Options: nosniff
 
-# Images in subdirectories (articles, projects, img)
+# Images in content subdirectories.
+# X-Content-Type-Options is already applied to everything under these paths by the
+# /articles/* and /projects/* rules above, so it is deliberately not repeated here.
 /articles/:slug/*.png
-  Content-Type: image/png
   Cache-Control: public, max-age=36000
-  X-Content-Type-Options: nosniff
 
 /projects/:slug/*.png
-  Content-Type: image/png
+  Cache-Control: public, max-age=36000
+
+# Images under /img/<dir>/<file>. A splat matches across `/`, so one rule per
+# extension covers every depth - no separate `:dir` rule (which would double up).
+/img/*.png
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
-/img/*.png
-  Content-Type: image/png
+/img/*.jpg
+  Cache-Control: public, max-age=36000
+  X-Content-Type-Options: nosniff
+
+/img/*.jpeg
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
 /img/*.webp
-  Content-Type: image/webp
-  Cache-Control: public, max-age=36000
-  X-Content-Type-Options: nosniff
-
-/img/:dir/*.webp
-  Content-Type: image/webp
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff

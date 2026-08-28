@@ -1,8 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import sitemap from '@astrojs/sitemap';
-import { EnumChangefreq } from 'sitemap';
+import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
 import { unified } from '@astrojs/markdown-remark';
@@ -10,17 +9,6 @@ import { buildSitemapLastmodMap } from './src/lib/contentMetadata.js';
 
 const siteUrl = 'https://davidtofan.com';
 const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl);
-const cloudflareAdapterOptions = /** @type {import('@astrojs/cloudflare').Options & { platformProxy?: { enabled: boolean } }} */ ({
-  platformProxy: {
-    enabled: true,
-  },
-  // Build-time 'compile' (sharp) is broken in Astro 6.2+ for this prerendered
-  // site, so optimization is offloaded to Cloudflare's edge. This emits
-  // /cdn-cgi/image/onerror=redirect,.../_astro/* URLs handled at the edge (no
-  // Worker invocation). If Image Transformations are enabled on the zone, images
-  // are optimized; if not, onerror=redirect transparently serves the original.
-  imageService: 'cloudflare',
-});
 
 // https://astro.build/config
 export default defineConfig({
@@ -43,11 +31,18 @@ export default defineConfig({
     // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
     '/sitemap.xml': '/sitemap-index.xml',
   },
-  adapter: cloudflare(cloudflareAdapterOptions),
+  adapter: cloudflare({
+    // Build-time 'compile' (sharp) is broken for this prerendered site, so
+    // optimization is offloaded to Cloudflare's edge. This emits
+    // /cdn-cgi/image/onerror=redirect,.../_astro/* URLs handled at the edge (no
+    // Worker invocation). If Image Transformations are enabled on the zone, images
+    // are optimized; if not, onerror=redirect transparently serves the original.
+    imageService: 'cloudflare',
+  }),
   integrations: [
     sitemap({
       // Default change frequency for all pages
-      changefreq: EnumChangefreq.MONTHLY,
+      changefreq: ChangeFreqEnum.MONTHLY,
       // Default priority
       priority: 0.7,
       // Customize individual pages
@@ -60,24 +55,24 @@ export default defineConfig({
 
         // Higher priority for main pages
         if (itemUrl === `${siteUrl}/`) {
-          item.changefreq = EnumChangefreq.YEARLY;
+          item.changefreq = ChangeFreqEnum.YEARLY;
           item.priority = 1.0;
         }
         // Articles section
         if (itemUrl.includes('/articles/') && itemUrl !== `${siteUrl}/articles/`) {
-          item.changefreq = EnumChangefreq.MONTHLY;
+          item.changefreq = ChangeFreqEnum.MONTHLY;
           item.priority = 0.8;
         }
         // Projects section
         if (itemUrl.includes('/projects/') && itemUrl !== `${siteUrl}/projects/`) {
-          item.changefreq = EnumChangefreq.YEARLY;
+          item.changefreq = ChangeFreqEnum.YEARLY;
           item.priority = 0.6;
         }
         // Index pages
         if (itemUrl === `${siteUrl}/articles/` || 
             itemUrl === `${siteUrl}/projects/` ||
             itemUrl === `${siteUrl}/certificates/`) {
-          item.changefreq = EnumChangefreq.YEARLY;
+          item.changefreq = ChangeFreqEnum.YEARLY;
           item.priority = 0.9;
         }
         return item;
@@ -89,9 +84,10 @@ export default defineConfig({
       theme: 'github-dark-default',
       wrap: true,
     },
-    // Astro 6.4+ deprecated top-level remarkPlugins/rehypePlugins/gfm/smartypants
-    // in favor of a unified() processor (removed in Astro 8.0). gfm/smartypants
-    // are set explicitly to preserve Astro's previous defaults.
+    // Astro 7 renders Markdown with Sätteri by default. This site stays on the
+    // unified() pipeline (via @astrojs/markdown-remark, which Astro 7 no longer
+    // bundles) because it relies on the rehype-external-links plugin. gfm and
+    // smartypants are set explicitly to preserve Astro's previous defaults.
     processor: unified({
       gfm: true,
       smartypants: true,
