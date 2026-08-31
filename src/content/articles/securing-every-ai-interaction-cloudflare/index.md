@@ -39,7 +39,7 @@ That is a visibility problem, not a policy problem. An employee pasting customer
 <text x="81" y="88" text-anchor="middle" class="label">Users / Employees</text>
 <text x="81" y="104" text-anchor="middle" class="sub">browsers, IDEs</text>
 <rect x="6" y="176" width="150" height="52" rx="6" class="box-stroke"/>
-<text x="81" y="200" text-anchor="middle" class="label">Agents / MCP Clients</text>
+<text x="81" y="200" text-anchor="middle" class="label">AI Agents / MCP Clients</text>
 <text x="81" y="216" text-anchor="middle" class="sub">IDEs, CI, automations</text>
 <rect x="6" y="316" width="150" height="52" rx="6" class="box-stroke"/>
 <text x="81" y="340" text-anchor="middle" class="label">Public Clients</text>
@@ -194,7 +194,7 @@ agentless_biso   Clientless Browser Isolation
 mcp_portal       MCP Server Portal
 ```
 
-A companion selector, `net.is_isolated`, identifies Remote Browser Isolation (RBI) sessions; `mcp_portal` is what turns MCP governance from advisory into enforceable, below. Separately, [**Worker egress now flows through Gateway**](https://developers.cloudflare.com/changelog/post/2026-06-05-gateway-egress/): Workers using `cf1:network` VPC bindings send public Internet traffic through Gateway, with policies applied and logs written – so **the agents your own team builds inherit the same policies as your employees' laptops.**
+A companion selector, `net.is_isolated`, identifies Remote Browser Isolation (RBI) sessions; `mcp_portal` is what turns MCP governance from advisory into enforceable, below. Separately, [**Worker egress now flows through Gateway**](https://developers.cloudflare.com/changelog/post/2026-06-05-gateway-egress/): Workers using `cf1:network` VPC bindings send public traffic through Gateway with policies applied and logs written – so **the agents your own team builds inherit the same policies as your employees' laptops.**
 
 ---
 
@@ -202,7 +202,7 @@ A companion selector, `net.is_isolated`, identifies Remote Browser Isolation (RB
 
 **Inspection point: Secure Web Gateway (SWG).**
 
-The goal is not to stop employees using AI. It is to know what they use, decide what is acceptable, and make the acceptable path the easy one.
+The goal is not to stop employees using AI, but to know what they use, decide what is acceptable, and make the acceptable path the easy one.
 
 **Discover, then classify.** [Shadow IT discovery](https://developers.cloudflare.com/cloudflare-one/insights/analytics/shadow-it-discovery/) surfaces the AI applications your users actually reach, and each moves through a review workflow – **Unreviewed → In Review → Unapproved → Approved**. That [status](https://developers.cloudflare.com/cloudflare-one/traffic-policies/http-policies/#application-approval-status) is not cosmetic: it is both a policy selector and an analytics dimension. The [**AI Security report**](https://developers.cloudflare.com/cloudflare-one/insights/analytics/ai-security/) adds five panels – top AI applications by user count, application counts per review status, **data uploaded by review status**, MCP servers behind Access over time, and Access login events to those servers. It needs Gateway inspecting outbound traffic *and* MCP servers behind Access; without both it is empty, which is itself a signal.
 
@@ -238,13 +238,13 @@ And, more importantly, give Access something to sit in front of.
 
 **Then watch what that identity reveals.** The [**identity-aware AI Gateway**](https://blog.cloudflare.com/identity-aware-ai-gateway/) flags a session costing more than 2× that user's own 30-day p95 *and* landing in the account's most expensive 1% of sessions – the second condition is what keeps it a rogue-behavior feed rather than a noisy log. Per-user budget buckets block requests or fall back to a cheaper model at the limit.
 
-**Then inspect content.** [**AI Gateway DLP**](https://developers.cloudflare.com/ai-gateway/features/dlp/) shares detection engines and account-level profiles with Cloudflare One DLP – configure a profile once, apply it in both places. It scans prompts, model responses, **tool call arguments and results**, and text in multipart bodies; binary data, base64 images, and external URLs are not inspected. Two caveats: response scanning **buffers the full streamed response** first, increasing time-to-first-token (noticeable in a chat UI, irrelevant for batch agents), and DLP applies per gateway and uniformly, so different inspection requirements mean separate gateways.
+**Then inspect content.** [**AI Gateway DLP**](https://developers.cloudflare.com/ai-gateway/features/dlp/) shares detection engines and account-level profiles with Cloudflare One DLP – configure a profile once, apply it in both places. It scans prompts, model responses, **tool call arguments and results**, and text in multipart bodies; binary data, base64 images, and external URLs are not. Two caveats: response scanning **buffers the full streamed response** first, increasing time-to-first-token (noticeable in a chat UI, irrelevant for batch agents), and DLP applies per gateway and uniformly, so different inspection needs mean separate gateways.
 
 The [**Workers AI and AI Gateway unification**](https://blog.cloudflare.com/workers-ai-gateway-unification/) then removes the split between models Cloudflare hosts and models you call – one `env.AI` binding, one wallet, one dashboard, with [credits](https://developers.cloudflare.com/ai-gateway/features/unified-billing/) applying across providers. Governance-wise, one place answers "what did we spend, on which model, for whom".
 
 ### 2.2 Tool Calls: MCP Server Portals
 
-Model calls send data out. **Tool calls take action**, and an agent can execute thousands at machine speed with nobody reviewing any of them. This surface deserves the most attention and usually gets the least.
+Model calls send data out. **Tool calls take action**, and an agent can execute thousands at machine speed with nobody reviewing any of them – the surface that deserves the most attention and usually gets the least.
 
 [**MCP Server Portals**](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/) collapse many upstream MCP servers behind one authenticated HTTP endpoint: the user authenticates through your Access identity provider, and the portal returns the tools from enabled servers – each call namespaced, credentialed, and proxied. That gives you:
 
@@ -265,7 +265,7 @@ Criteria: experimental.is_mcp and not(net.onramp.type == "mcp_portal")
 
 That rule converts a portal from a convenience into a control. Detection depends on TLS inspection, so the blind spots above apply here too.
 
-**Why this got easier.** The stateless [**MCP 2026-07-28 specification**](https://blog.cloudflare.com/mcp-v2/) adds `Mcp-Method` and `Mcp-Name` headers, so gateways and WAF rules see which operation is being performed **without parsing JSON bodies**; RFC 8707 audience binding stops a token minted for one server being replayed against another; and RFC 9207 issuer identification prevents confusion between authorization servers. Cloudflare's [Agents SDK](https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/) speaks both it and the 2025 protocols with automatic fallback.
+**Why this got easier.** The stateless [**MCP 2026-07-28 specification (MCP v2)**](https://blog.cloudflare.com/mcp-v2/) adds `Mcp-Method` and `Mcp-Name` headers, so gateways and WAF rules see which operation is being performed **without parsing JSON bodies**; RFC 8707 audience binding stops a token minted for one server being replayed against another; and RFC 9207 issuer identification prevents authorization-server confusion. Cloudflare's [Agents SDK](https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/) speaks it and the 2025 protocols with automatic fallback.
 
 **Context cost is a security lever.** Portals enable [Code Mode](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/#code-mode) by default, replacing the tool list with code-execution tools whose JavaScript runs in an isolated Dynamic Worker, keeping credentials out of model context. Lighter `optimize_context` options exist: `minimize_tools` strips schemas behind an on-demand lookup tool (up to 5x savings), `search_and_execute` hides tools entirely. When exposing a hundred tools costs almost nothing, there is no reason to over-grant to save tokens.
 
@@ -312,9 +312,9 @@ A classic WAF rule is **deterministic**: it matches a known pattern and is audit
 
 - **You tune thresholds, you do not write patterns.** No score catches everything and blocks nothing legitimate; you are picking a point on a curve, which is why log mode exists.
 - **Both error types are permanent.** An attacker will eventually phrase something below your threshold, and a genuine user something above it. Plan the appeal path before you enable blocking.
-- **It does not replace the deterministic layer.** Rate limiting, bot scoring, schema validation, and managed rulesets remain the floor; an injection score says nothing about credential stuffing.
+- **It does not replace the deterministic layer.** Rate limiting, bot scoring, schema validation, and managed rulesets remain the floor.
 
-Use both kinds of evidence in a [layered-security approach](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/): deterministic controls for what a request *is*, probabilistic ones for what it appears to be *trying to do*.
+Use both in a [layered-security approach](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/): deterministic controls for what a request *is*, probabilistic ones for what it appears to be *trying to do*.
 
 ### Who Is Reading Your Content
 
@@ -322,7 +322,7 @@ Use both kinds of evidence in a [layered-security approach](https://davidtofan.c
 
 **Mind the execution order.** A terminating action in the [Ruleset Engine](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/) ends evaluation immediately, and within a phase custom rules run top to bottom on first match. AI Crawl Control implements its blocks *as* WAF custom rules appended at the end of yours, so an earlier Allow or Skip lets a crawler straight past: "move the AI Crawl Control rule to the top of your WAF custom rules," as the [docs](https://developers.cloudflare.com/ai-crawl-control/configuration/ai-crawl-control-with-waf/) put it. Pay per crawl runs after WAF, so anything already blocked never reaches it.
 
-One limit worth naming: Cloudflare knows whether an endpoint is protected, not what the application behind it can reach. The [Wiz integration](https://www.wiz.io/integrations/cloudflare) feeds protection status into the Wiz Security Graph, making "which AI endpoints are both exposed *and* able to reach sensitive data?" a query.
+One limit worth naming: Cloudflare knows whether an endpoint is protected, not what the application behind it can reach. The [Wiz integration](https://www.wiz.io/integrations/cloudflare) feeds protection status into the Wiz Security Graph, making "exposed *and* able to reach sensitive data?" answerable.
 
 > _WAF rulesets, Advanced Rate Limiting, Bot Management, API Shield, and DDoS protection are the foundation underneath all of this, covered in [The CISO's Guide to Securing AI](https://davidtofan.com/articles/ciso-guide-securing-ai-cloudflare/)._
 
@@ -337,16 +337,16 @@ This is the surface that works when nothing is [proxied](https://developers.clou
 It answers different questions from inline inspection:
 
 - Inline tells you **what is being sent right now**; CASB tells you **what is already in the tenant** – files, shared conversations, retained data.
-- Inline requires traffic to route through Cloudflare; CASB works for **unmanaged devices and personal networks**, where it never will.
-- Sharing settings, organization membership, seat sprawl, and retention configuration are invisible on the wire, and visible only through the API.
+- Inline needs traffic routed through Cloudflare; CASB works for **unmanaged devices and personal networks**, where it never will.
+- Sharing settings, organization membership, seat sprawl, and retention are invisible on the wire, and visible only through the API.
 
-Deploy it alongside inline controls, then ask providers the right questions. Cloudflare's [Responsible AI](https://www.cloudflare.com/trust-hub/responsible-ai/) page shows what a clear answer looks like: it states that Cloudflare does not train its own LLMs and does not use customer content to train any, that threat-detection models are trained on network traffic patterns rather than customer content, and that third-party models on Workers AI carry vendor responsibility for EU AI Act compliance. It sits inside a [**Trust Hub**](https://www.cloudflare.com/trust-hub/) collecting certifications, attestations, and sub-processor lists – use that as the shape of the questionnaire you send your own providers. "We have a CASB integration" and "we know what they do with our data" are separate assurances.
+Deploy it alongside inline controls, not instead of them.
 
 ---
 
 ## Building and Deploying Agents Safely
 
-Everything so far governs AI your organization *consumes*. This is about AI your teams *build*, where the goal is to make the safe path the default rather than reviewing each agent forever.
+Everything so far governs AI your organization *consumes*. This is about AI your teams *build* – and Cloudflare's stated ambition is to be the [best place to do it](https://blog.cloudflare.com/build-ai-agents-on-cloudflare/), with every primitive an agent or remote MCP server needs already on the platform: Workers and Containers for execution, Durable Objects for per-agent state, the Agents SDK for orchestration, AI Gateway and Workers AI for inference, Sandbox and `@cloudflare/computer` for isolated code, AI Search for retrieval, and Workflows for durable long-running work. [Agents Week](https://blog.cloudflare.com/agents-week-review-august-2026/) adds an Agent Development Lifecycle, live tracing with human-in-the-loop approvals, and an Agent Access Model for how agents reach resources on a user's behalf. The security goal is to make that path the default one, and defaults only work if the platform supplies them.
 
 **Isolated execution.** The [**Sandbox SDK 1.0 preview**](https://developers.cloudflare.com/sandbox/1-0-preview/) (`@cloudflare/sandbox@next`) runs code inside Cloudflare Containers. `exec()` takes an argument array and returns a process handle as soon as the process starts:
 
@@ -356,7 +356,7 @@ const result = await process.output({ encoding: "utf8" });
 console.log(result.stdout, result.exitCode);
 ```
 
-The same handle serves a short command or a long-running service, alongside `logs()`, `waitForExit()`, `kill()`, and PTY terminals. A sandbox keeps a stable ID while the container behind it can be replaced – and when that happens, processes fail closed rather than reattaching elsewhere. [**`@cloudflare/computer`**](https://blog.cloudflare.com/cloudflare-computer/) sits a level above, routing each piece of work to a lightweight isolate or a full Linux container (the design target is needing a container for **less than 10% of an agent's work**). For security teams the relevant property is that its operations are "gated, audited and observed" – the audit trail belongs to the runtime, not to whoever wrote the agent.
+The same handle serves a short command or a long-running service, alongside `logs()`, `waitForExit()`, `kill()`, and PTY terminals. A sandbox keeps a stable ID while the container behind it can be replaced – and when that happens, processes fail closed rather than reattaching elsewhere. [**`@cloudflare/computer`**](https://blog.cloudflare.com/cloudflare-computer/) sits a level above, routing work to a lightweight isolate or a full Linux container. For security teams the relevant property is that its operations are "gated, audited and observed" – the audit trail belongs to the runtime, not to whoever wrote the agent.
 
 **A reference pattern.** The [**enterprise AI agent workspace**](https://developers.cloudflare.com/reference-architecture/diagrams/ai/enterprise-ai-agent-workspace/) diagram assembles these into something you can copy: work arrives through several channels (web app, chat, email, webhooks, schedules), Access authenticates browser sessions while each asynchronous channel validates its own signature, and the agent restores state from Durable Objects before calling **approved models through AI Gateway** and **approved tools through an MCP Server Portal**. Its governing principle is the whole design in one line: **treat model output, tool output, and generated code as untrusted, and apply controls at platform boundaries rather than inside generated code.**
 
@@ -364,11 +364,13 @@ The same handle serves a short command or a long-running service, alongside `log
 
 ### How Cloudflare Runs This on Itself
 
-Cloudflare's [**internal stack**](https://blog.cloudflare.com/internal-ai-engineering-stack/) runs this pattern for 3,683 employees – 60% of the company – with a proxy Worker injecting provider keys server-side, AI Gateway enforcing zero data retention, and one MCP Server Portal aggregating 13 servers and 182+ tools. Of the [five governance principles](https://blog.cloudflare.com/how-we-use-ai-with-cloudflare-os/) behind it, the fifth is worth adopting verbatim as policy language:
+The best argument that governed AI is not a tax on productivity is Cloudflare's own [**internal stack**](https://blog.cloudflare.com/internal-ai-engineering-stack/). In one month it served 3,683 employees – 60% of the company, 93% of R&D – across 241.37 billion tokens, and merge request throughput went from roughly 5,600 a week to over 8,700. Sales saved [more than 10,000 hours](https://blog.cloudflare.com/how-we-use-ai-with-cloudflare-os/) on manual work like territory planning and proposals; staff built over 4,000 apps and tools in 30 days, including a help desk dashboard agent written by the CIO; and AI reviewers flagged nearly a quarter of a million problems, blocked 16,000 merges, and caught architectural issues in close to 600 designs before a line of code was written.
+
+None of it ran outside the controls. Every call goes through AI Gateway with zero data retention and a proxy Worker injecting provider keys server-side, so engineers never handle credentials; tools come from one MCP Server Portal aggregating 13+ servers and 182+ tools; and standards live in an [**Engineering Codex**](https://blog.cloudflare.com/engineering-standards-enforcement/) of RFCs using RFC 2119 keywords, promoted proposed → approved → **enforced**, that [agents retrieve at the point of review](https://blog.cloudflare.com/ai-code-review/). Of the five governance principles behind it, the fifth is worth adopting verbatim as policy language:
 
 > _You should never have more permission with systems of record when using AI._
 
-Standards are then machine-enforced: the [**Engineering Codex**](https://blog.cloudflare.com/engineering-standards-enforcement/) holds them as RFCs using RFC 2119 keywords and a proposed → approved → **enforced** lifecycle, and an [**AI code reviewer**](https://blog.cloudflare.com/ai-code-review/) applies them across 48,095 merge requests a month at a median $0.98 per review. One detail there is directly transferable: **user-controlled content is sanitized by stripping XML boundary tags entirely** before it reaches the reviewer's structured prompt. The [**Agents Week review**](https://blog.cloudflare.com/agents-week-review-august-2026/) indexes the rest.
+One implementation detail is directly transferable: **user-controlled content is sanitized by stripping XML boundary tags entirely** before it reaches a reviewer's structured prompt.
 
 ---
 
@@ -386,16 +388,20 @@ Standards are then machine-enforced: the [**Engineering Codex**](https://blog.cl
 
 </div>
 
+### Ask Every Provider the Same Questions
+
+The four inspection points tell you what leaves; they say nothing about what the receiving provider does with it. That question is the same for a chatbot on Surface 1, a model API on Surface 2, and a SaaS tenant on Surface 4. Cloudflare's [**Responsible AI**](https://www.cloudflare.com/trust-hub/responsible-ai/) page shows what a clear answer looks like: it does not train its own LLMs and does not use customer content to train any, its threat-detection models are trained on network traffic patterns rather than customer content, and third-party models on Workers AI carry vendor responsibility for EU AI Act compliance. It sits inside a [**Trust Hub**](https://www.cloudflare.com/trust-hub/) of certifications, attestations, and sub-processor lists – use that as the shape of the questionnaire you send your own providers: retention, training use, sub-processors, data residency, zero data retention. "We have a CASB integration" and "we know what they do with our data" are separate assurances.
+
 ### Where to Start
 
 Order matters more than completeness:
 
-1. **Fix the on-ramps, and prepare properly for TLS decryption.** The longest step, and the one that sinks projects when treated as a checkbox: deploy the [device client](https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/) through your [MDM](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/deployment/); distribute the [root certificate](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/user-side-certificates/) to the OS trust store *and* to applications that keep their own; and write the [Do Not Inspect](https://developers.cloudflare.com/cloudflare-one/traffic-policies/http-policies/#do-not-inspect) policies for pinned and mTLS applications before your users find them, recording what those exemptions cost you in visibility.
+1. **Fix the on-ramps, and prepare properly for TLS decryption.** The longest step, and the one that sinks projects when treated as a checkbox: deploy the [device client](https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/) through your [MDM](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/deployment/); distribute the [root certificate](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/user-side-certificates/) to the OS trust store *and* to applications that keep their own; and write the [Do Not Inspect](https://developers.cloudflare.com/cloudflare-one/traffic-policies/http-policies/#do-not-inspect) policies for pinned and mTLS applications before your users find them.
 2. **Discover before you block.** Run Gateway and the AI Security report for a few weeks, and classify applications rather than guessing.
 3. **Give agents a governed path for models** – an AI Gateway custom domain, callers migrated off shared API keys, then Access on.
 4. **Give agents a governed path for tools** – approved MCP servers behind a portal with a curated catalog and per-user auth.
 5. **Only then, close the bypass.** Blocking non-portal MCP traffic before step 4 just pushes people onto unmanaged devices.
-6. **Run Surfaces 3 and 4 in parallel**, and **make the safe build path the easy one** – sandboxed execution, zero-permission defaults, gatekeepered credentials.
+6. **Run Surfaces 3 and 4 in parallel**, and **make the safe build path the easy one**: sandboxed execution, zero-permission defaults, gatekeepered credentials.
 
 The connecting idea across all four surfaces is that **identity is the primary control, and the network is how you attach it**. Every capability here – `cf.user_id` on a model call, per-user OAuth on a tool call, an Access policy on a gateway hostname – exists to answer one question: which human is accountable for what this agent just did?
 
@@ -403,11 +409,11 @@ The connecting idea across all four surfaces is that **identity is the primary c
 
 ## Appendix: Let an Agent Drive Cloudflare
 
-If you are going to secure AI, use it. [**Cloudflare Agent Setup**](https://developers.cloudflare.com/agent-setup/) wires the common coding agents into [**Cloudflare's own MCP servers**](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) – a primary server covering 2,500+ API endpoints via [code mode](https://blog.cloudflare.com/code-mode-mcp/) (about 1,000 tokens instead of 1.17 million), plus focused ones for docs, observability, AI Gateway logs, CASB findings, [DEX troubleshooting](https://blog.cloudflare.com/ai-troubleshoot-warp-and-network-connectivity-issues/), [GraphQL analytics](https://developers.cloudflare.com/analytics/types-of-analytics/), audit logs, and Radar – with the [**Cloudflare One stack**](https://blog.cloudflare.com/cloudflare-one-stack/) skills for Zero Trust work.
+If you are going to secure AI, use it. [**Cloudflare Agent Setup**](https://developers.cloudflare.com/agent-setup/) wires the common coding agents into [**Cloudflare's own MCP servers**](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) – a primary server covering 2,500+ API endpoints via [code mode](https://blog.cloudflare.com/code-mode-mcp/) (about 1,000 tokens instead of 1.17 million), plus focused ones for docs, observability, AI Gateway logs, CASB findings, [DEX troubleshooting](https://blog.cloudflare.com/ai-troubleshoot-warp-and-network-connectivity-issues/), [analytics](https://developers.cloudflare.com/analytics/types-of-analytics/), and audit logs – with the [**Cloudflare One stack**](https://blog.cloudflare.com/cloudflare-one-stack/) skills for Zero Trust work.
 
 For skills beyond Cloudflare, [skills.sh](https://www.skills.sh/) is an open, vendor-neutral registry supporting 19+ coding agents.
 
-**Start read-only.** Scope the [API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/), and read what a skill does before installing it. A read-only token is already most of the value: an agent that can read your Gateway logs, AI Gateway spend, and CASB findings can investigate an anomaly, explain a policy's blast radius, and draft the rule, while a human still applies it.
+**Start read-only.** Scope the [API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/), and read what a skill does before installing it. A read-only token is already most of the value: an agent that can read your Gateway logs, AI Gateway spend, and CASB findings can investigate an anomaly and draft the rule, while a human still applies it.
 
 ---
 
