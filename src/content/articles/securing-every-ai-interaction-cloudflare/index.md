@@ -411,9 +411,9 @@ The connecting idea across all four surfaces is that **identity is the primary c
 
 If you are going to secure AI, use it. [**Cloudflare Agent Setup**](https://developers.cloudflare.com/agent-setup/) wires the common coding agents into [**Cloudflare's own MCP servers**](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) – a primary server covering 2,500+ API endpoints via [code mode](https://blog.cloudflare.com/code-mode-mcp/) (about 1,000 tokens instead of 1.17 million), plus focused ones for docs, observability, AI Gateway logs, CASB findings, [DEX troubleshooting](https://blog.cloudflare.com/ai-troubleshoot-warp-and-network-connectivity-issues/), [analytics](https://developers.cloudflare.com/analytics/types-of-analytics/), and audit logs – with the [**Cloudflare One stack**](https://blog.cloudflare.com/cloudflare-one-stack/) skills for Zero Trust work.
 
-For skills beyond Cloudflare, [skills.sh](https://www.skills.sh/) is an open, vendor-neutral registry supporting 19+ coding agents.
+For skills beyond Cloudflare, [skills.sh](https://www.skills.sh/) is an open, vendor-neutral registry supporting 19+ coding agents. Read what a skill does before installing it.
 
-**Start read-only.** Scope the [API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/), and read what a skill does before installing it. A read-only token is already most of the value: an agent that can read your Gateway logs, AI Gateway spend, and CASB findings can investigate an anomaly and draft the rule, while a human still applies it.
+**Start read-only.** Scope the [API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/). A read-only token is already most of the value: an agent that can read your Gateway logs, AI Gateway spend, and CASB findings can investigate an anomaly and draft the rule, while a human still applies it.
 
 ---
 
