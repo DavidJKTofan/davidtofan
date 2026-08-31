@@ -39,3 +39,4 @@ worker-startup.cpuprofile
 
 # dependency-update script logs and manifest backups
 .deps-update/
+/.claude
