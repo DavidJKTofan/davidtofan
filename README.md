@@ -296,13 +296,16 @@ Create `src/content/articles/my-article/index.md`:
 ---
 title: Article Title
 date: 2024-01-15
-modified: 2024-01-16 # Optional but recommended after substantive edits
+modified: 2024-01-16
 description: Brief description for SEO.
 tags: ["tag1", "tag2"]
 ---
 
 Content here...
 ```
+
+Omit `modified` on a brand-new article; add it on the first substantive edit — see
+[Updating existing content](#updating-existing-content).
 
 Add images to the same folder and reference with `![Alt](img/image.png)`. Add `featured.png` beside `index.md` when you want an automatic og:image / twitter:image fallback.
 
@@ -338,6 +341,48 @@ Add to `src/data/certificates.json`:
   "date": "Jan 2024"
 }
 ```
+
+### Updating Existing Content
+
+**Convention: never change `date` on a published article or project — add or bump `modified`
+instead.** `date` is the publication date and is what readers and `datePublished` refer to;
+rewriting it makes an old post look new and loses the original timeline.
+
+When making a substantive edit — new sections, corrected guidance, added references, anything a
+returning reader would want to know changed — set `modified` to the date of the edit:
+
+```md
+---
+title: Article Title
+date: 2024-01-15
+modified: 2026-09-01
+---
+```
+
+Skip it for typo fixes, formatting, and link repairs; `modified` signals meaningful change, and
+bumping it for trivia trains crawlers to ignore it.
+
+Setting `modified` updates three things at once, with no other file to touch:
+
+| Surface | Where it comes from |
+|:--|:--|
+| `<meta property="article:modified_time">` | `getEffectiveModifiedTime()` → `BaseLayout.astro` |
+| JSON-LD `BlogPosting.dateModified` | same helper, via `src/pages/articles/[...slug].astro` |
+| Sitemap `<lastmod>` | `buildLastmodMap()` in `src/lib/contentMetadata.js` |
+
+When `modified` is absent, all three fall back to `date`, so leaving it off is safe — just less
+accurate. Because listing pages derive their own `lastmod` from the newest entry they list, a
+bumped `modified` also refreshes `/`, `/articles/`, and `/projects/`.
+
+> **Write the date bare — no inline comment.** The sitemap reads frontmatter with its own regex
+> (`parseFrontmatterDate` in `src/lib/contentMetadata.js`), which captures the rest of the line,
+> so `modified: 2026-09-01 # updated refs` parses as an invalid date and silently falls back to
+> `date`. Astro's Zod schema still accepts it — YAML strips the comment — so the two disagree
+> and only the sitemap is wrong. Use `YYYY-MM-DD` and nothing else.
+
+Static pages under `src/pages/` have no frontmatter; bump their `lastModified` in
+`sitePageMetadata` (`src/lib/contentMetadata.js`) by hand instead — see
+[Editing the legal pages](#editing-the-legal-pages).
 
 ## Frontmatter Reference
 

@@ -1,6 +1,7 @@
 ---
 title: General Application Performance Recommendations
 date: 2025-11-15
+modified: 2026-09-01
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Performance approach with Cloudflare."
 tags:
   [
@@ -15,6 +16,8 @@ type: "article"
 This guide provides non-exhaustive recommendations and general best practices for building a comprehensive Layer 7 (L7) Application Performance strategy **for your website / web application** with Cloudflare. It outlines how to leverage Cloudflare's performance and resiliency solutions and features to optimize web delivery, reduce latency, and improve [Core Web Vitals (CWV)](https://web.dev/performance#core-web-vitals) metrics – primarily relevant for Chromium browsers.
 
 > [Measuring performance is tricky](https://blog.cloudflare.com/loving-performance-measurements/).
+
+> **Primary reference:** Cloudflare's official reference architecture – _[Designing a distributed web performance architecture](https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/)_ – covers the same ground in greater depth and is kept up to date by Cloudflare. It follows the same request-path structure used below (user/client, Cloudflare Edge, caching and storage, origin server), so treat it as the authoritative companion to this guide for further details and future updates.
 
 ## Common Performance Goals
 
@@ -195,5 +198,7 @@ The author of this post is not responsible for any misconfigurations, errors, or
 
 For additional learning resources, explore the following:
 
+- [Designing a distributed web performance architecture](https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/) – the official Cloudflare reference architecture for L7 performance
+- [Cloudflare Reference Architectures](https://developers.cloudflare.com/reference-architecture/)
 - [Learning Paths](https://developers.cloudflare.com/learning-paths/)
 - [Enterprise Customer Portal](https://www.cloudflare.com/ecp/overview/) (for Enterprise customers)
