@@ -40,9 +40,19 @@ Before configuring caching, decide what the CDN is pulling from.
 | **[R2 Custom Domain](https://developers.cloudflare.com/r2/buckets/public-buckets/) + [Workers](https://developers.cloudflare.com/workers/)** | Downloads need authorization, licence checks, per-user logic, or entitlement lookups. | The Worker validates, then streams the object from an R2 binding. |
 | **Hybrid / multi-cloud** | You are [migrating](https://developers.cloudflare.com/r2/data-migration/) away from S3/GCS but cannot cut over at once. | See [On-demand object storage migration](https://developers.cloudflare.com/reference-architecture/diagrams/storage/on-demand-object-storage-migration/) (Sippy incremental migration) and [egress-free multi-cloud storage](https://developers.cloudflare.com/reference-architecture/diagrams/storage/egress-free-storage-multi-cloud/). |
 
+Cloudflare's own [distributed web performance architecture](https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/) is blunt about which of these wins: the "originless" model built on Workers and R2 is called *the* optimal design for high-performance file distribution, precisely because it removes the traditional backend infrastructure from the path of large downloads.
+
+If you cannot move the bytes yet, three options shorten the path from Cloudflare to wherever they are:
+
+- **[Cloud Connector](https://developers.cloudflare.com/rules/cloud-connector/)** – route matching requests straight to S3, Azure Blob, or GCS buckets without standing up your own proxy in front of them.
+- **[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/) or [Workers VPC](https://developers.cloudflare.com/workers-vpc/)** – reach a private artifact repository (Artifactory, Nexus, an internal build server) without exposing it to the Internet.
+- **[Bandwidth Alliance](https://www.cloudflare.com/bandwidth-alliance/)** – participating providers reduce or waive egress fees for traffic leaving to Cloudflare, which takes some of the sting out of a slow migration.
+
 > Do **not** use the managed `r2.dev` subdomain for production – it is rate limited, and it supports neither caching, WAF, nor Bot Management. Connect a [Custom Domain](https://developers.cloudflare.com/r2/buckets/public-buckets/) instead, which is what puts the bucket behind Cloudflare's cache and unlocks WAF, Access, and Cache Rules on it.
 
 > **Two different size limits get confused constantly.** The **maximum upload size** caps request bodies travelling *through* the proxy toward your origin. The **maximum cacheable file size** caps responses Cloudflare is willing to *store*. Publishing a 3 GB installer is an upload problem; serving it is a cacheable-size problem. Both are covered in [Size Limits: Two Different Numbers](#size-limits-two-different-numbers) below, and both are documented under [customization options and limits](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#customization-options-and-limits).
+
+> **A name collision worth clearing up.** Cloudflare [Artifacts](https://blog.cloudflare.com/artifacts-git-for-agents-beta/) is a versioned filesystem that speaks Git, built on Durable Objects for agents, sandboxes, and per-session state. Despite the name, it is not where your build artifacts get *distributed* from – repositories there are chunked into a SQLite-backed store and billed per Git operation, and its own `ArtifactFS` driver deliberately **deprioritizes binary blobs** when hydrating a checkout. Git-shaped storage is for the source and the history; R2 plus the CDN is for the 4 GB installer.
 
 ---
 
@@ -50,7 +60,7 @@ Before configuring caching, decide what the CDN is pulling from.
 
 ### The Default Behavior ~~Trap~~ Opportunity
 
-[Cloudflare's default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/) caches a fixed list of **file extensions** – and, importantly, *only* by extension, never by MIME type. Serving an installer as `application/octet-stream` does nothing on its own. It is worth reading that list carefully, because the coverage for installers is uneven:
+The defaults are less of a trap than an *opportunity* – but only once you know where they stop. [Cloudflare's default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/) caches a fixed list of **file extensions** – and, importantly, *only* by extension, never by MIME type. Serving an installer as `application/octet-stream` does nothing on its own. It is worth reading that list carefully, because the coverage for installers is uneven:
 
 - **Cached by default**: `EXE`, `APK`, `DMG`, `ISO`, `BIN`, `ZIP`, `7Z`, `GZ`, `BZ2`, `ZST`, `TAR`, `RAR`, `JAR`, `PDF`, and the usual media/web assets.
 - **Not cached by default**: `MSI`, `PKG`, `DEB`, `RPM`, `MSIX`, `APPX`, extensionless URLs, and anything served from a path like `/download?build=1234`.
@@ -80,9 +90,32 @@ With [settings](https://developers.cloudflare.com/cache/how-to/cache-rules/setti
 - **Cache eligibility** → `Eligible for cache`
 - **Edge TTL** → `Ignore cache-control header and use this TTL` → a long value (e.g. 30 days) for immutable, versioned artifacts
 - **Browser TTL** → `Override origin and use this TTL` → long for versioned URLs, short/`Respect origin TTL` for "latest" path aliases
-- **Cache Key** → see the next section; this is the setting that decides whether all your users share one cached copy or each get their own
+- **Cache Key** → see [Cache Keys](#cache-keys-what-actually-identifies-your-file) below; this is the setting that decides whether all your users share one cached copy or each get their own
 - **Respect Strong ETags** → `On`, so Cloudflare enforces byte-for-byte equivalency with the origin instead of [weakening the ETag](https://developers.cloudflare.com/cache/reference/etag-headers/). For an installer, "probably the same file" is not good enough
 - **[Serve stale content while revalidating](https://developers.cloudflare.com/cache/concepts/revalidation/)** → leave enabled, so a revalidation against a slow origin does not stall a 4 GB download
+
+### Cache Rules Stack, and the Last Match Wins
+
+Creating the rule above is only half the story. [Cache Rules are **stackable**](https://developers.cloudflare.com/cache/how-to/cache-rules/order/): when several rules match the same request, their settings are all applied, in order. And when two matching rules set the *same* setting to different values, **the last matching rule wins**.
+
+That single sentence explains most "my Cache Rule isn't working" tickets. Cloudflare's own example:
+
+```txt
+Rule #1  (http.request.uri.path wildcard "/images/*")  →  Eligible for cache
+Rule #2  (http.host eq "example.com")                  →  Bypass cache
+```
+
+Rule #2 is broader *and* later, so cache is bypassed on `/images/*` too. Rule #1 is essentially dead.
+
+For a downloads site this is the failure mode to look for first. Teams usually have a legacy catch-all somewhere – "bypass cache when a session cookie is present", "bypass on `/api/*`", a leftover rule from a WordPress install – and if it sits **below** your downloads rule in the list, your carefully tuned 30-day Edge TTL never takes effect. The symptom is a stubborn `BYPASS` or `DYNAMIC` on a rule you are certain is correct.
+
+Three more precedence facts worth holding onto:
+
+- **Cache Rules override the zone-wide Caching configuration.** A Browser Cache TTL of 4 hours set for the whole zone loses to a Cache Rule that matches the request.
+- **Cache Rules take precedence over Page Rules**, by design. If you are mid-migration from Page Rules, the Cache Rule is what is actually running.
+- **Across products, order is fixed**: [Single Redirects → URL Rewrites → Configuration Rules → Origin Rules → Bulk Redirects → Managed Transforms → Request Header Transforms → Cache Rules → Snippets → Cloud Connector](https://developers.cloudflare.com/cache/how-to/cache-rules/order/#execution-order-of-rules-products). This is why the `latest` redirect in [Versioning Beats Purging](#versioning-beats-purging) never reaches cache, and why a WAF check can gate a request before cache is consulted.
+
+Order your rules narrowest-last, and confirm the result with [Cloudflare Trace](https://developers.cloudflare.com/rules/trace-request/) rather than by reading the list.
 
 ### Cache Keys: What Actually Identifies Your File
 
@@ -164,19 +197,32 @@ Once the file is eligible for cache, the goal is keeping it *in* cache.
 
 These are now bundled under [Smart Shield](https://developers.cloudflare.com/smart-shield/): the base package includes Smart Tiered Cache and Connection Reuse, **Smart Shield + Argo** adds Argo Smart Routing, and **Smart Shield Advanced** adds Regional Tiered Cache and Cache Reserve.
 
-**Tiered Cache notes for this workload:**
+**Picking a Tiered Cache topology.** Tiered Cache is off by default. Which topology you choose is a real trade-off for a globally distributed download, and the [CDN Reference Architecture](https://developers.cloudflare.com/reference-architecture/architectures/cdn/) spells it out:
+
+| **TOPOLOGY** | **TRADE-OFF** |
+| --- | --- |
+| **[Smart Tiered Cache](https://developers.cloudflare.com/cache/how-to/tiered-cache/#smart-tiered-cache)** | One upper tier per origin, chosen by Argo routing data. Highest hit ratio and lowest origin load – but that single upper tier may sit a continent away from the lower tier asking for the file, adding latency to a MISS. |
+| **[Generic Global](https://developers.cloudflare.com/cache/how-to/tiered-cache/#generic-global-tiered-cache)** | All large data centers act as upper tiers. Much closer to lower tiers, so faster fills – at the cost of more origin pulls, since each upper tier populates independently. |
+| **[Regional Tiered Cache](https://developers.cloudflare.com/cache/how-to/tiered-cache/#regional-tiered-cache)** | Adds a regional hub between lower and upper tier. Keeps Smart Tiered Cache's single origin funnel while cutting the distance a MISS travels. Recommended alongside Smart or Custom – pointless with Generic Global. | 
+
+For a worldwide launch of one large file, Smart Tiered Cache plus Regional Tiered Cache is usually the combination you want: one origin funnel, but a regional hub absorbing the long-haul latency.
+
+**Two more Tiered Cache notes for this workload:**
 
 - If your origin is on **AWS, GCP, Azure, or Oracle Cloud**, set a [cloud region hint](https://developers.cloudflare.com/cache/how-to/tiered-cache/#set-a-cloud-region-hint). Those providers front origins with anycast or regional unicast, which defeats the latency probing Smart Tiered Cache normally uses to pick an upper tier. This is exactly the shape of most artifact-hosting setups.
 - **Changing origin IPs or DNS records reassigns upper tiers**, which produces a MISS spike while the new tiers refill. Do not do it the morning of a launch.
 
 **Cache Reserve caveats worth knowing before you enable it**, since they bite binary workloads specifically:
 
+- **Turn on Tiered Cache first.** Cache Reserve works without it, but Tiered Cache funnels (and often reduces) reads against Cache Reserve, cutting redundant read operations and duplicate storage. Since Cache Reserve is billed per operation, this is a direct cost difference, not a nicety – the dashboard warns you if you enable one without the other.
 - Assets need a **freshness TTL of at least 10 hours** – so pair it with an Edge TTL override.
 - Assets must have a **`Content-Length` response header**.
 - **Origin range requests are not supported** from Cache Reserve.
 - **Requests to an R2 public bucket linked to your zone's domain do not use Cache Reserve at all.** If your artifacts live in R2 behind a Custom Domain, Cache Reserve is not the tool – R2 is already the durable store, and [Tiered Cache](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/) is what you want in front of it. Cache Reserve earns its keep when the origin is somewhere you *pay egress to leave*.
 - **Assets above the plan's cacheable file size never enter the standard edge cache**, so they hit Cache Reserve on every request and accumulate operations charges far faster than smaller objects. Assets over 1 GB also incur operations proportional to their size.
 - Cache Reserve fetches **uncompressed** content from origin (it does not send `Accept-Encoding: gzip`), which is a non-issue for already-compressed binaries.
+
+**One geography that is its own problem:** if a meaningful share of your users are in mainland China, none of the above changes the fact that they are downloading across a congested border. [China Network](https://developers.cloudflare.com/china-network/) provides in-China caching regardless of where the origin sits, and [Global Acceleration](https://developers.cloudflare.com/china-network/concepts/global-acceleration/) improves the origin-to-China leg.
 
 Because Cache Reserve is priced per operation and per GB-month, scope it rather than enabling it for the whole Zone. The Cache Rule setting **Cache Reserve eligibility** takes a `minimum_file_size`, which lets you persist only the large artifacts that actually benefit:
 
@@ -185,7 +231,7 @@ Because Cache Reserve is priced per operation and per GB-month, scope it rather 
   "cache": true,
   "cache_reserve": {
     "eligible": true,
-    "minimum_file_size": 104857600  # 100 Megabytes (MB)
+    "minimum_file_size": 104857600  // 100 MB
   }
 }
 ```
@@ -217,6 +263,8 @@ curl -sIL https://<HOSTNAME>/downloads/2.4.1/app-setup.exe | grep -iE '^HTTP/|^c
 Repeat the request from a second location. A `MISS` followed by a `HIT` is expected; two or more `MISS`es in a row, or a `DYNAMIC`/`BYPASS`, means a rule or a size/header problem. The full list of statuses and the exact conditions that produce a [`BYPASS` or `DYNAMIC`](https://developers.cloudflare.com/cache/concepts/cache-responses/) is documented, and [Investigate uncached responses](https://developers.cloudflare.com/cache/troubleshooting/investigating-uncached-responses/) walks through the diagnosis.
 
 > One header discrepancy that confuses people reading logs: [`CacheResponseBytes`](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/#cacheresponsebytes) is the *uncompressed* size from cache or origin, while [`EdgeResponseBytes`](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/#edgeresponsebytes) is the *compressed* size sent to the client. For already-compressed binaries the two are usually close; for anything Cloudflare [compresses](https://developers.cloudflare.com/rules/compression-rules/) on the way out, they will not match. Refer to [edgeResponseBytes and cacheResponseBytes discrepancy](https://developers.cloudflare.com/cache/troubleshooting/edge-vs-cache-response-bytes/).
+
+> While you are looking at [Compression Rules](https://developers.cloudflare.com/rules/compression-rules/): a ZIP, DMG, or ZST artifact is already compressed, so running it through Brotli or Gzip burns CPU on both ends for roughly zero saving. If you compress selectively by path or content type, exclude your download paths rather than leaving it to chance.
 
 ### Versioning Beats Purging
 
@@ -254,7 +302,7 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cac
   }'
 ```
 
-Avoid "Purge Everything": it forces a full re-fill of every asset in the Zone and can put real load on your origin at exactly the wrong moment.
+Purges themselves are fast – Cloudflare's [decentralized purge architecture](https://blog.cloudflare.com/instant-purge-for-all/) propagates globally in roughly 150 ms – so the cost of a purge is almost never the purge, it is the re-fill that follows. Which is exactly why you should avoid "Purge Everything": it forces every asset in the Zone to be pulled from origin again, at whatever moment you happened to click it.
 
 > Purge requests are [rate limited](https://developers.cloudflare.com/cache/how-to/purge-cache/#token-bucket-rate-limiting) per account (5 requests/minute on Free up to 50/second on Enterprise), and a single request accepts up to 100 operations for tag/prefix/host purges – 500 URLs per request for single-file purge on Enterprise. Batch accordingly rather than looping one call per file.
 >
@@ -434,36 +482,41 @@ Two constraints to plan around:
 You cannot tune what you cannot see.
 
 - **[Cache Analytics](https://developers.cloudflare.com/cache/performance-review/cache-analytics/)** – break down requests by cache status, then by Content-Type and URI path to find which artifacts are missing.
-- **[Logpush](https://developers.cloudflare.com/logs/logpush/) / [Log Explorer](https://developers.cloudflare.com/log-explorer/)** – the [HTTP requests dataset](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/) carries the fields that matter here: `CacheCacheStatus`, `CacheTieredFill`, `CacheReserveUsed`, `CacheLockWaitedMs`, `EdgeTimeToFirstByteMs`, `CacheResponseBytes`, `OriginResponseDurationMs`.
+- **[Origin Analytics](https://developers.cloudflare.com/speed/origin-analytics/)** – the other half of Cache Analytics: what your origin did with the MISSes. Agentless, derived from edge logs, and built around three things you want here. **Origin response time** at P50/P95/P99 is drawn against your zone's configured origin timeout, so you can watch a slow release server approach a `524` instead of discovering it during a launch. **Origin status codes** show `originResponseStatus` next to `edgeResponseStatus`, which is how you tell a genuine origin `503` from a `520` caused by an origin that closed the connection mid-response – the characteristic failure when streaming a multi-gigabyte body (an origin that never answered shows as `0`). **Top endpoints** ranks paths by P95, error rate, volume, or TCP failure rate, which is usually enough to find the one artifact that is dragging.
+- **[Logpush](https://developers.cloudflare.com/logs/logpush/) / [Log Explorer](https://developers.cloudflare.com/log-explorer/)** – the [HTTP requests dataset](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/) carries the fields that matter here: `CacheCacheStatus`, `CacheTieredFill`, `CacheReserveUsed`, `CacheLockWaitedMs`, `EdgeTimeToFirstByteMs`, `CacheResponseBytes`, `OriginResponseDurationMs`. Add [Custom Log Fields](https://developers.cloudflare.com/logs/logpush/logpush-job/custom-fields/) if you need specific request or response headers alongside them.
+- **The two numbers to derive from those logs** are **Download Success Rate** and **Download Throughput** – the metrics Cloudflare's own performance architecture names for large files. Neither exists as a dashboard tile; both fall out of Logpush once you have the fields above. A hit ratio of 98% means little if a third of those downloads never finished. This is also the gap Origin Analytics cannot close on its own: its clock stops when Cloudflare receives the origin's **response headers**, not the last byte of the body – so a 4 GB transfer that stalls at 80% still looks like a fast origin.
+- **[Network Error Logging (NEL)](https://developers.cloudflare.com/network-error-logging/)** – captures client-side connectivity failures the server never sees. For a workload where the characteristic failure is *an aborted 40-minute transfer*, this is the one signal that would otherwise be invisible.
 - **[Instant Logs](https://developers.cloudflare.com/logs/instant-logs/)** – live tail while you test a new Cache Rule.
-- **[Cloudflare Trace](https://developers.cloudflare.com/rules/trace-request/)** – replay a single URL through the rules pipeline to see which Redirect Rule, Cache Rule, and cache key actually applied. The fastest way to settle "why is this a MISS?".
-- **[GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/)** – for scripted reporting on `httpRequestsAdaptiveGroups`.
+- **[Cloudflare Trace](https://developers.cloudflare.com/rules/trace-request/)** – replay a single URL through the rules pipeline to see which Redirect Rule, Cache Rule, and cache key actually applied. The fastest way to settle "why is this a MISS?", and the only practical way to reason about [stacked Cache Rules](#cache-rules-stack-and-the-last-match-wins).
+- **[GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/)** – for scripted reporting on `httpRequestsAdaptiveGroups`; the [Cloudflare Prometheus Exporter](https://github.com/cloudflare/cloudflare-prometheus-exporter) scrapes it into Grafana if you want hit ratio tracked next to your own infrastructure metrics.
 - **[R2 event notifications](https://developers.cloudflare.com/reference-architecture/diagrams/storage/event-notifications-for-storage/)** – trigger a Worker (virus scan, checksum, index update, cache pre-warm) whenever a new artifact lands in the bucket.
 
 > Use an [Agent Setup](https://developers.cloudflare.com/agent-setup/) and leverage Cloudflare's MCP Server to help with troubleshooting and more.
 
-One more operational detail: the [proxy read timeout](https://developers.cloudflare.com/fundamentals/reference/connection-limits/) between Cloudflare and your origin is 125 seconds by default. A slow origin streaming a very large file can hit it and return a `524`. Enterprise customers can raise it per-path with the **Proxy Read Timeout** Cache Rule setting ([`read_timeout`](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#proxy-read-timeout-enterprise-only)), but the better answer is usually to serve artifacts from R2 rather than a busy application server.
+One more operational detail: the [proxy read timeout](https://developers.cloudflare.com/fundamentals/reference/connection-limits/) between Cloudflare and your origin is 125 seconds by default. A slow origin streaming a very large file can hit it and return a `524` – which is exactly the line Origin Analytics draws on its response-time chart. Enterprise customers can raise it per-path with the **Proxy Read Timeout** Cache Rule setting ([`read_timeout`](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#proxy-read-timeout-enterprise-only)), but the better answer is usually to serve artifacts from R2 rather than a busy application server.
 
 ## Quick-Start Checklist
 
 1. **Confirm what is actually cached.** `curl -sI` your top download URLs and look at `cf-cache-status`. Anything other than `HIT` on a second or third request needs investigation.
 2. **Create an explicit Cache Rule** for your download paths – never rely on the default extension list, especially for `.msi`, `.pkg`, `.deb`, `.rpm`. Set a long Edge TTL; the default for an uncontrolled `200` is only two hours.
-3. **Set the Cache Key deliberately.** Ignore query strings on versioned artifacts so campaign and mirror parameters do not shard one object into many.
-4. **Check the file sizes against your plan's cacheable limit** – and do not confuse it with the maximum upload size. Chunk, or request an increase, if you are above it.
-5. **Verify `Content-Length` and `accept-ranges: bytes`** are present so downloads are resumable and Cache Reserve is possible.
-6. **Enable Tiered Cache** (free on every plan; set a cloud region hint if your origin is on a public cloud), then evaluate Cache Reserve for long-tail artifacts on non-R2 origins.
-7. **Move to versioned, immutable URLs**, and make `latest` a 302 Redirect Rule rather than a cached file.
-8. **For gated files, authorize at the edge** (HMAC, JWT, Workers, or Access) and keep the authorization material *out of the cache key*.
-9. **Wire purging into CI/CD** with batched, prefix- or tag-based calls.
-10. **Instrument it** – Cache Analytics for the ratio, Logpush for the detail, Cloudflare Trace for the one-off mystery, and alerts on regressions.
+3. **Audit every other Cache Rule that matches those paths.** Rules stack and the last match wins – one broad legacy "bypass" rule sitting below yours silently cancels it. Verify with Cloudflare Trace, not by reading the list.
+4. **Set the Cache Key deliberately.** Ignore query strings on versioned artifacts so campaign and mirror parameters do not shard one object into many.
+5. **Check the file sizes against your plan's cacheable limit** – and do not confuse it with the maximum upload size. Chunk, or request an increase, if you are above it.
+6. **Verify `Content-Length` and `accept-ranges: bytes`** are present so downloads are resumable and Cache Reserve is possible.
+7. **Enable Tiered Cache** (set a cloud region hint if your origin is on a public cloud), then evaluate Cache Reserve for long-tail artifacts on non-R2 origins.
+8. **Move to versioned, immutable URLs**, and make `latest` a 302 Redirect Rule rather than a cached file.
+9. **For gated files, authorize at the edge** (HMAC, JWT, Workers, or Access) and keep the authorization material *out of the cache key*.
+10. **Wire purging into CI/CD** with batched, prefix- or tag-based calls.
+11. **Instrument it** – Cache Analytics for the ratio, Logpush for Download Success Rate and Throughput, NEL for the failures clients never report, Cloudflare Trace for the one-off mystery, and alerts on regressions.
 
 ## Further Reading
 
 - [Default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/) and [cache responses / status values](https://developers.cloudflare.com/cache/concepts/cache-responses/)
-- [Cache Rules settings](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/) – the full list of what a Cache Rule can change
+- [Cache Rules settings](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/) – the full list of what a Cache Rule can change, and [Order and priority](https://developers.cloudflare.com/cache/how-to/cache-rules/order/) – how stacked rules resolve
 - [Enable cache in an R2 bucket](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/) and [Control cache access with WAF and Snippets](https://developers.cloudflare.com/cache/interaction-cloudflare-products/waf-snippets/)
 - [Investigate uncached responses](https://developers.cloudflare.com/cache/troubleshooting/investigating-uncached-responses/) – a troubleshooting path for unexpected MISS/BYPASS/DYNAMIC
 - [TCP connections](https://developers.cloudflare.com/fundamentals/reference/tcp-connections/) – keep-alives, idle timeouts, and why long transfers need to resume
+- [China Network](https://developers.cloudflare.com/china-network/) – in-China caching, if that is where your users are
 - [Storing user-generated content](https://developers.cloudflare.com/reference-architecture/diagrams/storage/storing-user-generated-content/) – reference architecture
 - [Designing a distributed web performance architecture](https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/)
 - [Content delivery network reference architecture](https://developers.cloudflare.com/reference-architecture/architectures/cdn/)
