@@ -114,6 +114,7 @@ Three more precedence facts worth holding onto:
 - **Cache Rules override the zone-wide Caching configuration.** A Browser Cache TTL of 4 hours set for the whole zone loses to a Cache Rule that matches the request.
 - **Cache Rules take precedence over Page Rules**, by design. If you are mid-migration from Page Rules, the Cache Rule is what is actually running.
 - **Across products, order is fixed**: [Single Redirects → URL Rewrites → Configuration Rules → Origin Rules → Bulk Redirects → Managed Transforms → Request Header Transforms → Cache Rules → Snippets → Cloud Connector](https://developers.cloudflare.com/cache/how-to/cache-rules/order/#execution-order-of-rules-products). This is why the `latest` redirect in [Versioning Beats Purging](#versioning-beats-purging) never reaches cache, and why a WAF check can gate a request before cache is consulted.
+- **[Cache Response Rules](https://developers.cloudflare.com/cache/how-to/cache-response-rules/) stack the same way, and beat Cache Rules.** They run later, on the origin *response*, so when the two disagree the Cache Response Rule wins – see [Fixing an Uncooperative Origin](#fixing-an-uncooperative-origin-with-cache-response-rules).
 
 Order your rules narrowest-last, and confirm the result with [Cloudflare Trace](https://developers.cloudflare.com/rules/trace-request/) rather than by reading the list.
 
@@ -151,7 +152,7 @@ Same bytes, three cache entries, three origin fills. On a release announcement w
 Things worth knowing before you customize the key:
 
 - **Custom keys shard the cache by design.** Every component you add multiplies the number of stored copies. For binaries, the goal is almost always *fewer* components, not more.
-- **Custom cache keys require a different purging mechanism than dashboard single-file purge.** Purge by prefix, tag, or host instead – or use [purge by cache key](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-cache-key/).
+- **Custom cache keys change how single-file purge works.** Purge by tag, host, prefix, and purge everything are unaffected, but a purge *by URL* must also carry the headers and query strings that are part of your custom key – which the dashboard's single-file purge cannot express, so do it through the [API](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-cache-key/).
 - **[Prefetch URLs](https://developers.cloudflare.com/speed/optimization/content/prefetch-urls/) is incompatible with custom cache keys** – Prefetch always uses the default key, so the two never match. Relevant if you were planning to use Prefetch to warm a release.
 - **A maximum of 100 query string parameters** can go into a custom key, and headers you include count toward Cloudflare's [request size limits](https://developers.cloudflare.com/fundamentals/reference/connection-limits/#request-limits).
 - **If you use [URL normalization](https://developers.cloudflare.com/rules/normalization/), also enable "Normalize URLs to origin".** Mismatched normalization between the key and the origin request is a cache-poisoning vector.
@@ -170,7 +171,7 @@ Large files run into plan limits before they run into anything else, and the [tw
 | **Max upload size** (request body *to* your origin) | 100 MB | 100 MB | 200 MB | Up to 5 GB (self-serve) |
 | **Max cacheable file size** (response *stored* in cache) | 512 MB | 512 MB | 512 MB | 5 GB (default) |
 
-**Uploads.** The **Maximum Upload Size** is adjustable from the zone's **Network** page; Enterprise customers can self-serve any value up to 5 GB, and anything beyond that needs your account team. Note that a very large upload can also fail on the [connection or read timeout](https://developers.cloudflare.com/fundamentals/reference/connection-limits/) *before* it reaches the size limit, which looks like an unrelated error. For publishing artifacts, prefer the [R2 S3 API](https://developers.cloudflare.com/r2/api/) with multipart uploads, or maybe even [Artifacts](https://blog.cloudflare.com/artifacts-git-for-agents-beta/) itself, or push through a DNS-only ([unproxied](https://developers.cloudflare.com/dns/proxy-status/#dns-only-records)) hostname (which essentially bypasses Cloudflare's application services completely).
+**Uploads.** The **Maximum Upload Size** is adjustable from the zone's **Network** page; Enterprise customers can self-serve any value up to 5 GB, and anything beyond that needs your account team. Note that a very large upload can also fail on the [connection or read timeout](https://developers.cloudflare.com/fundamentals/reference/connection-limits/) *before* it reaches the size limit, which looks like an unrelated error. For publishing artifacts, prefer the [R2 S3 API](https://developers.cloudflare.com/r2/api/) with multipart uploads, or push through a DNS-only ([unproxied](https://developers.cloudflare.com/dns/proxy-status/#dns-only-records)) hostname (which essentially bypasses Cloudflare's application services completely).
 
 **Downloads.** A file above the cacheable limit is not an error – it is served correctly, but it returns `CF-Cache-Status: BYPASS` and reads from the origin every time. If your game client is 8 GB and you have not requested an increase, **you have no CDN**, only a proxy.
 
@@ -343,7 +344,7 @@ Invalid requests are rejected before they consume cache or origin resources, and
 | --- | --- | --- |
 | **[WAF Token Authentication (HMAC)](https://developers.cloudflare.com/waf/custom-rules/use-cases/configure-token-authentication/)** | Your app signs a time-limited token into the URL; a WAF Custom Rule validates it at the edge with `is_timed_hmac_valid_v0()`. No origin round trip. | One-time purchasers, licence-key downloads, time-limited share links. |
 | **[R2 Presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/)** | Your backend issues a short-lived, AWS SigV4-signed URL for a private R2 object. | Private objects, per-customer artifacts, "download expires in 15 minutes" flows. |
-| **[Workers](https://developers.cloudflare.com/workers/) / [Snippets](https://developers.cloudflare.com/rules/snippets/)** | Validate anything (JWT, session, entitlement API, Basic Auth) in code, then serve from R2 or [`fetch()`](https://developers.cloudflare.com/workers/runtime-apis/fetch/) / [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/). | Logged-in users, entitlement checks, per-tier content. The most flexible and customizable option. |
+| **[Workers](https://developers.cloudflare.com/workers/) / [Snippets](https://developers.cloudflare.com/rules/snippets/)** | Validate anything (JWT, session, entitlement API, Basic Auth) in code, then serve from R2 or [`fetch()`](https://developers.cloudflare.com/workers/runtime-apis/fetch/), with [Workers Cache](https://developers.cloudflare.com/workers/cache/) in front. | Logged-in users, entitlement checks, per-tier content. The most flexible and customizable option. |
 | **[API Shield JWT Validation](https://developers.cloudflare.com/api-shield/security/jwt-validation/)** | Cloudflare cryptographically verifies JWTs at the edge and exposes claims to rules via `is_jwt_valid()`. | Mobile apps and SPAs that already present JWTs. Tokens must be in headers or cookies. |
 | **[Access (ZTNA)](https://developers.cloudflare.com/cloudflare-one/access-controls/)** | Identity-, device-, or service-based policies in front of the download host. | Employees, partners, and machine-to-machine via [service tokens](https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/) or mTLS. |
 
@@ -397,11 +398,27 @@ Practical notes:
 
 ### Option 3: Workers – Authorize Once, Cache the Bytes
 
-The most flexible pattern, and the one that solves the "identical bytes, different users" problem. A gateway entrypoint authenticates every request, then delegates to a cached inner entrypoint. The critical detail: **strip the `Authorization` header before the internal call**, otherwise Cloudflare's standard bypass rules turn every inner request into a `BYPASS` and nothing is ever stored.
+The most flexible pattern, and the one that solves the "identical bytes, different users" problem. A gateway entrypoint authenticates every request, then delegates to a cached inner entrypoint. The critical detail: **strip the `Authorization` header before the internal call**, otherwise Cloudflare's standard [bypass conditions](https://developers.cloudflare.com/cache/concepts/cache-responses/#bypass) turn every inner request into a `BYPASS` and nothing is ever stored. (`Set-Cookie` on the response does the same thing, which is why the gateway drops the cookie too.)
 
-A code example could look like this:
+**This pattern depends on [Workers Cache](https://developers.cloudflare.com/workers/cache/), and it is off unless you turn it on.** Add a `cache` block to your Wrangler configuration (Wrangler 4.69.0+):
+
+```jsonc
+{
+  "name": "downloads-gateway",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-06",
+  "cache": {
+    "enabled": true,
+    "cross_version_cache": true
+  }
+}
+```
+
+Then the gateway:
 
 ```js
+import { WorkerEntrypoint } from "cloudflare:workers";
+
 export default {
   async fetch(request, env, ctx) {
     // 1. Authorize – JWT, session lookup, entitlement API, licence check...
@@ -442,11 +459,51 @@ export class CachedArtifact extends WorkerEntrypoint {
 
 Because the Worker streams the R2 object body rather than buffering it, this works for very large files, and it keeps the authorization decision entirely at the edge.
 
-> [Snippets](https://developers.cloudflare.com/rules/snippets/when-to-use/) can handle the lighter version of this – header manipulation, redirects, JWT checks – with tighter limits.
+Four things about [Workers Cache](https://developers.cloudflare.com/workers/cache/) that change how you should read the rest of this article (and see [Three Caches, Not One](#three-caches-not-one) below for how it differs from the Cache API):
+
+- **No zone cache configuration applies.** Cache Rules, Cache Response Rules, Page Rules, cache levels, the default extension list – none of them touch a Worker's cache. Everything from [Part 1](#part-1--public-non-authenticated-downloads) about configuring cache behavior through rules stops at the Worker boundary. Your `Cache-Control` headers and `ctx.props` *are* the configuration surface.
+- **Tiering and request collapsing are automatic.** Workers Cache is tiered by default with no setting to enable, and it collapses concurrent requests for the same key – including *streaming* responses, where waiting clients are joined to the in-flight body rather than waiting for it to complete. For a release-day spike on a 4 GB file, that is exactly the behavior you want.
+- **The Worker version is part of the cache key by default**, so every deployment starts from an empty cache. On a library of multi-gigabyte artifacts that is an expensive way to ship a one-line change, which is why [`cross_version_cache: true`](https://developers.cloudflare.com/workers/cache/configuration/#cross-version-caching) (Wrangler 4.107.0+) is in the config above. The trade-off is that a deploy no longer invalidates anything – you purge with [`ctx.cache.purge()`](https://developers.cloudflare.com/workers/cache/purge/) or a `Cache-Tag` instead.
+- **The host is not in the cache key** – only the path, query string, target entrypoint, and `ctx.props`. The placeholder hostname on an internal `fetch()` is irrelevant, but a token left in the query string still shards the cache, so normalize the URL in the gateway before dispatching.
+
+> Only `fetch()` invocations are cached. Custom RPC methods (`ctx.exports.Backend.getObject(key)`) always run the callee – which is why the inner entrypoint above exposes a `fetch` handler rather than a method.
+
+> [Snippets](https://developers.cloudflare.com/rules/snippets/when-to-use/) can handle the lighter version of this – header manipulation, redirects, JWT checks – on Pro and above (not Free), within tighter limits: 5 ms execution, 2 MB memory, and a 32 KB package.
+
+### Three Caches, Not One
+
+Once a Worker is in the path, "the cache" stops being a single thing. There are three, they are independent, and they are routinely confused.
+
+| | **WHERE IT SITS** | **HOW YOU CONFIGURE IT** | **TIERED?** | **COLLAPSES REQUESTS?** |
+| --- | --- | --- | --- | --- |
+| **Zone cache** ([Cache Rules](https://developers.cloudflare.com/cache/how-to/cache-rules/)) | In front of your **origin** | Cache Rules, Cache Response Rules, zone settings | Yes, if you enable [Tiered Cache](https://developers.cloudflare.com/cache/how-to/tiered-cache/) | Yes |
+| **[Workers Cache](https://developers.cloudflare.com/workers/cache/)** | In front of your **Worker** | `cache.enabled` in Wrangler + the `Cache-Control` your Worker returns | Yes, automatically | Yes, including streaming bodies |
+| **[Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/)** (`caches.default`) | **Inside** your Worker, called by hand | `cache.match()` / `cache.put()` / `cache.delete()` in code | **No** | **No** |
+
+All of Part 1 is about the first one. It is also the cache a Worker's *outbound* `fetch()` passes through – so a Worker that proxies to a traditional origin still benefits from your Cache Rules and Tiered Cache on that leg.
+
+**Workers Cache and the Cache API are not the same feature**, despite both living under Workers and both talking about "cache":
+
+- **Workers Cache is read-through.** On a hit, your Worker never runs. You declare intent with `Cache-Control` and Cloudflare does the rest.
+- **The Cache API is a manual key-value store.** Your Worker runs on *every* request, and nothing is stored unless you explicitly call `put()`. Operations on one have no effect on the other.
+
+For large binaries, three Cache API limitations matter enough to settle the choice:
+
+1. **`cache.put()` throws on a `206 Partial Content` response.** You cannot store a range response, which is most of the traffic on a resumable multi-gigabyte download.
+2. **It is local to one data center.** A `put()` in Frankfurt is invisible in São Paulo, and it does not participate in Tiered Cache at all. Every data center pays its own origin fill.
+3. **It does not collapse concurrent requests**, so a release-day burst on a cold URL invokes your Worker once per request rather than once.
+
+`cache.put()` also returns a `413` when the response is too large, and `stale-while-revalidate` / `stale-if-error` are ignored by both `put()` and `match()`.
+
+So: **prefer Workers Cache for new Workers.** Reach for the Cache API only when you need to cache something you generated rather than fetched, and can live with a per-data-center store.
+
+> A purge gotcha specific to this section: when a Worker caches an asset through an outbound `fetch()`, the cached object is keyed by the URL **in the fetch request**, not the URL the end user typed. If your Worker on `downloads.example.com/app.exe` fetches `origin.internal/app.exe`, single-file purge has to target `origin.internal/app.exe`. Workers Cache entries are purged separately again, with [`ctx.cache.purge()`](https://developers.cloudflare.com/workers/cache/purge/).
 
 ### Fixing an Uncooperative Origin with Cache Response Rules
 
-Sometimes the origin insists on sending `Set-Cookie` or `Cache-Control: no-cache` on a download response that is perfectly shareable. [Cache Response Rules](https://blog.cloudflare.com/introducing-cache-response-rules/) let you rewrite that at the edge, before the response reaches cache – strip `Set-Cookie`, `ETag`, or `Last-Modified`, modify `Cache-Control` directives, or send a different `Cache-Control` downstream to browsers than the one Cloudflare uses internally.
+Sometimes the origin insists on sending `Set-Cookie` or `Cache-Control: no-cache` on a download response that is perfectly shareable. [Cache Response Rules](https://developers.cloudflare.com/cache/how-to/cache-response-rules/) ([announcement](https://blog.cloudflare.com/introducing-cache-response-rules/)) let you rewrite that at the edge, before the response reaches cache – strip `Set-Cookie`, `ETag`, or `Last-Modified`, modify `Cache-Control` directives, or send a different `Cache-Control` downstream to browsers than the one Cloudflare uses internally. Available on all plans (10 rules on Free, up to 300 on Enterprise).
+
+They run in the `http_response_cache_settings` phase, *after* the origin responds, and they **take precedence over Cache Rules** when the two disagree. They also apply to responses that are not cacheable at all, which is what makes them the right tool for stripping a `Set-Cookie` your origin insists on sending.
 
 > Strip `Set-Cookie` only when you are certain the cookie is not user-specific. Caching a response that carries someone's session cookie and serving it to the next visitor is a textbook cache-poisoning incident.
 
@@ -464,7 +521,7 @@ In practice that means one Cache Rule matching your protected paths, with the Ca
   "edge_ttl": { "mode": "override_origin", "default": 2592000 },
   "cache_key": {
     "custom_key": {
-      "query_string": { "exclude": ["token", "verify", "expires", "X-Amz-*"] }
+      "query_string": { "exclude": ["token", "verify", "expires"] }
     }
   }
 }
@@ -473,7 +530,8 @@ In practice that means one Cache Rule matching your protected paths, with the Ca
 Two constraints to plan around:
 
 - Query-string include/exclude and the header/cookie/host/user components are **Enterprise** capabilities. On lower plans, the practical equivalent is **Ignore query string** (all plans) combined with putting the token somewhere that is not part of the key – or doing the normalization in a Worker, as in Option 3.
-- Custom cache keys **break dashboard single-file purge**. Use purge by prefix, tag, or host instead.
+- `exclude` takes literal parameter names; the only wildcard it understands is `"*"`, meaning *all* parameters. There is no `X-Amz-*` style prefix match – and presigned-URL parameters never reach your zone's cache anyway, since presigned URLs only work against the S3 endpoint.
+- Purge by tag, host, or prefix is unaffected by a custom key. Purge *by URL* has to repeat the query strings and headers that make up the key, so drive it from the API rather than the dashboard.
 
 ---
 
@@ -505,7 +563,7 @@ One more operational detail: the [proxy read timeout](https://developers.cloudfl
 6. **Verify `Content-Length` and `accept-ranges: bytes`** are present so downloads are resumable and Cache Reserve is possible.
 7. **Enable Tiered Cache** (set a cloud region hint if your origin is on a public cloud), then evaluate Cache Reserve for long-tail artifacts on non-R2 origins.
 8. **Move to versioned, immutable URLs**, and make `latest` a 302 Redirect Rule rather than a cached file.
-9. **For gated files, authorize at the edge** (HMAC, JWT, Workers, or Access) and keep the authorization material *out of the cache key*.
+9. **For gated files, authorize at the edge** (HMAC, JWT, Workers, or Access) and keep the authorization material *out of the cache key*. If you serve them from a Worker, remember zone Cache Rules do not apply – enable Workers Cache in your Wrangler config instead.
 10. **Wire purging into CI/CD** with batched, prefix- or tag-based calls.
 11. **Instrument it** – Cache Analytics for the ratio, Logpush for Download Success Rate and Throughput, NEL for the failures clients never report, Cloudflare Trace for the one-off mystery, and alerts on regressions.
 
@@ -513,6 +571,8 @@ One more operational detail: the [proxy read timeout](https://developers.cloudfl
 
 - [Default cache behavior](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/) and [cache responses / status values](https://developers.cloudflare.com/cache/concepts/cache-responses/)
 - [Cache Rules settings](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/) – the full list of what a Cache Rule can change, and [Order and priority](https://developers.cloudflare.com/cache/how-to/cache-rules/order/) – how stacked rules resolve
+- [Workers Cache](https://developers.cloudflare.com/workers/cache/) – the read-through cache in front of a Worker, which zone cache settings do not reach – and the [Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/), the separate, manual, per-data-center store
+- [How the cache works](https://developers.cloudflare.com/workers/reference/how-the-cache-works/) – how `fetch()`, the Cache API, and the zone cache interact from inside a Worker
 - [Enable cache in an R2 bucket](https://developers.cloudflare.com/cache/interaction-cloudflare-products/r2/) and [Control cache access with WAF and Snippets](https://developers.cloudflare.com/cache/interaction-cloudflare-products/waf-snippets/)
 - [Investigate uncached responses](https://developers.cloudflare.com/cache/troubleshooting/investigating-uncached-responses/) – a troubleshooting path for unexpected MISS/BYPASS/DYNAMIC
 - [TCP connections](https://developers.cloudflare.com/fundamentals/reference/tcp-connections/) – keep-alives, idle timeouts, and why long transfers need to resume

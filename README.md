@@ -419,6 +419,8 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 | `draft`       | boolean  | No       | Hide from production                |
 | `status`      | enum     | No       | `active`, `completed`, `archived`   |
 | `featured`    | boolean  | No       | Show on homepage                    |
+| `showTableOfContents` | boolean | No | Toggle project TOC                  |
+| `aliases`     | string[] | No       | Legacy paths (Hugo compatibility); projects only |
 
 ## Features
 

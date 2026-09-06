@@ -356,6 +356,14 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
+  <a href="https://maps.app.goo.gl/ymssV8qGDiwkPSMX9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/new-zealand.webp" alt="New Zealand" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      New Zealand
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
 </div>
 
 ---
@@ -363,3 +371,5 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
 ## Disclaimer
 
 For educational purposes only. This project is independent and not affiliated with any specific company or institution. The content and illustrations presented herein are for informational purposes and do not necessarily reflect the views or opinions of any particular entity or individual.
+
+Some of the photos shown on this page are stock images sourced from [Unsplash](https://unsplash.com/) and used under the [Unsplash License](https://unsplash.com/license). All credit and attribution belong to the respective photographers.
