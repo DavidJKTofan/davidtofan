@@ -115,20 +115,43 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
   }
 </style>
 
+## Africa
+
 <div class="travel-grid not-prose">
-  <a href="https://goo.gl/maps/xweG7kQr8jq8omd36" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/cdmx-mexico.webp" alt="Mexico City" loading="lazy" decoding="async" width="800" height="600">
+  <a href="https://goo.gl/maps/D8Fo9d9fbXcT25CM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/morocco.webp" alt="Morocco" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      CDMX
+      Morocco
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/Rmu2vJUvN9Y8a6bV9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/iceland-country.webp" alt="Iceland" loading="lazy" decoding="async" width="800" height="600">
+  <a href="https://maps.app.goo.gl/HjVmUrP4zTMrnrSB9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/south-africa.webp" alt="South Africa" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Iceland
+      South Africa
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+</div>
+
+## Asia
+
+<div class="travel-grid not-prose">
+  <a href="https://goo.gl/maps/qA5qUYUCNLadKLTP9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/jordan.webp" alt="Jordan" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Jordan
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://maps.app.goo.gl/RBNiUHmAhFwnCCjd6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/singapore.webp" alt="Singapore" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Singapore
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
@@ -140,14 +163,11 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/D8Fo9d9fbXcT25CM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/morocco.webp" alt="Morocco" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Morocco
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
+</div>
+
+## Central America
+
+<div class="travel-grid not-prose">
   <a href="https://goo.gl/maps/HHyqSqxHs2ZR94UW8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
     <img src="/img/gmaps-images/belize.webp" alt="Belize" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
@@ -164,99 +184,16 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/qA5qUYUCNLadKLTP9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/jordan.webp" alt="Jordan" loading="lazy" decoding="async" width="800" height="600">
+</div>
+
+## Europe
+
+<div class="travel-grid not-prose">
+  <a href="https://goo.gl/maps/4FGi7FsyRsE4spNM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/baden-baden-germany.webp" alt="Baden-Baden" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Jordan
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/1JEc36CbsZi9HZw27" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/miami-usa.webp" alt="Miami" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Miami
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/qvcjPQ7uvk4XVBKm7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/newyork-usa.webp" alt="New York City" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      New York
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/6yRd5DN27anUrUYA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/granada.webp" alt="Granada" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Granada
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/5K2mFWgBtBV84AaA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/florence.webp" alt="Florence" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Florence
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/UrjF3Yw5TazsLQPv9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/milan-italy.webp" alt="Milan" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Milan
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/2tC9w1GtTQB1LPaFA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/parma-italy.webp" alt="Parma" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Parma
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/8QbYc92sPVZwr8MLA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/berlin.webp" alt="Berlin" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Berlin
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/n4KSVZf3ekJ84hjR7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/cadiz-spain.webp" alt="Cadiz" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Cádiz
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/mkBBDkF7Qhfo8A5TA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/malaga-spain.webp" alt="Malaga" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Málaga
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/uVDZCEa1vLotgps78" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/madrid-spain.webp" alt="Madrid" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Madrid
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/hgW4NTkVMnJECMa48" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/seville-spain.webp" alt="Sevilla" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Seville
+      Baden-Baden
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
@@ -268,11 +205,59 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/R5pfav5PYXFutu5ZA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/salzburg-austria.webp" alt="Salzburg" loading="lazy" decoding="async" width="800" height="600">
+  <a href="https://goo.gl/maps/8QbYc92sPVZwr8MLA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/berlin.webp" alt="Berlin" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Salzburg
+      Berlin
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/H7mSw7aMbakJ5EgW8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/biarritz-france.webp" alt="Biarritz" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Biarritz
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/n4KSVZf3ekJ84hjR7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/cadiz-spain.webp" alt="Cadiz" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Cádiz
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/5K2mFWgBtBV84AaA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/florence.webp" alt="Florence" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Florence
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/qWG8QBSKsyZPNLnE8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/galicia-spain.webp" alt="Galicia" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Galicia
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/6yRd5DN27anUrUYA7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/granada.webp" alt="Granada" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Granada
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/Rmu2vJUvN9Y8a6bV9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/iceland-country.webp" alt="Iceland" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Iceland
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
@@ -281,6 +266,70 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
       Lisbon
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/KAUGawBPehRiiXxf8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/london-uk.webp" alt="London" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      London
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/uVDZCEa1vLotgps78" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/madrid-spain.webp" alt="Madrid" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Madrid
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/mkBBDkF7Qhfo8A5TA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/malaga-spain.webp" alt="Malaga" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Málaga
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/UrjF3Yw5TazsLQPv9" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/milan-italy.webp" alt="Milan" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Milan
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/KmzMJEcfaZ5vkoNy6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/munich-germany.webp" alt="Munich" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Munich
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://maps.app.goo.gl/xN2my4gMJqMe61G28" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/norway.webp" alt="Norway" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Norway
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/CEKdSx2KLyCCzdT86" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/paris-france.webp" alt="Paris" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Paris
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/2tC9w1GtTQB1LPaFA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/parma-italy.webp" alt="Parma" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Parma
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
@@ -300,43 +349,19 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/KmzMJEcfaZ5vkoNy6" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/munich-germany.webp" alt="Munich" loading="lazy" decoding="async" width="800" height="600">
+  <a href="https://goo.gl/maps/R5pfav5PYXFutu5ZA" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/salzburg-austria.webp" alt="Salzburg" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Munich
+      Salzburg
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/4FGi7FsyRsE4spNM8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/baden-baden-germany.webp" alt="Baden-Baden" loading="lazy" decoding="async" width="800" height="600">
+  <a href="https://goo.gl/maps/hgW4NTkVMnJECMa48" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/seville-spain.webp" alt="Sevilla" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Baden-Baden
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/CEKdSx2KLyCCzdT86" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/paris-france.webp" alt="Paris" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Paris
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/H7mSw7aMbakJ5EgW8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/biarritz-france.webp" alt="Biarritz" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      Biarritz
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-    </div>
-  </a>
-  <a href="https://goo.gl/maps/KAUGawBPehRiiXxf8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/london-uk.webp" alt="London" loading="lazy" decoding="async" width="800" height="600">
-    <div class="travel-card-overlay"></div>
-    <div class="travel-card-label">
-      London
+      Seville
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
@@ -348,11 +373,45 @@ I definitely recommend visiting [Kalimera Beach Hotel](https://www.kalimera.bz/)
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
-  <a href="https://goo.gl/maps/qWG8QBSKsyZPNLnE8" target="_blank" rel="noreferrer nofollow external" class="travel-card">
-    <img src="/img/gmaps-images/galicia-spain.webp" alt="Galicia" loading="lazy" decoding="async" width="800" height="600">
+</div>
+
+## North America
+
+<div class="travel-grid not-prose">
+  <a href="https://goo.gl/maps/xweG7kQr8jq8omd36" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/cdmx-mexico.webp" alt="Mexico City" loading="lazy" decoding="async" width="800" height="600">
     <div class="travel-card-overlay"></div>
     <div class="travel-card-label">
-      Galicia
+      CDMX
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/1JEc36CbsZi9HZw27" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/miami-usa.webp" alt="Miami" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Miami
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+  <a href="https://goo.gl/maps/qvcjPQ7uvk4XVBKm7" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/newyork-usa.webp" alt="New York City" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      New York
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </div>
+  </a>
+</div>
+
+## Oceania
+
+<div class="travel-grid not-prose">
+  <a href="https://maps.app.goo.gl/rmzNZfAjAN5Zon9s5" target="_blank" rel="noreferrer nofollow external" class="travel-card">
+    <img src="/img/gmaps-images/australia.webp" alt="Australia" loading="lazy" decoding="async" width="800" height="600">
+    <div class="travel-card-overlay"></div>
+    <div class="travel-card-label">
+      Australia
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
     </div>
   </a>
