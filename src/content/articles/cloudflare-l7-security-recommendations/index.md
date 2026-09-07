@@ -1,6 +1,7 @@
 ---
 title: General Application Security Recommendations
 date: 2024-09-08
+modified: 2026-09-07
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Security approach with Cloudflare."
 tags: ["cybersecurity", "cloudflare", "resources", "application security"]
 type: "article"
@@ -20,6 +21,94 @@ This guide assumes that your domain is already onboarded to Cloudflare as a [Zon
 
 ---
 
+## Prerequisite Knowledge
+
+Before implementing any of the recommendations below, it helps to be familiar with a handful of Cloudflare fundamentals. Most _"why did my rule not match?"_ or _"why is this request still reaching my origin?"_ situations trace back to one of the following concepts.
+
+### Order of Execution (Phases)
+
+Cloudflare products do not all run at the same moment. Each product powered by the [Ruleset Engine](https://developers.cloudflare.com/ruleset-engine/) executes within its own [phase](https://developers.cloudflare.com/ruleset-engine/about/phases/), and phases run in a fixed [order of execution](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/).
+
+Practical implications:
+
+- Anything produced in a **later** phase cannot be matched in an **earlier** one. This is exactly why the `CF-Worker` header cannot be used in WAF Custom Rules (see [Mitigate Unauthorized Cloudflare Workers](#mitigate-unauthorized-cloudflare-workers)), and why headers added by [Request Header Transform Rules](https://developers.cloudflare.com/rules/transform/request-header-modification/) are invisible to the WAF.
+- A [Skip](https://developers.cloudflare.com/waf/custom-rules/skip/) action only skips the products or phases you explicitly select. It is not a global _"allow everything"_, and it cannot undo a phase that already executed.
+- Within a phase, rules are evaluated top to bottom and the first terminating action wins. Order matters: narrow Skip / Allow rules at the top, broader mitigations below.
+- **Response** phases (Custom Errors, Managed Transforms, Response Header Transform Rules, Compression Rules, and Rate Limiting Rules that use response information) only run after the origin has responded.
+
+Reference: [Phases list](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/) and [WAF phases](https://developers.cloudflare.com/waf/reference/phases/).
+
+### HTTP/S Network Ports
+
+Cloudflare's proxy only handles a [specific set of HTTP/S ports](https://developers.cloudflare.com/fundamentals/reference/network-ports/): `80`, `8080`, `8880`, `2052`, `2082`, `2086`, `2095` for HTTP, and `443`, `2053`, `2083`, `2087`, `2096`, `8443` for HTTPS. Requests to any other port on a proxied hostname are not handled by Cloudflare's proxy by default. For that you'd require [Spectrum](https://developers.cloudflare.com/spectrum/).
+
+- Caching is disabled on the alternative ports (`2052`, `2053`, `2082`, `2083`, `2086`, `2087`, `2095`, `2096`, `8880`, `8443`), unless an Enterprise [cache rule](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#caching-on-port-enterprise-only) enables it.
+- Only ports `80` and `443` are compatible with the [**China Network**](https://developers.cloudflare.com/china-network/).
+- To prevent HTTP/S requests over non-standard ports from ever reaching the origin, enable the _Anomaly:Port - Non Standard Port (not 80 or 443)_ rule described in [Stricter Security Requirements with WAF Managed Ruleset](#stricter-security-requirements-with-waf-managed-ruleset).
+- For anything that is not HTTP/S (i.e. SSH, RDP, custom TCP/UDP), use [Spectrum](https://developers.cloudflare.com/spectrum/) rather than [gray-clouding / DNS-Only](https://developers.cloudflare.com/dns/proxy-status/) the DNS record, which would expose the origin IP. See [Non-HTTP/S Use Cases](#non-https-use-cases).
+- Because of Cloudflare's [anycast](https://www.cloudflare.com/learning/cdn/glossary/anycast-network/) network, [port scanners](https://developers.cloudflare.com/fundamentals/reference/scans-penetration/#important-remarks) will likely report these non-standard ports as open on [Cloudflare IPs](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/). That is shared Cloudflare infrastructure serving many customers, not an open port on your origin.
+
+### TCP Connections and Connection Limits
+
+When traffic is proxied, there are two independent [TCP connections](https://developers.cloudflare.com/fundamentals/reference/tcp-connections/): client → Cloudflare, and Cloudflare → origin. Each has its own timeouts and [connection limits](https://developers.cloudflare.com/fundamentals/reference/connection-limits/).
+
+- Client-side connections have a **400 second** idle timeout, after which Cloudflare sends keep-alive probes and eventually severs the connection with a TCP Reset (RST).
+- Origin-side timeouts map directly to the [Cloudflare error](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/) your users would see: **522** (complete TCP connection at 19s, or TCP ACK timeout at 90s), **520** (keep-alive interval at 30s, or proxy idle timeout at 900s), and **524** (proxy read timeout at 125s — configurable for Enterprise zones — or proxy write timeout at 30s).
+- Ensure **HTTP keep-alives are enabled on your origin**. Cloudflare reuses open TCP connections, and origins that close them aggressively cause avoidable connection resets.
+- [Smart Shield](https://developers.cloudflare.com/smart-shield/) extends this with [connection reuse](https://developers.cloudflare.com/smart-shield/concepts/connection-reuse/), batching requests from upper-tier data centers over shared connections and reducing origin connections by roughly 30% on average. This lowers the risk of connection exhaustion at the origin under high traffic.
+- URLs are limited to **16 KB**, and request and response headers to **128 KB** in total. Oversized headers (i.e. large JWTs or cookie jars) are rejected before your rules ever evaluate them.
+- Applications should handle disconnections gracefully: capacity balancing, data center maintenance, or node restarts can end a connection even with keep-alives in place.
+
+> _**Note**: some TCP connection settings can be customized for Enterprise customers — reach out to your account team._
+
+### Cloudflare HTTP Headers
+
+Cloudflare adds, modifies, and removes a number of [HTTP headers](https://developers.cloudflare.com/fundamentals/reference/http-headers/) on proxied traffic. Knowing which is which avoids both broken origin logic and false confidence in spoofable values.
+
+- [`CF-Connecting-IP`](https://developers.cloudflare.com/fundamentals/reference/http-headers/#cf-connecting-ip) — and `True-Client-IP` on Enterprise — carry the original visitor IP to the origin. Many prefer them over `X-Forwarded-For`, which may contain a chain of proxy IPs. Remember to [restore original visitor IPs](https://developers.cloudflare.com/support/troubleshooting/restoring-visitor-ips/restoring-original-visitor-ips/) at the origin, otherwise every request appears to come from a Cloudflare IP.
+- `CF-Ray` is sent to the origin and returned to the visitor, and is the single most useful value when correlating logs or contacting support.
+- [`CF-Worker`](https://developers.cloudflare.com/fundamentals/reference/http-headers/#cf-worker) identifies the zone originating a Workers subrequest, but is added _after_ rule evaluation — match on [`cf.worker.upstream_zone`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.worker.upstream_zone/) instead.
+- [`Cf-Mitigated` signals](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/detect-response/) to the client that a request was challenged, which is what makes challenge handling viable for [API / AJAX / XHR requests](#api--ajax--xhr-requests).
+- Cloudflare may strip a few response headers (`Alt-Svc`, `X-Accel-*`) and may drop request headers with names considered invalid, such as those containing a `.` (dot) character.
+- If you do **not** want visitor IPs forwarded at all, enable the _Remove visitor IP headers_ [Managed Transform](https://developers.cloudflare.com/rules/transform/managed-transforms/reference/).
+
+> _**Note**: any header a client sends can be spoofed. Headers added by Cloudflare are only trustworthy at the origin if the origin is locked down to accept traffic exclusively from Cloudflare — see [Origin Server Protection](#origin-server-protection).
+
+### The `/cdn-cgi/` Endpoint
+
+Every proxied domain gets a Cloudflare-managed [`/cdn-cgi/` endpoint](https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/), which cannot be modified or customized. Several products depend on it:
+
+- `/cdn-cgi/trace` — [identify the Cloudflare data center](https://developers.cloudflare.com/support/troubleshooting/general-troubleshooting/gathering-information-for-troubleshooting-sites/#identify-the-cloudflare-data-center-serving-your-request) serving a request.
+- `/cdn-cgi/challenge-platform/` — [Challenges](https://developers.cloudflare.com/cloudflare-challenges/), [JavaScript Detections (JSD)](https://developers.cloudflare.com/bots/reference/javascript-detections/), and [Turnstile](https://developers.cloudflare.com/turnstile/).
+- `/cdn-cgi/image/` — [image transformations](https://developers.cloudflare.com/images/optimization/transformations/overview/).
+- `/cdn-cgi/l/email-protection` — [email address obfuscation](https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/).
+- `/cdn-cgi/rum` — [Web Analytics](https://developers.cloudflare.com/web-analytics/get-started/#sites-proxied-through-cloudflare).
+
+Recommendations:
+
+- **Exclude `/cdn-cgi/` from your security rules.** Blocking or challenging it breaks Challenges, JSD, and Turnstile, and is one of the most common self-inflicted false positives.
+- Omit it from vulnerability scans, since some of these endpoints intentionally do not carry certain settings.
+- Add `Disallow: /cdn-cgi/` to your `robots.txt`, preceded by `Allow: /cdn-cgi/image/` if you serve transformed images.
+
+Reference: [Interaction between Cloudflare challenges and Rules features](https://developers.cloudflare.com/rules/reference/troubleshooting/#interaction-between-cloudflare-challenges-and-rules-features).
+
+### Error Responses
+
+When Cloudflare cannot complete a request, it generates its own [error response](https://developers.cloudflare.com/fundamentals/reference/error-responses/). This covers all [1xxx error codes](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/) and Cloudflare-generated [5xx errors](https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-5xx-errors/) (500, 502, 504, 520-526). 5xx errors generated by your origin server are passed through untouched.
+
+The format follows the client's `Accept` header: HTML by default, structured JSON for `application/json` or `application/problem+json`, and [Markdown](https://developers.cloudflare.com/fundamentals/reference/markdown-for-agents/) for `text/markdown`. Structured error responses are available.
+
+Why this matters for security:
+
+- **API clients and agents receive parseable errors** instead of an HTML page they cannot interpret — relevant whenever a mitigation lands on a non-browser client.
+- **[Custom Errors](https://developers.cloudflare.com/rules/custom-errors/) take precedence.** An uploaded Error Page is served to every client regardless of `Accept`, while [Custom Error Rules](https://developers.cloudflare.com/rules/custom-errors/#custom-error-rules) can match on the `Accept` header, letting you serve JSON to APIs, Markdown to agents, and branded HTML to browsers from the same zone. See [Branding](#branding).
+
+> _**Note**: keep error content generic. Verbose error output leaks stack traces, origin hostnames, and framework versions._
+
+> _**Note**: if you intend to validate any of the configurations below with a scanner or a penetration test, first review the [Scans and Penetration Testing Policy](#scans-and-penetration-testing-policy)._
+
+---
+
 ## Troubleshooting
 
 - Review the [Cloudflare Status page](https://www.cloudflarestatus.com/).
@@ -32,6 +121,32 @@ This guide assumes that your domain is already onboarded to Cloudflare as a [Zon
 In general, in most cases you can create rules with the action set to "Log" for testing purposes. This allows you to review what it matches in the [Security Events](https://developers.cloudflare.com/waf/analytics/security-events/) and fine-tune it as needed before applying a more impactful action, such as "Block", "Managed Challenge", or even "SKIP".
 
 For more information, review the older article [Protecting OSI layers](/articles/protecting-osi-layers/).
+
+### **Rollout Approach and Choosing an Action**
+
+Whatever the signal, the safest way to introduce it follows the same progression:
+
+```text
+Baseline in Security Analytics / Bot Analytics → log-only where supported →
+limited challenge or rate-limit → enforce → monitor false positives →
+tune thresholds and exceptions
+```
+
+Then pick the [action](https://developers.cloudflare.com/ruleset-engine/rules-language/actions/) that matches your confidence in the signal and the cost of a false positive:
+
+| Action | Use when | Avoid when |
+| --- | --- | --- |
+| [Log](https://developers.cloudflare.com/ruleset-engine/rules-language/actions/) / simulate | New signal, uncertain impact, customer is baselining | A confirmed active attack is harming the origin |
+| [Skip](https://developers.cloudflare.com/waf/custom-rules/skip/) | Narrow, known-good traffic needs to bypass a specific security control | Broad bypasses for whole ASNs, countries, or generic bot categories |
+| [Managed Challenge](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#managed-challenges) | Browser traffic is suspicious but may be legitimate | API clients, mobile apps, or machine-to-machine flows that cannot solve browser challenges |
+| [Interactive Challenge](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#interactive-challenges) | High-risk browser flow where user friction is acceptable | Conversion-critical flows unless scoped narrowly and monitored |
+| [Rate Limit](https://developers.cloudflare.com/waf/rate-limiting-rules/) | Volumetric abuse, credential stuffing, carding, scraping, API abuse | Solely by IP address for mobile/CGNAT-heavy audiences |
+| [Block](https://developers.cloudflare.com/waf/custom-rules/create-dashboard/#configure-a-custom-response-for-blocked-requests) | Confirmed malicious fingerprints, impossible flow, known exploit, or repeat abuse | Ambiguous traffic where false positives would be costly |
+| [Serve cached content](https://developers.cloudflare.com/cache/how-to/cache-rules/) | Public cacheable pages during scraping or traffic spikes | [Personalized content](https://blog.cloudflare.com/introducing-cache-response-rules/#examples-worth-stealing), checkout, login, account, admin, or sensitive API responses |
+
+> _**Note**: Skip bypasses the specific Cloudflare products or phases [you select](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/) and nothing else.
+
+---
 
 ### **WAF Managed Rules**
 
@@ -488,6 +603,11 @@ It is highly recommended to set up [Notifications](https://developers.cloudflare
 
 Cloudflare customers may conduct scans and penetration tests (with certain restrictions) on application and network-layer aspects of their own assets.
 
+Two results that regularly show up in reports and are expected behavior rather than findings:
+
+- Non-standard ports reported as open on the resolved IPs. Those are shared [Cloudflare anycast IPs](#https-network-ports) serving many customers, not open ports on your origin.
+- Warnings on [`/cdn-cgi/` paths](#the-cdn-cgi-endpoint), which are managed by Cloudflare and should be omitted from scans.
+
 You can review all details in the [developer documentation](https://developers.cloudflare.com/fundamentals/reference/scans-penetration/).
 
 ---
@@ -648,6 +768,28 @@ A general goal is protecting against automated requests and bots – though the
 - Content Spam
 
 The best approach to combating bots depends on the Cloudflare features available and configured, as well as the specific types of bot attacks being observed. [DDoS attacks](https://blog.cloudflare.com/ddos-threat-report-for-2024-q4/) are usually also launched by botnets. Every website is unique, and often so are the attack patterns it faces. In general, fighting bots is a _cat-and-mouse game_, requiring continuous adaptation to evolving threats. Cloudflare continuously enhances its capabilities based on [customer feedback](https://developers.cloudflare.com/bots/concepts/feedback-loop/) and its [Threat Intelligence](https://www.cloudflare.com/threat-intelligence/) to try to stay ahead.
+
+#### Wanted vs. Unwanted Automation
+
+The goal is not to _"block all bots"_. The goal is to **allow useful automation, constrain ambiguous automation, and stop abusive automation**. Cloudflare's own framing is that the important distinction is often **what the traffic is doing**, not simply whether it is a bot or a human: see [Moving past bots vs. humans](https://blog.cloudflare.com/past-bots-and-humans/).
+
+[Cloudflare Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/#verified-bots) are automated services Cloudflare has identified as generally useful or expected, such as search-engine crawlers and monitoring services. Verified does **not** automatically mean _"desired everywhere"_. For example, a search crawler may be allowed on public content but should usually not be allowed to crawl login, checkout, account, admin, or API mutation endpoints unless there is a specific business reason.
+
+| Traffic class | Examples | Default posture | Cloudflare controls |
+| --- | --- | --- | --- |
+| Wanted verified bots | Googlebot, Bingbot, social previews, approved monitoring | Skip **only where the business wants this traffic** | [Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/#verified-bots), WAF Skip rules for narrow paths, customer-managed allowlists for owned systems |
+| Declared AI/search/content crawlers | Known AI/search crawlers and content consumers | Allow, block, or constrain based on content/business policy | [Detection IDs](https://developers.cloudflare.com/bots/additional-configurations/detection-ids/), [AI Crawl Control](https://developers.cloudflare.com/ai-crawl-control/), [Bot Preference Sync](https://blog.cloudflare.com/bot-preference-sync/), [BotBase for Operators](https://blog.cloudflare.com/botbase-for-operators/), robots.txt |
+| User-directed agents | Browser or assistant traffic acting on behalf of a real user | Prefer risk-based controls; avoid blanket blocking when behavior is legitimate | [Bot Management variables](https://developers.cloudflare.com/bots/reference/bot-management-variables/), [Turnstile](https://developers.cloudflare.com/turnstile/), [Clearance / pre-clearance](https://developers.cloudflare.com/cloudflare-challenges/concepts/clearance/), application-layer step-up |
+| Unknown automation | curl, Python requests, commodity headless browsers, suspicious TLS/browser fingerprints | Baseline → challenge/rate-limit → block if abusive | [Bot Score](https://developers.cloudflare.com/bots/reference/bot-management-variables/), [JavaScript Detections](https://developers.cloudflare.com/bots/reference/javascript-detections/), JA3/JA4 fields, [WAF Custom Rules](https://developers.cloudflare.com/waf/custom-rules/), [Rate Limiting Rules](https://developers.cloudflare.com/waf/rate-limiting-rules/) |
+| Malicious fraud bots | Credential stuffing, carding, fake signups, scraper farms, inventory abuse | Block, rate-limit, challenge, or route to origin fraud workflow | [Account takeover Detection IDs](https://developers.cloudflare.com/bots/additional-configurations/detection-ids/account-takeover-detections/), [Leaked Credentials Detection](https://developers.cloudflare.com/waf/detections/leaked-credentials/), [Turnstile Ephemeral IDs](https://developers.cloudflare.com/turnstile/tutorials/fraud-detection-with-ephemeral-ids/), [API Shield](https://developers.cloudflare.com/api-shield/security/) |
+
+Important distinctions:
+
+- **Verified bot** means Cloudflare recognizes the bot category/operator. It does not mean every request from that bot is business-approved for every endpoint.
+- **Low Bot Score** is a risk signal, not a complete fraud verdict. Stronger actions should combine Bot Score with endpoint sensitivity, method, velocity, Detection IDs, JA3/JA4, leaked credentials, session/user context, and business impact.
+- **User-Agent is not identity.** It is easy to spoof. Prefer Cloudflare-provided bot signals, request behavior, cryptographic or verified signals where available, and application context.
+
+#### Layered Mitigation Approach
 
 To effectively mitigate bot traffic, consider the following (non-exhaustive) layered-security approach:
 
