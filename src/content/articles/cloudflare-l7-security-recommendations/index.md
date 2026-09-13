@@ -15,7 +15,7 @@ This guide provides non-exhaustive recommendations and general best practices to
 
 Some features mentioned are available only through advanced Cloudflare bundles, such as **WAF Advanced**, [Advanced Rate Limiting](https://developers.cloudflare.com/waf/rate-limiting-rules/#availability), or **Enterprise** features like [Enterprise Bot Management](https://developers.cloudflare.com/bots/plans/bm-subscription/).
 
-This guide assumes that your domain is already onboarded to Cloudflare as a [Zone](https://developers.cloudflare.com/fundamentals/setup/accounts-and-zones/#zones) and configured using [Full Setup](https://developers.cloudflare.com/dns/zone-setups/full-setup/), meaning Cloudflare is acting as your authoritative DNS provider. Additionally, it's recommended to have [DNSSEC](https://developers.cloudflare.com/dns/dnssec/) enabled and being familiar with [Zone Holds](https://developers.cloudflare.com/fundamentals/account/account-security/zone-holds/).
+This guide assumes that your domain is already onboarded to Cloudflare as a [Zone](https://developers.cloudflare.com/fundamentals/concepts/accounts-and-zones/#zones) and configured using [Full Setup](https://developers.cloudflare.com/dns/zone-setups/full-setup/), meaning Cloudflare is acting as your authoritative DNS provider. Additionally, it's recommended to have [DNSSEC](https://developers.cloudflare.com/dns/dnssec/) enabled and being familiar with [Zone Holds](https://developers.cloudflare.com/fundamentals/account/account-security/zone-holds/).
 
 > **You can find all recommendations, security rules and more in the _[Cloudflare L7 Best Practices Repository (Database)](https://db.automatic-demo.com/)_ for quick searches.**
 
@@ -79,7 +79,7 @@ Cloudflare adds, modifies, and removes a number of [HTTP headers](https://develo
 Every proxied domain gets a Cloudflare-managed [`/cdn-cgi/` endpoint](https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/), which cannot be modified or customized. Several products depend on it:
 
 - `/cdn-cgi/trace` — [identify the Cloudflare data center](https://developers.cloudflare.com/support/troubleshooting/general-troubleshooting/gathering-information-for-troubleshooting-sites/#identify-the-cloudflare-data-center-serving-your-request) serving a request.
-- `/cdn-cgi/challenge-platform/` — [Challenges](https://developers.cloudflare.com/cloudflare-challenges/), [JavaScript Detections (JSD)](https://developers.cloudflare.com/bots/reference/javascript-detections/), and [Turnstile](https://developers.cloudflare.com/turnstile/).
+- `/cdn-cgi/challenge-platform/` — [Challenges](https://developers.cloudflare.com/cloudflare-challenges/), [JavaScript Detections (JSD)](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/), and [Turnstile](https://developers.cloudflare.com/turnstile/).
 - `/cdn-cgi/image/` — [image transformations](https://developers.cloudflare.com/images/optimization/transformations/overview/).
 - `/cdn-cgi/l/email-protection` — [email address obfuscation](https://developers.cloudflare.com/waf/tools/scrape-shield/email-address-obfuscation/).
 - `/cdn-cgi/rum` — [Web Analytics](https://developers.cloudflare.com/web-analytics/get-started/#sites-proxied-through-cloudflare).
@@ -114,7 +114,7 @@ Why this matters for security:
 - Review the [Cloudflare Status page](https://www.cloudflarestatus.com/).
 - Consult the [Troubleshooting section](https://developers.cloudflare.com/support/troubleshooting/).
 - [Gather necessary information](https://developers.cloudflare.com/support/troubleshooting/general-troubleshooting/) and contact [Cloudflare Support](https://developers.cloudflare.com/support/contacting-cloudflare-support/#methods-of-contacting-cloudflare-support).
-- Use [Trace](https://developers.cloudflare.com/fundamentals/basic-tasks/trace-request/) to understand the impact of your Cloudflare configurations on specific requests.
+- Use [Trace](https://developers.cloudflare.com/rules/trace-request/) to understand the impact of your Cloudflare configurations on specific requests.
 
 ## Recommendations
 
@@ -144,7 +144,7 @@ Then pick the [action](https://developers.cloudflare.com/ruleset-engine/rules-la
 | [Block](https://developers.cloudflare.com/waf/custom-rules/create-dashboard/#configure-a-custom-response-for-blocked-requests) | Confirmed malicious fingerprints, impossible flow, known exploit, or repeat abuse | Ambiguous traffic where false positives would be costly |
 | [Serve cached content](https://developers.cloudflare.com/cache/how-to/cache-rules/) | Public cacheable pages during scraping or traffic spikes | [Personalized content](https://blog.cloudflare.com/introducing-cache-response-rules/#examples-worth-stealing), checkout, login, account, admin, or sensitive API responses |
 
-> _**Note**: Skip bypasses the specific Cloudflare products or phases [you select](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/) and nothing else.
+> _**Note**: Skip bypasses the specific Cloudflare products or phases [you select](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/) and nothing else._
 
 ---
 
@@ -164,9 +164,10 @@ Reference: [Cloudflare Managed Ruleset](https://developers.cloudflare.com/waf/ma
 
 For additional and stricter security requirements, deploy some of the following rules:
 
+- _Anomaly:Header:User-Agent - Empty_ with Rule ID _b57df4f17f7f4ea4b8db33e20a6dbbd3_.
 - _XSS, HTML Injection_ with Rule ID _882b37d6bd5f4bf2a3cdb374d503ded0_.
 - _Anomaly:URL:Path - Multiple Slashes, Relative Paths, CR, LF or NULL_ with Rule ID _6e759e70dc814d90a003f10424644cfb_.
-- _Anomaly:Body - Large_ with Rule ID _7b822fd1f5814e17888ded658480ea8f_, in order to mitigate body payloads which are higher than the [processing limit](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/http-request-body/).
+- _Anomaly:Body - Large_ with Rule ID _7b822fd1f5814e17888ded658480ea8f_, in order to mitigate body payloads which are higher than the [processing limit](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/http.request.body.raw/).
   - It is generally recommended to add [WAF exceptions](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) for this, especially for [upload endpoints](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#upload-limits).
 - _Anomaly:Port - [Non Standard Port](https://developers.cloudflare.com/fundamentals/reference/network-ports/#how-to-block-traffic-on-additional-ports) (not 80 or 443)_ with Rule ID _8e361ee4328f4a3caf6caf3e664ed6fe_.
 - _Anomaly:Method - Unusual HTTP Method_ with Rule ID _ab53f93c9b03472ab34a5405d9bdc7d5_.
@@ -174,7 +175,7 @@ For additional and stricter security requirements, deploy some of the following 
 - Including all the _Vulnerability scanner activity_-related Rules.
 - Any [other relevant Rules](https://developers.cloudflare.com/waf/change-log/) you might need.
 
-[Log the payload of matched rules](https://developers.cloudflare.com/waf/managed-rules/payload-logging/), if required, to help diagnosing the behavior of the rules. The encrypted payloads can be found in the Metadata field in [Firewall events](https://developers.cloudflare.com/logs/reference/log-fields/zone/firewall_events/) logs.
+[Log the payload of matched rules](https://developers.cloudflare.com/waf/managed-rules/payload-logging/), if required, to help diagnosing the behavior of the rules. The encrypted payloads can be found in the Metadata field in [Firewall events](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/firewall_events/) logs.
 
 > _**Note**: it is also generally recommended to disable (globally or selectively) [Browser Integrity Check (BIC)](https://developers.cloudflare.com/waf/tools/browser-integrity-check/), especially to prevent potential false positives with APIs / automated traffic and non-browser endpoints. Use modern detections like WAF Managed Rules and Bot Management instead._
 
@@ -198,7 +199,7 @@ Custom rules give you granular control to tailor your security policy to your ap
 
 #### Allow Verified Bots
 
-It's ordinarily recommended to have as one of the first top Custom Rules a [SKIP Custom Rule](https://developers.cloudflare.com/waf/custom-rules/skip/), allowing Verified Bots, such as i.e. Search Engine Crawler (like _GoogleBot_). Only skip the products you actually intend to bypass (i.e. _All remaining custom rules_, _Rate limiting rules_, and _Super Bot Fight Mode_).
+It's ordinarily recommended to have as one of the first top Custom Rules a [SKIP Custom Rule](https://developers.cloudflare.com/waf/custom-rules/skip/), allowing Verified Bots, such as i.e. Search Engine Crawler (like _GoogleBot_). Only skip what you actually intend to bypass (i.e. _All remaining custom rules_, _All rate limiting rules_, or _All Super Bot Fight Mode rules_), as described in [Available skip options](https://developers.cloudflare.com/waf/custom-rules/skip/options/).
 
 ![allow-verified-bots](img/allow-verified-bots.png)
 
@@ -386,7 +387,7 @@ Expression Preview:
 (lower(http.user_agent) contains "python" or lower(http.user_agent) contains "go-http-client" or lower(http.user_agent) contains "scrapy" or lower(http.user_agent) contains "libwww-perl" or lower(http.user_agent) contains "fasthttp" or lower(http.user_agent) contains "undici" or lower(http.user_agent) contains "curl" or lower(http.user_agent) contains "wget" or http.user_agent eq "")
 ```
 
-A single case-insensitive regular expression could be easier to maintain:
+A single case-insensitive regular expression could be easier to maintain (watch out for the [`matches` operator](https://developers.cloudflare.com/ruleset-engine/rules-language/operators/#regular-expression-matching)):
 
 ```text
 (http.user_agent matches r"(?i)(python|go-http-client|scrapy|libwww-perl|fasthttp|undici|curl|wget)" or http.user_agent eq "")
@@ -398,7 +399,7 @@ References: [Challenge bad bots](https://developers.cloudflare.com/waf/custom-ru
 
 #### Restrict Access to Admin Areas and Internal Applications
 
-Restrict access to administrative interfaces – such as the WordPress dashboard (`/wp-admin`, `/wp-login.php`) or any `/admin` path – and to internal applications like employee portals or extranets. The preferred option is a [Zero Trust approach with Cloudflare Access](https://developers.cloudflare.com/learning-paths/zero-trust-web-access/), which authenticates the user rather than the network. Where that is not possible, restrict access to specific static source IPs of employees or admins (using a [Custom List](https://developers.cloudflare.com/waf/tools/lists/custom-lists/)), to the countries in which you have employees located, or to employees with valid [mTLS](#mutual-tls-authentication) client certificates. Try to be as specific as possible, combining multiple conditions like hostname, HTTP header, ASN, and HTTP method.
+Restrict access to administrative interfaces – such as the WordPress dashboard (`/wp-admin`, `/wp-login.php`) or any `/admin` path – and to internal applications like employee portals or extranets. The preferred option is a [Zero Trust approach with Cloudflare Access](https://developers.cloudflare.com/learning-paths/clientless-access/concepts/), which authenticates the user rather than the network. Where that is not possible, restrict access to specific static source IPs of employees or admins (using a [Custom List](https://developers.cloudflare.com/waf/tools/lists/custom-lists/)), to the countries in which you have employees located, or to employees with valid [mTLS](#mutual-tls-authentication) client certificates. Try to be as specific as possible, combining multiple conditions like hostname, HTTP header, ASN, and HTTP method.
 
 ![restrict-wp-admin-dashboard-access](img/restrict-wp-admin-dashboard-access.png)
 
@@ -454,9 +455,9 @@ Expression Preview:
 (http.host in {"mtls.example.com" "mtls2.example.com"} and (not cf.tls_client_auth.cert_verified or cf.tls_client_auth.cert_revoked))
 ```
 
-References: [Cloudflare Public Key Infrastructure (PKI)](https://developers.cloudflare.com/ssl/client-certificates/), [CFSSL](https://cfssl.org/), [API Shield mTLS](https://developers.cloudflare.com/api-shield/security/mtls/) and [Workers mTLS](https://developers.cloudflare.com/workers/runtime-apis/bindings/mtls/). Check out this Learning Path on [mTLS at Cloudflare](https://developers.cloudflare.com/learning-paths/mtls/).
+References: [Cloudflare Public Key Infrastructure (PKI)](https://developers.cloudflare.com/ssl/client-certificates/), [CFSSL](https://cfssl.org/), [API Shield mTLS](https://developers.cloudflare.com/api-shield/security/mtls/) and [Workers mTLS](https://developers.cloudflare.com/workers/runtime-apis/bindings/mtls/). Check out this Learning Path on [mTLS at Cloudflare](https://developers.cloudflare.com/learning-paths/mtls/concepts/).
 
-Another interesting use case is to associate specific mTLS hostnames with Client Certificate Serial Numbers ([`cf.tls_client_auth.cert_serial`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cftls_client_authcert_serial)). This allows for more granular control.
+Another interesting use case is to associate specific mTLS hostnames with Client Certificate Serial Numbers ([`cf.tls_client_auth.cert_serial`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_serial/)). This allows for more granular control.
 
 ![waf-custom-rule-block-cert-serial.png](img/waf-custom-rule-block-cert-serial.png)
 
@@ -502,11 +503,11 @@ References: [Bot Management variables](https://developers.cloudflare.com/bots/re
 
 #### Mitigating Pretend-Browsers with JavaScript Detections
 
-In scenarios where the [BotScore](https://developers.cloudflare.com/bots/concepts/bot-score/) alone may not reliably differentiate between likely human and bots, you can enhance detection by optionally enabling [JavaScript Detections (JSD)](https://developers.cloudflare.com/bots/reference/javascript-detections/).
+In scenarios where the [BotScore](https://developers.cloudflare.com/bots/concepts/bot-score/) alone may not reliably differentiate between likely human and bots, you can enhance detection by optionally enabling [JavaScript Detections (JSD)](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/).
 
 > _**Note**: JSD can only be applied to HTML responses (`Content-Type: text/html`) and it cannot be at the root/first HTML request as the JavaScript needs to be injected first._
 
-When enforced via [`cf.bot_management.js_detection.passed`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cfbot_managementjs_detectionpassed) rules and a [Managed Challenge](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#managed-challenge-recommended), JSD ensures active verification checks.
+When enforced via [`cf.bot_management.js_detection.passed`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.bot_management.js_detection.passed/) rules and a [Managed Challenge](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#managed-challenges), JSD ensures active verification checks.
 
 ![waf-custom-rule-pretend-browsers](img/waf-custom-rule-pretend-browsers.png)
 
@@ -520,7 +521,7 @@ Restricting the rule to `POST` requests ensures it never matches the first HTML 
 
 > _**Note**: Test with a logging action before enforcing rules to avoid impacting legitimate traffic. Additionally, the Rule should only apply on critical paths and not on initial landing pages, where JS might have not been injected yet. Never apply it to native mobile app or WebSocket endpoints._
 
-Reference: [Enforcing execution of JavaScript detections](https://developers.cloudflare.com/bots/reference/javascript-detections/#enforcing-execution-of-javascript-detections).
+Reference: [Enforcing execution of JavaScript detections](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/#2-enforce-execution-of-javascript-detections).
 
 #### Visibility into IPv6 IPs
 
@@ -540,7 +541,7 @@ Reference: [IPv6 compatibility](https://developers.cloudflare.com/network/ipv6-c
 
 #### Account Takeover (ATO) Detections
 
-To detect and mitigate predictable bot behavior, such as _login failures_, one can use [Detection IDs](https://developers.cloudflare.com/bots/concepts/detection-ids/). This is also available for Rate Limiting Rules.
+To detect and mitigate predictable bot behavior, such as _login failures_, one can use [Detection IDs](https://developers.cloudflare.com/bots/additional-configurations/detection-ids/). This is also available for Rate Limiting Rules.
 
 ![account-takeover-ato-detections](img/account-takeover-ato-detections.png)
 
@@ -572,7 +573,7 @@ References: [Account Abuse Protection](https://developers.cloudflare.com/bots/ac
 
 #### Mitigate Authentication Requests
 
-Prevent or trigger a different behavior when a user tries to log in (authentication event) with leaked credentials, as per [Have I been Pwned (HIBP)](https://haveibeenpwned.com/). Or use different related [fields](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cfwafcredential_checkpassword_leaked).
+Prevent or trigger a different behavior when a user tries to log in (authentication event) with leaked credentials, as per [Have I been Pwned (HIBP)](https://haveibeenpwned.com/). Or use different related [fields](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.waf.credential_check.password_leaked/).
 
 ![customer-rules-mitigate-authentication-requests](img/customer-rules-mitigate-authentication-requests.png)
 
@@ -582,7 +583,7 @@ Expression Preview:
 (cf.waf.auth_detected and cf.waf.credential_check.username_and_password_leaked and starts_with(http.request.uri.path, "/login"))
 ```
 
-> _**Note**: [`cf.waf.auth_detected`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cfwafauth_detected) is `true` whenever Cloudflare detected authentication credentials in the request. A simpler variant that works in several cases is `(starts_with(http.request.uri.path, "/login") and http.request.method eq "POST" and cf.waf.credential_check.password_leaked)`. Cloudflare's own example uses a Managed Challenge for leaked username-password pairs. Alternatively, forward the [`Exposed-Credential-Check`](https://developers.cloudflare.com/rules/transform/managed-transforms/reference/#add-leaked-credentials-checks-header) header to the origin via the Managed Transform and prompt the user to reset their password._
+> _**Note**: [`cf.waf.auth_detected`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.waf.auth_detected/) is `true` whenever Cloudflare detected authentication credentials in the request. A simpler variant that works in several cases is `(starts_with(http.request.uri.path, "/login") and http.request.method eq "POST" and cf.waf.credential_check.password_leaked)`. Cloudflare's own example uses a Managed Challenge for leaked username-password pairs. Alternatively, forward the [`Exposed-Credential-Check`](https://developers.cloudflare.com/rules/transform/managed-transforms/reference/#add-leaked-credentials-checks-header) header to the origin via the Managed Transform and prompt the user to reset their password._
 
 Reference: [Leaked credentials detection](https://developers.cloudflare.com/waf/detections/leaked-credentials/).
 
@@ -630,7 +631,7 @@ Reference: [CF-Connecting-IP in Worker subrequests](https://developers.cloudflar
 
 #### More Common Use Cases for Custom Rules
 
-Review the [get started guide](https://developers.cloudflare.com/waf/get-started/) and the [common use cases for custom rules](https://developers.cloudflare.com/waf/custom-rules/use-cases/) for more examples. Additionally, for some use cases or if you are managing many Zones, the [Account-level WAF](https://developers.cloudflare.com/waf/managed-rules/deploy-account-dashboard/) can be a good feature to have.
+Review the [get started guide](https://developers.cloudflare.com/waf/get-started/) and the [common use cases for custom rules](https://developers.cloudflare.com/waf/custom-rules/use-cases/) for more examples. Additionally, for some use cases or if you are managing many Zones, the [Account-level WAF](https://developers.cloudflare.com/waf/account/managed-rulesets/deploy-dashboard/) can be a good feature to have. When different teams own different sets of rules, or rules are managed via Terraform, group them into [custom rulesets](https://developers.cloudflare.com/waf/custom-rules/custom-rulesets/) (zone level via API on all plans; [account level](https://developers.cloudflare.com/waf/account/custom-rulesets/) on Enterprise) instead of one long list of custom rules.
 
 Moreover, monitor and [replace insecure JS libraries](https://developers.cloudflare.com/waf/tools/replace-insecure-js-libraries/) used in your applications.
 
@@ -641,6 +642,15 @@ Review all the [fields reference](https://developers.cloudflare.com/ruleset-engi
 ### **Rate Limiting Rules**
 
 Rate limiting is essential for protecting your application from brute-force attacks, denial-of-service, and other forms of abuse.
+
+Before choosing thresholds, use the [Request rate analysis](https://developers.cloudflare.com/waf/rate-limiting-rules/find-rate-limit/) tab in Security Analytics to see the request rate distribution per IP or JA3/JA4 fingerprint for the traffic you intend to limit – or start with the Log action and review the [Security Events](https://developers.cloudflare.com/waf/analytics/security-events/). A few things to keep in mind:
+
+- [Counters are kept per Cloudflare data center](https://developers.cloudflare.com/waf/rate-limiting-rules/request-rate/), not globally: the data center ID is a mandatory, hidden characteristic of every rule. A threshold is therefore enforced per data center, which matters most when the IP address is not part of the characteristics.
+- A [custom counting expression](https://developers.cloudflare.com/waf/rate-limiting-rules/parameters/#increment-counter-when) replaces, rather than extends, the rule expression, so repeat the matching conditions in it. Response fields (status code, response headers) are only available in the counting expression, and rules that use them send matching requests to the origin, bypassing the cache.
+- Rate limiting rules run after WAF Custom Rules, so a Skip rule that selects _All rate limiting rules_ bypasses them. The [Challenge Passage](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/challenge-passage/) does not apply to rate limiting rules.
+- Rate limit by IP alone only where one IP means one client. For CGNAT, mobile, and corporate proxy audiences, combine [_IP with NAT support_](https://developers.cloudflare.com/waf/rate-limiting-rules/parameters/#use-cases-of-ip-with-nat-support) with another characteristic, or key on a session identifier (cookie, API key, JWT claim).
+
+Reference: [Rate limiting best practices](https://developers.cloudflare.com/waf/rate-limiting-rules/best-practices/) and [Rate limiting rule examples](https://developers.cloudflare.com/waf/rate-limiting-rules/use-cases/).
 
 #### IP-based Rate Limiting for Logins
 
@@ -674,7 +684,7 @@ Expression Preview:
 
 With the same characteristics: _IP_ and _JA3 Fingerprint_ (the [JA3/JA4](https://developers.cloudflare.com/bots/additional-configurations/ja3-ja4-fingerprint/) characteristics require Enterprise Bot Management; otherwise use _IP_ or _IP with NAT support_ alone)
 
-Reference: [Standard fields](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/#standard-fields).
+Reference: [Fields reference](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/).
 
 #### Rate Limit Credential Stuffing
 
@@ -792,20 +802,20 @@ Expression Preview:
 
 With the same characteristics: _Header value of_: [`Cf-Client-Cert-Sha256`](https://developers.cloudflare.com/learning-paths/mtls/mtls-app-security/related-features/#rate-limiting-by-client-certificates)
 
-> _**Note**: the `Cf-Client-Cert-Sha256` header is only present once [client certificate forwarding](https://developers.cloudflare.com/ssl/client-certificates/forward-a-client-certificate/) has been enabled for the hostname via the API. Alternatively, use the _Custom_ characteristic with the [`cf.tls_client_auth.cert_fingerprint_sha256`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cftls_client_authcert_fingerprint_sha256) field directly._
+> _**Note**: the `Cf-Client-Cert-Sha256` header is only present once [client certificate forwarding](https://developers.cloudflare.com/ssl/client-certificates/forward-a-client-certificate/) has been enabled for the hostname via the API. Alternatively, use the _Custom_ characteristic with the [`cf.tls_client_auth.cert_fingerprint_sha256`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_fingerprint_sha256/) field directly._
 
-Reference: [SHA-256 fingerprint of the certificate](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cftls_client_authcert_fingerprint_sha256).
+Reference: [SHA-256 fingerprint of the certificate](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_fingerprint_sha256/).
 
 #### JavaScript Detection-based Rate Limiting
 
-Use [JavaScript Detections (JSD)](https://developers.cloudflare.com/bots/reference/javascript-detections/) to identify human-like clients by solving a challenge in subsequent HTML requests, flagged as [`cf.bot_management.js_detection.passed`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/dynamic-fields/#cfbot_managementjs_detectionpassed). Since JSD cannot run on the first HTML request, track failed JSD attempts on subsequent HTML responses (`Content-Type: text/html`) and block or challenge clients i.e. after 5 consecutive failures within a 10-minute window.
+Use [JavaScript Detections (JSD)](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/) to identify human-like clients by solving a challenge in subsequent HTML requests, flagged as [`cf.bot_management.js_detection.passed`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.bot_management.js_detection.passed/). Since JSD cannot run on the first HTML request, track failed JSD attempts on subsequent HTML responses (`Content-Type: text/html`) and block or challenge clients i.e. after 5 consecutive failures within a 10-minute window.
 
 ![rate-limiting-rule-javascript-detections-subsequent-request](img/rate-limiting-rule-javascript-detections-subsequent-request.png)
 
 Expression Preview:
 
 ```text
-(not cf.bot_management.js_detection.passed and not cf.bot_management.verified_bot)
+(not cf.bot_management.js_detection.passed and not cf.bot_management.verified_bot and not cf.bot_management.static_resource)
 ```
 
 With the same characteristics: _IP_
@@ -813,12 +823,12 @@ With the same characteristics: _IP_
 Custom Counting Expression:
 
 ```text
-(not cf.bot_management.js_detection.passed and not cf.bot_management.verified_bot and any(http.response.headers["content-type"][*] contains "text/html"))
+(not cf.bot_management.js_detection.passed and not cf.bot_management.verified_bot and not cf.bot_management.static_resource and any(http.response.headers["content-type"][*] contains "text/html"))
 ```
 
-> _**Note**: the counting expression must repeat the JSD condition, otherwise every HTML response from that IP – including those of clients that did pass JSD – would increment the counter. Verified Bots do not execute JavaScript and are excluded in this case. Use the Managed Challenge action for the same reasons as in [Mitigating Pretend-Browsers with JavaScript Detections](#mitigating-pretend-browsers-with-javascript-detections)._
+> _**Note**: the counting expression must repeat the JSD condition, otherwise every HTML response from that IP – including those of clients that did pass JSD – would increment the counter. Verified Bots do not execute JavaScript and are excluded, and so are [static resources](https://developers.cloudflare.com/bots/additional-configurations/static-resources/): because the counting expression uses a response header, matching requests are sent to the origin and bypass the cache, so keep the rule expression as narrow as possible (i.e. add a hostname). Use the Managed Challenge action for the same reasons as in [Mitigating Pretend-Browsers with JavaScript Detections](#mitigating-pretend-browsers-with-javascript-detections)._
 
-Reference: [Do the Challenge actions support content types other than HTML (for example, AJAX or XHR requests)?](https://developers.cloudflare.com/cloudflare-challenges/frequently-asked-questions/#do-the-challenge-actions-support-content-types-other-than-html-for-example-ajax-or-xhr-requests).
+Reference: [Do the Challenge actions support content types other than HTML (for example, AJAX or XHR requests)?](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#compatibility-limitations).
 
 #### Cookie-based Rate Limiting
 
@@ -861,7 +871,7 @@ Clients producing a high volume of `403` or `404` responses are usually scanners
 Expression Preview:
 
 ```text
-(http.host eq "www.example.com")
+(http.host eq "www.example.com" and not cf.bot_management.verified_bot)
 ```
 
 With the same characteristics: _IP_
@@ -869,16 +879,18 @@ With the same characteristics: _IP_
 Custom Counting Expression:
 
 ```text
-(http.host eq "www.example.com" and http.response.code in {403 404})
+(http.host eq "www.example.com" and not cf.bot_management.verified_bot and http.response.code in {403 404})
 ```
 
-Apply a Managed Challenge once, for example, more than 20 errors are counted within 1 minute. Since the rule expression is broader than the counting expression, all subsequent requests from that client to the hostname are challenged, not only the erroring ones. Tune the threshold to your application: single-page applications and sites with many broken links generate legitimate `404`s.
+Apply a Managed Challenge once, for example, more than 20 errors are counted within 1 minute. Since the rule expression is broader than the counting expression, all subsequent requests from that client to the hostname are challenged, not only the erroring ones. Tune the threshold to your application: single-page applications and sites with many broken links generate legitimate `404`s, and crawlers are excluded via `cf.client.bot` / `cf.bot_management.verified_bot` for the same reason.
+
+> _**Note**: because the counting expression uses a response field, requests matching the rule expression are sent to the origin and bypass the cache. On static-heavy hostnames, narrow the rule expression (i.e. `and not starts_with(http.request.uri.path, "/assets/")`, or `and not cf.bot_management.static_resource` with Bot Management) to limit the cache impact._
 
 Reference: [Limit requests from bots](https://developers.cloudflare.com/waf/rate-limiting-rules/best-practices/#limit-requests-from-bots).
 
 #### More Common Use Cases for Rate Limiting Rules
 
-Review the [rate limiting best practices](https://developers.cloudflare.com/waf/rate-limiting-rules/best-practices/) for more examples.
+Review the [rate limiting best practices](https://developers.cloudflare.com/waf/rate-limiting-rules/best-practices/) and the [rate limiting rule examples](https://developers.cloudflare.com/waf/rate-limiting-rules/use-cases/) for more examples, including [complexity-based rate limiting](https://developers.cloudflare.com/waf/rate-limiting-rules/request-rate/#complexity-based-rate-limiting) for GraphQL and other expensive endpoints (Enterprise with Advanced Rate Limiting).
 
 Review all the [fields reference](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/).
 
@@ -886,19 +898,19 @@ Review all the [fields reference](https://developers.cloudflare.com/ruleset-engi
 
 ### **Turnstile**
 
-Cloudflare's [Turnstile](https://developers.cloudflare.com/turnstile/) is a privacy-preserving CAPTCHA alternative that allows [challenges](https://developers.cloudflare.com/cloudflare-challenges/) anywhere on your site. It runs in standard browsers, including mobile – even [native mobile apps](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/) – when using _WebView_. [Implicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#implicitly-render-the-turnstile-widget) auto-loads on static pages, while [explicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#explicitly-render-the-turnstile-widget) offers control over when and where it appears, ideal for dynamic content or Single-Page Applications (SPAs). Learn more about the differences [here](https://developers.cloudflare.com/turnstile/tutorials/implicit-vs-explicit-rendering).
+Cloudflare's [Turnstile](https://developers.cloudflare.com/turnstile/) is a privacy-preserving CAPTCHA alternative that allows [challenges](https://developers.cloudflare.com/cloudflare-challenges/) anywhere on your site. It runs in standard browsers, including mobile – even [native mobile apps](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/) – when using _WebView_. [Implicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#implicit-rendering) auto-loads on static pages, while [explicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#explicit-rendering) offers control over when and where it appears, ideal for dynamic content or Single-Page Applications (SPAs). Learn more about the differences [here](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/).
 
-Enterprise customers can also take advantage of [Ephemeral IDs](https://developers.cloudflare.com/turnstile/concepts/ephemeral-id/), which can help track bots over longer time periods and rate limit based on these IDs instead of IPs or other characteristics.
+Enterprise customers can also take advantage of [Ephemeral IDs](https://developers.cloudflare.com/turnstile/additional-configuration/ephemeral-id/), which can help track bots over longer time periods and rate limit based on these IDs instead of IPs or other characteristics.
 
-> _**Note**: While Turnstile can be run in [invisible mode](https://developers.cloudflare.com/turnstile/concepts/widget/#invisible), it is recommended to use [managed mode](https://developers.cloudflare.com/turnstile/concepts/widget/#managed-recommended) for login and signup forms to provide users with a clear indication that an action is taking place. Alternatively, another option is to set it up with [interaction-only](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/#appearance-modes). Additionally, the Turnstile [Siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) should be triggered when the user clicks the button, initiating the POST request; (or while / before the user is already filling out the form)._
+> _**Note**: While Turnstile can be run in [invisible mode](https://developers.cloudflare.com/turnstile/concepts/widget/#invisible-mode), it is recommended to use [managed mode](https://developers.cloudflare.com/turnstile/concepts/widget/#managed-mode-recommended) for login and signup forms to provide users with a clear indication that an action is taking place. Alternatively, another option is to set it up with [interaction-only](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/widget-configurations/#appearance-modes). Additionally, the Turnstile [Siteverify API](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/) should be triggered when the user clicks the button, initiating the POST request; (or while / before the user is already filling out the form)._
 
 When [integrating on mobile](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/), address common issues like _WebView_ configuration and JavaScript interface to ensure smooth functionality.
 
-It is also suggested to [integrate Turnstile with WAF and Bot Management](https://developers.cloudflare.com/turnstile/tutorials/integrating-turnstile-waf-and-bot-management).
+It is also suggested to [integrate Turnstile with WAF and Bot Management](https://developers.cloudflare.com/turnstile/tutorials/integrating-turnstile-waf-and-bot-management/).
 
 #### API / AJAX / XHR Requests
 
-For API protection ([AJAX/XHR requests](https://developers.cloudflare.com/cloudflare-challenges/frequently-asked-questions/#do-the-challenge-actions-support-content-types-other-than-html-for-example-ajax-or-xhr-requests)), avoid using [Challenges](https://developers.cloudflare.com/cloudflare-challenges/) directly. APIs cannot complete interactive challenges, and browser CORS (Cross-Origin Resource Sharing) restrictions prevent smooth handling.
+For API protection ([AJAX/XHR requests](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/#compatibility-limitations)), avoid using [Challenges](https://developers.cloudflare.com/cloudflare-challenges/) directly. APIs cannot complete interactive challenges, and browser CORS (Cross-Origin Resource Sharing) restrictions prevent smooth handling.
 
 Instead, deploy [Turnstile](https://developers.cloudflare.com/turnstile/) on high-risk frontend pages (e.g., login, checkout) to issue a [`cf_clearance` cookie](https://developers.cloudflare.com/cloudflare-challenges/concepts/clearance/#pre-clearance-support-in-turnstile). Once issued, the cookie allows subsequent API requests to pass WAF evaluation without triggering challenges, preserving both security and usability.
 
@@ -913,13 +925,13 @@ This enables clients to read the `Cf-Mitigated` header and adjust behavior accor
 
 ---
 
-### **Page Shield**
+### **Client-Side Security (formerly Page Shield)**
 
-Monitor your application's JavaScript dependencies and get notified of any changes with Cloudflare [Page Shield](https://developers.cloudflare.com/page-shield/how-it-works/).
+Monitor your application's JavaScript dependencies and get notified of any changes with Cloudflare [Client-Side Security](https://developers.cloudflare.com/client-side-security/how-it-works/).
 
-In general, you would want to periodically [monitor resources and cookies](https://developers.cloudflare.com/page-shield/detection/monitor-connections-scripts/) running on your application. This is relevant for [PCI DSS compliance](https://www.cloudflare.com/trust-hub/compliance-resources/pci-dss/).
+In general, you would want to periodically [monitor resources and cookies](https://developers.cloudflare.com/client-side-security/detection/monitor-connections-scripts/) running on your application. This is relevant for [PCI DSS compliance](https://www.cloudflare.com/trust-hub/compliance-resources/pci-dss/).
 
-Create [Policies](https://developers.cloudflare.com/page-shield/policies/) to enforce a positive security model, allowing only specific resources.
+Create [Policies](https://developers.cloudflare.com/client-side-security/rules/) to enforce a positive security model, allowing only specific resources.
 
 ---
 
@@ -929,7 +941,7 @@ It is typically recommended to use the [Advanced Certificate Manager (ACM)](http
 
 For customers with stricter requirements, additionally, disable the [Universal SSL](https://developers.cloudflare.com/ssl/edge-certificates/universal-ssl/disable-universal-ssl/) certificate.
 
-Those seeking [PCI compliance](https://developers.cloudflare.com/ssl/reference/compliance-and-vulnerabilities/) and granular customization over [cipher suites](https://developers.cloudflare.com/ssl/reference/cipher-suites/customize-cipher-suites/) should review the developer documentations, as well as the features [TLS 1.3](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/tls-13/), [Minimum TLS Version](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/minimum-tls/) (TLS 1.2 is the recommended minimum, TLS 1.3 preferred), [Automatic HTTPS Rewrites](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/automatic-https-rewrites/), [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) (or preferably [disable HTTP plaintext](https://jviide.iki.fi/http-redirects) altogether using [HSTS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/http-strict-transport-security/)).
+Those seeking [PCI compliance](https://developers.cloudflare.com/ssl/reference/compliance-and-vulnerabilities/) and granular customization over [cipher suites](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/cipher-suites/customize-cipher-suites/) should review the developer documentations, as well as the features [TLS 1.3](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/tls-13/), [Minimum TLS Version](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/minimum-tls/) (TLS 1.2 is the recommended minimum, TLS 1.3 preferred), [Automatic HTTPS Rewrites](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/automatic-https-rewrites/), [Always Use HTTPS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/) (or preferably [disable HTTP plaintext](https://jviide.iki.fi/http-redirects) altogether using [HSTS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/http-strict-transport-security/)).
 
 > _**Note**: Review the [Post-Quantum Cryptography (PQC)](https://developers.cloudflare.com/ssl/post-quantum-cryptography/) documentation for quantum-resistant algorithms._
 
@@ -959,7 +971,7 @@ For an account-level overview, review the [Account Analytics](https://developers
 
 > _**Note**: Exclude the [`/cdn-cgi/` endpoint](https://developers.cloudflare.com/fundamentals/reference/cdn-cgi-endpoint/) from your Security Rules, specifically relevant for [challenges](https://developers.cloudflare.com/rules/reference/troubleshooting/#interaction-between-cloudflare-challenges-and-rules-features)._
 
-It is strongly recommended to use [Logpush](https://developers.cloudflare.com/logs/about/), pushing your [logs](https://developers.cloudflare.com/logs/reference/log-fields/) to storage services (such as [R2](https://developers.cloudflare.com/r2), S3, or others), SIEMs, or log management providers.
+It is strongly recommended to use [Logpush](https://developers.cloudflare.com/logs/logpush/), pushing your [logs](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/) to storage services (such as [R2](https://developers.cloudflare.com/r2/), S3, or others), SIEMs, or log management providers.
 
 It is highly recommended to set up [Notifications](https://developers.cloudflare.com/notifications/) to keep up to date with everything, subscribing to incident notifications and periodically review the [Cloudflare Status](https://www.cloudflarestatus.com/) page.
 
@@ -1035,7 +1047,7 @@ Cloudflare provides predefined [roles](https://developers.cloudflare.com/fundame
 
 **Single Sign-On (SSO)**
 
-- [Configure SSO](https://developers.cloudflare.com/cloudflare-one/applications/configure-apps/dash-sso-apps/) with SAML or OIDC providers
+- [Configure SSO](https://developers.cloudflare.com/fundamentals/manage-members/dashboard-sso/) with SAML or OIDC providers
 - Automatic user (de)provisioning with [SCIM](https://developers.cloudflare.com/fundamentals/account/account-security/scim-setup/)
 
 ##### API Token Management
@@ -1096,7 +1108,7 @@ For advanced scenarios, consider implementing:
 
 - Build your own custom RBAC using [Cloudflare Workers](https://developers.cloudflare.com/workers/) as an authentication and authorization gateway-layer for fine-grained access control
 - Integration with identity governance platforms
-- Automated compliance reporting using the [GraphQL Analytics API](https://developers.cloudflare.com/workers/tutorials/automated-analytics-reporting/)
+- Automated compliance reporting using the [GraphQL Analytics API](https://developers.cloudflare.com/analytics/graphql-api/)
 
 > _**Note**: these are non-exhaustive resources and a generalization of proper user and account management practices. Follow industry-standards and implement appropriate procedures within your organization._
 
@@ -1106,9 +1118,9 @@ For advanced scenarios, consider implementing:
 
 Generally, it's recommended to properly secure and manage your origin servers.
 
-> When migrating to Cloudflare, it's highly recommended to rotate Origin Server IPs and [proxy](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/) all DNS records.
+> When migrating to Cloudflare, it's highly recommended to rotate Origin Server IPs and [proxy](https://developers.cloudflare.com/dns/proxy-status/) all DNS records.
 
-There's a variety of different ways and options explained on the Developer Documentation to [protect your origin server](https://developers.cloudflare.com/fundamentals/basic-tasks/protect-your-origin-server/), as well as [prepare for surges or spikes in web traffic](https://developers.cloudflare.com/fundamentals/basic-tasks/preparing-for-surges-or-spikes-in-web-traffic/) for seasonal events, such as during holidays or product launches.
+There's a variety of different ways and options explained on the Developer Documentation to [protect your origin server](https://developers.cloudflare.com/fundamentals/security/protect-your-origin-server/), as well as [prepare for surges or spikes in web traffic](https://developers.cloudflare.com/fundamentals/performance/preparing-for-surges-or-spikes-in-web-traffic/) for seasonal events, such as during holidays or product launches.
 
 > _**Note**: Review the [Post-Quantum Cryptography (PQC)](https://developers.cloudflare.com/ssl/post-quantum-cryptography/) documentation._
 
@@ -1139,14 +1151,14 @@ The best approach to combating bots depends on the Cloudflare features available
 
 The goal is not to _"block all bots"_. The goal is to **allow useful automation, constrain ambiguous automation, and stop abusive automation**. Cloudflare's own framing is that the important distinction is often **what the traffic is doing**, not simply whether it is a bot or a human: see [Moving past bots vs. humans](https://blog.cloudflare.com/past-bots-and-humans/).
 
-[Cloudflare Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/#verified-bots) are automated services Cloudflare has identified as generally useful or expected, such as search-engine crawlers and monitoring services. Verified does **not** automatically mean _"desired everywhere"_. For example, a search crawler may be allowed on public content but should usually not be allowed to crawl login, checkout, account, admin, or API mutation endpoints unless there is a specific business reason.
+[Cloudflare Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/verified-bots/) are automated services Cloudflare has identified as generally useful or expected, such as search-engine crawlers and monitoring services. Verified does **not** automatically mean _"desired everywhere"_. For example, a search crawler may be allowed on public content but should usually not be allowed to crawl login, checkout, account, admin, or API mutation endpoints unless there is a specific business reason.
 
 | Traffic class | Examples | Default posture | Cloudflare controls |
 | --- | --- | --- | --- |
-| Wanted verified bots | Googlebot, Bingbot, social previews, approved monitoring | Skip **only where the business wants this traffic** | [Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/#verified-bots), WAF Skip rules for narrow paths, customer-managed allowlists for owned systems |
+| Wanted verified bots | Googlebot, Bingbot, social previews, approved monitoring | Skip **only where the business wants this traffic** | [Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/verified-bots/), WAF Skip rules for narrow paths, customer-managed allowlists for owned systems |
 | Declared AI/search/content crawlers | Known AI/search crawlers and content consumers | Allow, block, or constrain based on content/business policy | [Detection IDs](https://developers.cloudflare.com/bots/additional-configurations/detection-ids/), [AI Crawl Control](https://developers.cloudflare.com/ai-crawl-control/), [Bot Preference Sync](https://blog.cloudflare.com/bot-preference-sync/), [BotBase for Operators](https://blog.cloudflare.com/botbase-for-operators/), robots.txt |
 | User-directed agents | Browser or assistant traffic acting on behalf of a real user | Prefer risk-based controls; avoid blanket blocking when behavior is legitimate | [Bot Management variables](https://developers.cloudflare.com/bots/reference/bot-management-variables/), [Turnstile](https://developers.cloudflare.com/turnstile/), [Clearance / pre-clearance](https://developers.cloudflare.com/cloudflare-challenges/concepts/clearance/), application-layer step-up |
-| Unknown automation | curl, Python requests, commodity headless browsers, suspicious TLS/browser fingerprints | Baseline → challenge/rate-limit → block if abusive | [Bot Score](https://developers.cloudflare.com/bots/reference/bot-management-variables/), [JavaScript Detections](https://developers.cloudflare.com/bots/reference/javascript-detections/), JA3/JA4 fields, [WAF Custom Rules](https://developers.cloudflare.com/waf/custom-rules/), [Rate Limiting Rules](https://developers.cloudflare.com/waf/rate-limiting-rules/) |
+| Unknown automation | curl, Python requests, commodity headless browsers, suspicious TLS/browser fingerprints | Baseline → challenge/rate-limit → block if abusive | [Bot Score](https://developers.cloudflare.com/bots/reference/bot-management-variables/), [JavaScript Detections](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/), JA3/JA4 fields, [WAF Custom Rules](https://developers.cloudflare.com/waf/custom-rules/), [Rate Limiting Rules](https://developers.cloudflare.com/waf/rate-limiting-rules/) |
 | Malicious fraud bots | Credential stuffing, carding, fake signups, scraper farms, inventory abuse | Block, rate-limit, challenge, or route to origin fraud workflow | [Account takeover Detection IDs](https://developers.cloudflare.com/bots/additional-configurations/detection-ids/account-takeover-detections/), [Leaked Credentials Detection](https://developers.cloudflare.com/waf/detections/leaked-credentials/), [Turnstile Ephemeral IDs](https://developers.cloudflare.com/turnstile/tutorials/fraud-detection-with-ephemeral-ids/), [API Shield](https://developers.cloudflare.com/api-shield/security/) |
 
 Important distinctions:
@@ -1159,11 +1171,11 @@ Important distinctions:
 
 To effectively mitigate bot traffic, consider the following (non-exhaustive) layered-security approach:
 
-- Allow ([skip](https://developers.cloudflare.com/waf/custom-rules/skip/)) [Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/#verified-bots) or [Verified Bot Categories](https://developers.cloudflare.com/bots/concepts/bot/verified-bots/categories/).
+- Allow ([skip](https://developers.cloudflare.com/waf/custom-rules/skip/)) [Verified Bots](https://developers.cloudflare.com/bots/concepts/bot/verified-bots/) or [Verified Bot Categories](https://developers.cloudflare.com/bots/concepts/bot/verified-bots/#legacy-categories).
 - Allow ([skip](https://developers.cloudflare.com/waf/custom-rules/skip/)) your `sitemap.xml`, `robots.txt` and RSS feed (if applicable) to everyone.
 - Block or mitigate unwanted bots (i.e. [AI bots](https://developers.cloudflare.com/bots/concepts/bot/#ai-bots)) by leveraging [Bot Management fields](https://developers.cloudflare.com/bots/reference/bot-management-variables/) in combination with other security controls, solutions (i.e. [Snippets](https://developers.cloudflare.com/rules/snippets/when-to-use/)) and [fields](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/).
   - Example [honeypot for bots](https://developers.cloudflare.com/rules/snippets/examples/bots-to-honeypot/).
-- Enable [JavaScript Detections (JSD)](https://developers.cloudflare.com/bots/reference/javascript-detections/#enable-javascript-detections) and [enforce](https://developers.cloudflare.com/bots/reference/javascript-detections/#enforcing-execution-of-javascript-detections) them if possible.
+- Enable [JavaScript Detections (JSD)](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/#1-enable-javascript-detections) and [enforce](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/javascript-detections/#2-enforce-execution-of-javascript-detections) them if possible.
   - If enforcement isn't feasible (i.e. for native mobile apps), consider implementing [Turnstile](https://developers.cloudflare.com/turnstile/) (in [WebView](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/) for mobile) alongside the [WAF](https://developers.cloudflare.com/turnstile/tutorials/integrating-turnstile-waf-and-bot-management/) or Cloudflare's new mobile SDK (Enterprise feature), which can be combined with [API Shield JWT Validation](https://developers.cloudflare.com/api-shield/security/jwt-validation/) at the edge or programmatically with [Snippets](https://developers.cloudflare.com/rules/snippets/examples/jwt-validation/).
 - Analyze heuristics using [Security Analytics](https://developers.cloudflare.com/waf/analytics/security-analytics/) and available [fields](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/) to build WAF Custom Rules based on your needs and signals.
   - Deploy the [WAF Managed Rules](https://developers.cloudflare.com/waf/managed-rules/) regularly updated security rules.
@@ -1174,16 +1186,15 @@ To effectively mitigate bot traffic, consider the following (non-exhaustive) lay
 - Apply [Rate Limiting](https://developers.cloudflare.com/waf/rate-limiting-rules/) based on IP and other [characteristics](https://developers.cloudflare.com/waf/rate-limiting-rules/parameters/#with-the-same-characteristics) to prevent abuse and credential stuffing attacks.
   - This is often combined with [Leaked Credentials Detection](https://developers.cloudflare.com/waf/detections/leaked-credentials/).
 - For APIs, implement a positive security model with [API Shield](https://developers.cloudflare.com/api-shield/), including [Schema Validation](https://developers.cloudflare.com/api-shield/security/schema-validation/) and [Sequence Mitigation](https://developers.cloudflare.com/api-shield/security/sequence-mitigation/).
-  - Alternatively, one can use [Sequence Rules](https://developers.cloudflare.com/bots/concepts/sequence-rules/) (or also called _Cookie-based Sequences_) to track and enforce the order of requests a user has made and the time between requests.
+  - Alternatively, one can use [Sequence Rules](https://developers.cloudflare.com/bots/additional-configurations/sequence-rules/) (or also called _Cookie-based Sequences_) to track and enforce the order of requests a user has made and the time between requests.
 - [Caching](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/) anything possible (non-user-specific content) can also help reduce the load and resources of the origin servers.
 - Cloudflare is gradually rolling out Fraud Detection features, such as [disposable email checks](https://blog.cloudflare.com/cloudflare-security-posture-management/).
 - Additional bot-related configurations can be adjusted by Cloudflare's Bot Team on a case-by-case basis when talking to the Support Team.
 
 Some additional interesting methods include:
 
-- [Delay action](https://developers.cloudflare.com/bots/concepts/bot-score/delay-action/)
+- [Delay action](https://developers.cloudflare.com/bots/workers-templates/delay-action/)
 - [Send suspect bots to a honeypot](https://developers.cloudflare.com/rules/snippets/examples/bots-to-honeypot/)
-- [price scraping](https://developers.cloudflare.com/turnstile/reference/workers-templates/price-scraping/)
 - [Turnstile with Workers](https://developers.cloudflare.com/workers/examples/turnstile-html-rewriter/)
 - [Data loss prevention](https://developers.cloudflare.com/workers/examples/data-loss-prevention/)
 - Forward specific HTTP Request Headers with [Managed Transforms](https://developers.cloudflare.com/rules/transform/managed-transforms/reference/#add-bot-protection-headers) Rules for the origin to act on.
@@ -1196,7 +1207,7 @@ There are scenarios where users might want to leverage Cloudflare's global netwo
 
 Available Options:
 
-1. **[Grey-Clouded DNS Records](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/#dns-only-records)**  
+1. **[Grey-Clouded DNS Records](https://developers.cloudflare.com/dns/proxy-status/#dns-only-records)**  
    This involves setting a DNS record to "DNS Only" mode. However, this approach is **not recommended**, as it exposes the origin server's IP address, compromising security.
 
 2. **[Spectrum](https://developers.cloudflare.com/spectrum/)**  
@@ -1230,13 +1241,13 @@ This blog post is independently created and is not affiliated with, endorsed by,
 
 The images used in this article primarily consist of screenshots from the Cloudflare Dashboard or other publicly available materials, such as Cloudflare webinar slides.
 
-The guidelines provided in this post are intended for general educational purposes. They should be customized to fit your specific use cases and traffic patterns. You are responsible for configuring settings according to your unique requirements, and it is important to understand their potential impact. Familiarity with Cloudflare concepts such as [WAF Phases](https://developers.cloudflare.com/waf/reference/phases/), [Proxy Status](https://developers.cloudflare.com/dns/manage-dns-records/reference/proxied-dns-records/), and other relevant features is recommended.
+The guidelines provided in this post are intended for general educational purposes. They should be customized to fit your specific use cases and traffic patterns. You are responsible for configuring settings according to your unique requirements, and it is important to understand their potential impact. Familiarity with Cloudflare concepts such as [WAF Phases](https://developers.cloudflare.com/waf/reference/phases/), [Proxy Status](https://developers.cloudflare.com/dns/proxy-status/), and other relevant features is recommended.
 
 The author of this post is not responsible for any misconfigurations, errors, or unintended consequences that may arise from implementing the guidelines or recommendations discussed herein. You assume full responsibility for any actions taken based on this content and for ensuring that configurations are appropriate for your specific environment.
 
 For additional learning resources, explore the following:
 
-- [Learning Paths](https://developers.cloudflare.com/learning-paths/)
+- [Learning Paths](https://developers.cloudflare.com/resources/)
 - [Enterprise Customer Portal](https://www.cloudflare.com/ecp/overview/) (for Enterprise customers)
 - [Security Center](https://developers.cloudflare.com/security-center/)
 
