@@ -1,7 +1,7 @@
 ---
 title: General Application Security Recommendations
 date: 2024-09-08
-modified: 2026-09-12
+modified: 2026-09-18
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Security approach with Cloudflare."
 tags: ["cybersecurity", "cloudflare", "resources", "application security"]
 type: "article"
@@ -629,6 +629,37 @@ not (cf.worker.upstream_zone in {"" "your-zone.com"})
 
 Reference: [CF-Connecting-IP in Worker subrequests](https://developers.cloudflare.com/fundamentals/reference/http-headers/#cf-connecting-ip-in-worker-subrequests).
 
+#### Validate Rules before Deploying (Dry Run)
+
+The [Ruleset Engine](https://developers.cloudflare.com/ruleset-engine/) can validate a rule change before it is published. The dashboard does this automatically for Custom Rules and Rate Limiting Rules under **Security** > **Security rules**. With the [Rulesets API](https://developers.cloudflare.com/ruleset-engine/rulesets-api/), append the `dry_run=true` query parameter to any write operation (`POST`, `PUT`, `PATCH`, `DELETE`, at Zone or Account level) to run the same validation and authorization checks as the real request, without creating, updating, deleting, or publishing anything. Validation covers the expression syntax and the availability of fields, functions, and operators, the action and its parameters, phase compatibility, token permissions, plan entitlements, rule quotas, and resources referenced by the rule (for example a [Custom List](https://developers.cloudflare.com/waf/tools/lists/custom-lists/)).
+
+The API token needs the same [permission](https://developers.cloudflare.com/fundamentals/api/reference/permissions/) as the real change: **Zone** > **WAF** > **Edit**, scoped to the target Zone (or **Account** > **WAF** > **Edit** for account-level rulesets). The following example validates the intended WAF Custom Rules against the `http_request_firewall_custom` phase entry point of a Zone:
+
+```bash
+curl "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets/phases/http_request_firewall_custom/entrypoint?dry_run=true" \
+  --request PUT \
+  --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "rules": [
+      {
+        "description": "Dry-run validation example",
+        "expression": "(http.request.uri.path ne \"/robots.txt\" and cf.bot_management.verified_bot)",
+        "action": "log",
+        "enabled": true
+      }
+    ]
+  }'
+```
+
+A valid request returns `200` with `"result": null` (nothing was saved); operations that normally return `204` still do. An invalid request returns the same status code and error the real write would have produced, for example a `400` with the parsing error in `errors`, so you can fix the rule before it ever reaches production. `dry_run` only accepts `true` or `false`; any other value returns `400`.
+
+To validate a single new rule without touching the rest of the ruleset, first [get the entry point ruleset](https://developers.cloudflare.com/api/resources/rulesets/subresources/phases/methods/get/) to obtain its ID, then send the rule object to [`POST /zones/$ZONE_ID/rulesets/$RULESET_ID/rules?dry_run=true`](https://developers.cloudflare.com/api/resources/rulesets/subresources/rules/methods/create/).
+
+> _**Note**: `PUT .../entrypoint` replaces **all** rules in the phase entry point ruleset. With `dry_run=true` this is harmless, but never drop the parameter from such a request in automation unless replacing the whole ruleset is the intention. If you manage rules with [Terraform](https://developers.cloudflare.com/terraform/), keep in mind that `terraform validate` and `terraform plan` only check the configuration against the provider schema; they do not validate the expression against the Ruleset Engine. Add a dry-run call as a CI check (for example on pull requests) before `terraform apply`._
+
+Reference: [Validate rule changes before deployment](https://developers.cloudflare.com/ruleset-engine/validate-changes/) and [Rulesets API](https://developers.cloudflare.com/ruleset-engine/rulesets-api/).
+
 #### More Common Use Cases for Custom Rules
 
 Review the [get started guide](https://developers.cloudflare.com/waf/get-started/) and the [common use cases for custom rules](https://developers.cloudflare.com/waf/custom-rules/use-cases/) for more examples. Additionally, for some use cases or if you are managing many Zones, the [Account-level WAF](https://developers.cloudflare.com/waf/account/managed-rulesets/deploy-dashboard/) can be a good feature to have. When different teams own different sets of rules, or rules are managed via Terraform, group them into [custom rulesets](https://developers.cloudflare.com/waf/custom-rules/custom-rulesets/) (zone level via API on all plans; [account level](https://developers.cloudflare.com/waf/account/custom-rulesets/) on Enterprise) instead of one long list of custom rules.
@@ -1005,6 +1036,7 @@ Automate deployments, configuration changes, and rollbacks using these tools:
 - [Terraform](https://developers.cloudflare.com/terraform/)
   - For external scripts / uncovered resources, use [external](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external).
   - If you're planning to change from Dashboard UI to Terraform, use [cf-terraforming](https://github.com/cloudflare/cf-terraforming).
+  - Validate the intended rules with a [Rulesets API dry run](#validate-rules-before-deploying-dry-run) in CI before `terraform apply`.
 - [Pulumi](https://developers.cloudflare.com/pulumi/)
 
 > Note the [API rate limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/).
