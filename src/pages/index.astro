@@ -2,7 +2,7 @@
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import Home from '../components/pages/Home.astro';
 import { resolvePreferredLang, isLang } from '../i18n/utils';
-import { resolveRegion, REGION_COOKIE, LANG_COOKIE, OFFER_COOKIE } from '../i18n/regions';
+import { resolveRegion, REGION_COOKIE, LANG_COOKIE, OFFER_COOKIE, PREF_COOKIE_MAX_AGE } from '../i18n/regions';
 import { defaultLang } from '../i18n/ui';
 
 /**
@@ -86,7 +86,7 @@ Astro.locals.detectedRegion = region;
 if (geoEnabled && region && !hasExplicitChoice) {
   Astro.cookies.set(REGION_COOKIE, region, {
     path: '/',
-    maxAge: 31_536_000,
+    maxAge: PREF_COOKIE_MAX_AGE,
     sameSite: 'lax',
     httpOnly: false,
   });

@@ -1,7 +1,7 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import { useTranslations } from '../i18n/utils';
-import { OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION } from '../i18n/regions';
+import { OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE } from '../i18n/regions';
 import type { Lang } from '../i18n/ui';
 
 interface Props {
@@ -54,7 +54,7 @@ const href = offerLang ? getRelativeLocaleUrl(offerLang, '') : '/';
   </div>
 )}
 
-<script define:vars={{ OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION }}>
+<script define:vars={{ OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE }}>
   function setupLocaleOffer() {
     const banner = document.getElementById('locale-offer');
     if (!(banner instanceof HTMLElement)) return;
@@ -63,7 +63,7 @@ const href = offerLang ? getRelativeLocaleUrl(offerLang, '') : '/';
 
     // Dismissing is remembered, so the offer is made once and not repeatedly.
     function remember(name, value) {
-      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax`;
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${PREF_COOKIE_MAX_AGE}; samesite=lax`;
     }
 
     banner.querySelector('[data-locale-offer-dismiss]')?.addEventListener('click', () => {

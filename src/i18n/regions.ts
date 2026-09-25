@@ -171,6 +171,16 @@ export const LANG_HOME_REGION: Readonly<Record<string, RegionCode | null>> = {
  */
 export const NEUTRAL_REGION = 'neutral';
 
+/**
+ * How long a remembered preference lives: 30 days.
+ *
+ * Deliberately short. These cookies hold a language tag and a country code —
+ * nothing personal and nothing worth keeping for a year. A month is long enough
+ * that a regular reader is not re-asked, and short enough that someone who
+ * visited once is not still being routed by a stale choice much later.
+ */
+export const PREF_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
 /** Cookie names. Values are a country code and a language tag — nothing personal. */
 export const REGION_COOKIE = 'dt-region';
 export const LANG_COOKIE = 'dt-lang';
