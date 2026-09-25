@@ -194,3 +194,35 @@
 /img/*.webp
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
+
+# Localized landing routes (/es/, /de/, /it/, /zh/). Same headers as
+# their English originals — these are translations, not a different kind of page.
+# Note: `/` is no longer listed here. It is rendered on demand now, and
+# public/_headers only applies to static assets, so its headers are set in
+# src/pages/index.astro instead.
+
+/es/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/de/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+
+
+/it/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/zh/*
+  Link: </ai-licensing-terms/>; rel="describedby"; type="text/html", </ai-licensing-terms/>; rel="license"; type="text/html", </rsl.xml>; rel="license"; type="application/rsl+xml", </sitemap-index.xml>; rel="sitemap"
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CertificateCard from '../CertificateCard.astro';
+import certificatesData from '../../data/certificates.json';
+import type { Certificate } from '../../types';
+import { groupByCategory, sortCategories, calculateYearsLearning } from '../../lib/certificates';
+import { siteConfig } from '../../config/site';
+import { localeFrom, useTranslations, HTML_LANG } from '../../i18n/utils';
+
+// Resolved from the URL, so it must precede any schema that reads it.
+const lang = localeFrom(Astro.currentLocale);
+const t = useTranslations(lang);
+
+// Load and process certificates
+const certificates: Certificate[] = certificatesData;
+const grouped = groupByCategory(certificates);
+const categories = sortCategories(Object.keys(grouped), grouped);
+const yearsLearning = calculateYearsLearning(certificates);
+
+// JSON-LD: ItemList of EducationalOccupationalCredential — lets agents and
+// Google Knowledge Graph enumerate certifications without OCR or scraping.
+const certificatesJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  // Declares which hreflang cluster this listing belongs to.
+  inLanguage: HTML_LANG[lang],
+  name: 'Certificates — David Tofan',
+  description: 'Professional certifications and achievements in cybersecurity, cloud computing, and technology.',
+  url: `${siteConfig.url}/certificates/`,
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: certificates.length,
+    itemListElement: certificates.map((cert, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'EducationalOccupationalCredential',
+        name: cert.name,
+        url: cert.link,
+        dateCreated: cert.date,
+        credentialCategory: cert.category,
+        recognizedBy: {
+          '@type': 'Organization',
+          name: cert.organization,
+        },
+      },
+    })),
+  },
+};
+
+---
+
+
+<BaseLayout
+  title={t('certificates.title')}
+  description={t('meta.certificates.description')}
+  noPersonSchema={true}
+>
+  <script type="application/ld+json" set:html={JSON.stringify(certificatesJsonLd)} />
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+    <!-- Header -->
+    <header class="max-w-2xl mb-12">
+      <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 mb-4">
+        {t('certificates.title')}
+      </h1>
+      <p class="text-lg text-surface-600 dark:text-surface-400">
+        {t('certificates.sub')}
+      </p>
+    </header>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
+      <div class="card p-4 text-center">
+        <div class="text-2xl sm:text-3xl font-display font-bold text-accent-600 dark:text-accent-400">
+          {certificates.length}
+        </div>
+        <div class="text-sm text-surface-500 dark:text-surface-400">{t('certificates.count')}</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
+          {categories.length}
+        </div>
+        <div class="text-sm text-surface-500 dark:text-surface-400">{t('certificates.categories')}</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
+          {grouped['Cloudflare']?.length || 0}
+        </div>
+        <div class="text-sm text-surface-500 dark:text-surface-400">Cloudflare</div>
+      </div>
+      <div class="card p-4 text-center">
+        <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
+          {yearsLearning}+
+        </div>
+        <div class="text-sm text-surface-500 dark:text-surface-400">Years</div>
+      </div>
+    </div>
+
+    <!-- Certificates by Category -->
+    {categories.map((category) => (
+      <section class="mb-12">
+        <div class="flex items-center gap-2 mb-6">
+          <div class="w-8 h-8 rounded-lg bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center">
+            <svg class="w-4 h-4 text-accent-600 dark:text-accent-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-display font-semibold text-surface-900 dark:text-surface-100">
+            {category}
+          </h2>
+          <span class="text-surface-400 text-sm">({grouped[category].length})</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {grouped[category].map((cert) => (
+            <CertificateCard certificate={cert} />
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <!-- CTA -->
+    <div class="mt-8 p-8 rounded-2xl bg-gradient-to-br from-accent-100 to-accent-200 dark:from-accent-900/50 dark:to-accent-950/70 border border-accent-200 dark:border-accent-800/50 text-center">
+      <h3 class="font-display font-semibold text-xl text-surface-900 dark:text-surface-50 mb-2">
+        {t('certificates.cta.title')}
+      </h3>
+      <p class="text-surface-700 dark:text-surface-300 mb-6 max-w-md mx-auto">
+        {t('certificates.cta.sub')}
+      </p>
+      <a
+        href="https://www.credly.com/users/david-tofan/"
+        target="_blank"
+        rel="noopener noreferrer external"
+        class="btn-primary"
+      >
+        {t('certificates.cta.button')}
+      </a>
+    </div>
+  </div>
+</BaseLayout>

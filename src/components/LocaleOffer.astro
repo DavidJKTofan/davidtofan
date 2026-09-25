@@ -1,0 +1,102 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { useTranslations } from '../i18n/utils';
+import { OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION } from '../i18n/regions';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  /**
+   * Language to offer. Null renders nothing.
+   *
+   * Only the on-demand `/` passes this, and it is deliberately an *offer*
+   * rather than a redirect: `/` stays English and canonical, nothing changes
+   * under the visitor, and the choice — theirs, not ours — is one click away.
+   */
+  offerLang?: Lang | null;
+}
+
+const { offerLang = null } = Astro.props;
+
+// The offer text is written in the language being offered — showing a Spanish
+// speaker an English sentence about Spanish would rather miss the point.
+const t = useTranslations(offerLang ?? undefined);
+const href = offerLang ? getRelativeLocaleUrl(offerLang, '') : '/';
+---
+
+{offerLang && (
+  <div
+    id="locale-offer"
+    lang={offerLang}
+    class="border-b border-surface-200 dark:border-surface-800 bg-accent-50/70 dark:bg-accent-900/20"
+  >
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm">
+      <span class="text-surface-700 dark:text-surface-300">{t('lang.offer')}</span>
+      <a
+        href={href}
+        data-locale-offer-accept
+        data-lang={offerLang}
+        class="font-medium text-accent-700 dark:text-accent-400 hover:underline underline-offset-2"
+      >
+        {t('lang.offer.accept')}
+      </a>
+      <button
+        type="button"
+        data-locale-offer-dismiss
+        class="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded text-surface-500 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-100 hover:bg-surface-200/60 dark:hover:bg-surface-800"
+        aria-label={t('lang.offer.dismiss')}
+        title={t('lang.offer.dismiss')}
+      >
+        <svg class="pointer-events-none w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+)}
+
+<script define:vars={{ OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION }}>
+  function setupLocaleOffer() {
+    const banner = document.getElementById('locale-offer');
+    if (!(banner instanceof HTMLElement)) return;
+    if (banner.dataset.localeOfferBound === 'true') return;
+    banner.dataset.localeOfferBound = 'true';
+
+    // Dismissing is remembered, so the offer is made once and not repeatedly.
+    function remember(name, value) {
+      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax`;
+    }
+
+    banner.querySelector('[data-locale-offer-dismiss]')?.addEventListener('click', () => {
+      remember(OFFER_COOKIE, 'dismissed');
+      banner.remove();
+    });
+
+    banner.querySelector('[data-locale-offer-accept]')?.addEventListener('click', (event) => {
+      const chosen = event.currentTarget instanceof HTMLElement ? event.currentTarget.dataset.lang : null;
+      if (chosen) {
+        remember(LANG_COOKIE, chosen);
+        // Mirror the picker: accepting the offer re-themes as well, keeping the
+        // detected country's palette when it already speaks the chosen language.
+        const currentRegion = document.documentElement.getAttribute('data-region');
+        const keepRegion = currentRegion && COUNTRY_TO_LANG[currentRegion] === chosen;
+        const nextRegion = keepRegion ? currentRegion : LANG_HOME_REGION[chosen] ?? null;
+        const storedRegion = nextRegion || NEUTRAL_REGION;
+        try {
+          localStorage.setItem('lang', chosen);
+          localStorage.setItem('region', storedRegion);
+        } catch (e) {
+          /* private mode */
+        }
+        remember(REGION_COOKIE, storedRegion);
+      }
+      remember(OFFER_COOKIE, 'accepted');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupLocaleOffer, { once: true });
+  } else {
+    setupLocaleOffer();
+  }
+  document.addEventListener('astro:page-load', setupLocaleOffer);
+</script>

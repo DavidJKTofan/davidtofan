@@ -51,19 +51,24 @@ export default {
           900: '#1c1917',
           950: '#0c0a09',
         },
-        // Dark blue accent (#1e3a8a base)
+        // Region-aware accent ramp. The values live in src/styles/global.css as
+        // CSS custom properties: `html` carries the default blue (#1e3a8a base),
+        // and `html[data-region="XX"]` blocks override it per region. Keeping the
+        // scale variable-driven means every existing `accent-*` utility —
+        // including opacity modifiers like `accent-900/30`, which Tailwind v4
+        // resolves through color-mix() — re-themes with no component changes.
         accent: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-          950: '#172554',
+          50: 'var(--accent-50)',
+          100: 'var(--accent-100)',
+          200: 'var(--accent-200)',
+          300: 'var(--accent-300)',
+          400: 'var(--accent-400)',
+          500: 'var(--accent-500)',
+          600: 'var(--accent-600)',
+          700: 'var(--accent-700)',
+          800: 'var(--accent-800)',
+          900: 'var(--accent-900)',
+          950: 'var(--accent-950)',
         },
       },
       fontFamily: {

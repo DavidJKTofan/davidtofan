@@ -1,5 +1,15 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import { siteConfig, socialLinks, navigation } from '../config/site';
+import { localeFrom, useTranslations } from '../i18n/utils';
+
+const lang = localeFrom(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const localizedNav = navigation.map((item) => {
+  const navPath = item.href === '/' ? '' : `${item.href.replace(/^\/|\/$/g, '')}/`;
+  return { label: t(item.labelKey), href: getRelativeLocaleUrl(lang, navPath), navPath };
+});
 
 const currentYear = new Date().getFullYear();
 ---
@@ -18,8 +28,7 @@ const currentYear = new Date().getFullYear();
           </span>
         </a>
         <p class="mt-4 text-surface-600 dark:text-surface-400 max-w-sm leading-relaxed">
-          Senior Customer Engineer passionate about Cloud, Data Science, and Cybersecurity. 
-          Building secure, scalable, and performant digital experiences.
+          {t('footer.bio')}
         </p>
         
         <!-- Social Links -->
@@ -55,13 +64,14 @@ const currentYear = new Date().getFullYear();
       <!-- Navigation -->
       <div>
         <h3 class="font-display font-semibold text-surface-900 dark:text-surface-100 mb-4">
-          Navigation
+          {t('footer.nav')}
         </h3>
         <ul class="space-y-3">
-          {navigation.map((item) => (
+          {localizedNav.map((item) => (
             <li>
               <a
                 href={item.href}
+                data-nav-path={item.navPath}
                 class="text-surface-600 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors duration-200"
               >
                 {item.label}
@@ -74,7 +84,7 @@ const currentYear = new Date().getFullYear();
       <!-- Connect -->
       <div>
         <h3 class="font-display font-semibold text-surface-900 dark:text-surface-100 mb-4">
-          Connect
+          {t('footer.connect')}
         </h3>
         <ul class="space-y-3">
           <li>
@@ -123,19 +133,19 @@ const currentYear = new Date().getFullYear();
               href="/disclaimer/"
               class="hover:text-accent-600 dark:hover:text-accent-400 hover:underline transition-colors duration-200"
             >
-              Disclaimer
+              {t('footer.disclaimer')}
             </a>
             <span aria-hidden="true">·</span>
             <a
               href="/imprint/"
               class="hover:text-accent-600 dark:hover:text-accent-400 hover:underline transition-colors duration-200"
             >
-              Imprint &amp; Privacy
+              {t('footer.imprint')}
             </a>
           </p>
         </div>
         <p class="text-sm text-surface-500 dark:text-surface-400 flex items-center gap-1.5">
-          Built with
+          {t('footer.builtWith')}
           <a
             href="https://astro.build"
             target="_blank"

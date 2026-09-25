@@ -1,0 +1,223 @@
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import { languages, type Lang } from '../i18n/ui';
+import { localeFrom, useTranslations, LANGS, HTML_LANG } from '../i18n/utils';
+import { LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION } from '../i18n/regions';
+
+const lang = localeFrom(Astro.currentLocale);
+const t = useTranslations(lang);
+
+/**
+ * Only the five landing routes exist in every locale. From anywhere else
+ * (an article, a legal page) the picker points at that locale's home, because
+ * linking to a localized URL that was never built would 404.
+ */
+const LOCALIZED_ROUTES = new Set(['/', '/articles/', '/projects/', '/certificates/']);
+
+const stripped = '/' + Astro.url.pathname
+  .split('/')
+  .filter(Boolean)
+  .filter((segment, index) => !(index === 0 && LANGS.includes(segment as Lang)))
+  .join('/');
+const basePath = stripped === '/' ? '/' : `${stripped.replace(/\/$/, '')}/`;
+const target = LOCALIZED_ROUTES.has(basePath) ? basePath : '/';
+
+const options = LANGS.map((code) => ({
+  code,
+  label: languages[code],
+  // getRelativeLocaleUrl honours prefixDefaultLocale, so English stays unprefixed.
+  href: getRelativeLocaleUrl(code, target === '/' ? '' : target),
+  current: code === lang,
+}));
+---
+
+<div class="relative" id="language-picker">
+  <button
+    id="language-picker-toggle"
+    type="button"
+    class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
+    aria-label={t('a11y.selectLanguage')}
+    title={t('a11y.selectLanguage')}
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-controls="language-picker-menu"
+  >
+    <svg
+      class="pointer-events-none block w-5 h-5"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z" />
+    </svg>
+  </button>
+
+  <div
+    id="language-picker-menu"
+    class="hidden absolute right-0 top-full mt-2 min-w-40 rounded-xl glass shadow-lg shadow-surface-200/50 dark:shadow-surface-950/50 p-1 z-50"
+    role="menu"
+    aria-labelledby="language-picker-toggle"
+  >
+    {options.map((option) => (
+      <a
+        href={option.href}
+        role="menuitem"
+        {/* Same BCP-47 tag the <link rel="alternate"> graph uses, so the two
+            never disagree (zh-Hans, not a bare zh). */}
+        hreflang={HTML_LANG[option.code]}
+        lang={HTML_LANG[option.code]}
+        data-lang={option.code}
+        aria-current={option.current ? 'true' : undefined}
+        class:list={[
+          'flex cursor-pointer select-none items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200',
+          option.current
+            ? 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/20'
+            : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100 hover:bg-surface-100 dark:hover:bg-surface-800',
+        ]}
+      >
+        <span class="pointer-events-none">{option.label}</span>
+        {option.current && (
+          <svg class="pointer-events-none w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M20 6L9 17l-5-5" />
+          </svg>
+        )}
+      </a>
+    ))}
+  </div>
+</div>
+
+<script define:vars={{ LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION }}>
+  /*
+   * Follows the same binding contract as the mobile menu in Header.astro:
+   * an AbortController-scoped set of listeners, a dataset guard so repeated
+   * setup calls are cheap, and a re-bind on astro:page-load. Without the
+   * re-bind the picker silently stops working after the first client-side
+   * navigation, because <ClientRouter /> swaps the whole document.
+   */
+  function setupLanguagePicker() {
+    const toggle = document.getElementById('language-picker-toggle');
+    const menu = document.getElementById('language-picker-menu');
+
+    if (!(toggle instanceof HTMLButtonElement) || !(menu instanceof HTMLElement)) return;
+    if (toggle.dataset.languagePickerBound === 'true') return;
+
+    const appWindow = window;
+    appWindow.languagePickerAbortController?.abort();
+    const controller = new AbortController();
+    appWindow.languagePickerAbortController = controller;
+
+    toggle.dataset.languagePickerBound = 'true';
+
+    function closeMenu() {
+      toggle.setAttribute('aria-expanded', 'false');
+      menu.classList.add('hidden');
+    }
+
+    function openMenu() {
+      toggle.setAttribute('aria-expanded', 'true');
+      menu.classList.remove('hidden');
+    }
+
+    toggle.addEventListener(
+      'click',
+      () => {
+        if (toggle.getAttribute('aria-expanded') === 'true') closeMenu();
+        else openMenu();
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          closeMenu();
+          toggle.focus();
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (toggle.getAttribute('aria-expanded') !== 'true') return;
+        if (!(event.target instanceof Node)) return;
+        if (menu.contains(event.target) || toggle.contains(event.target)) return;
+        closeMenu();
+      },
+      { signal: controller.signal },
+    );
+
+    // Persist the choice so the on-demand `/` honours it on the next cold
+    // visit instead of re-deciding from Accept-Language every time. The <a>
+    // still navigates normally, so this works with JS disabled too.
+    menu.querySelectorAll('a[data-lang]').forEach((link) => {
+      link.addEventListener(
+        'click',
+        () => {
+          const chosen = link.dataset.lang;
+          if (!chosen) return;
+
+          /*
+           * Picking a language also re-themes the site, because a palette that
+           * ignored an explicit choice would read as broken. The exception is
+           * deliberate: if the visitor's detected country already speaks the
+           * language they chose, that country's palette is kept — someone in
+           * Mexico choosing Spanish stays on Mexico's palette instead of being
+           * flattened into Spain's.
+           */
+          const currentRegion = document.documentElement.getAttribute('data-region');
+          const currentRegionSpeaksChosen = currentRegion && COUNTRY_TO_LANG[currentRegion] === chosen;
+          const nextRegion = currentRegionSpeaksChosen ? currentRegion : LANG_HOME_REGION[chosen] ?? null;
+
+          // NEUTRAL_REGION rather than clearing: an explicit "no accent" must
+          // survive, or detection re-applies the visitor's country next load.
+          const storedRegion = nextRegion || NEUTRAL_REGION;
+          try {
+            localStorage.setItem('lang', chosen);
+            localStorage.setItem('region', storedRegion);
+          } catch (e) {
+            /* private mode */
+          }
+          document.cookie = `${LANG_COOKIE}=${encodeURIComponent(chosen)}; path=/; max-age=31536000; samesite=lax`;
+          document.cookie = `${REGION_COOKIE}=${encodeURIComponent(storedRegion)}; path=/; max-age=31536000; samesite=lax`;
+
+          // Apply immediately so the new palette is visible on this page rather
+          // than only after the navigation lands. The one-frame transition
+          // suppression avoids Chromium stranding var()-derived colours
+          // mid-interpolation (see .region-swapping in global.css).
+          const root = document.documentElement;
+          root.classList.add('region-swapping');
+          if (nextRegion) root.setAttribute('data-region', nextRegion);
+          else root.removeAttribute('data-region');
+          void root.offsetHeight;
+          root.classList.remove('region-swapping');
+
+          closeMenu();
+        },
+        { signal: controller.signal },
+      );
+    });
+  }
+
+  function initLanguagePicker() {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupLanguagePicker, { once: true });
+    } else {
+      setupLanguagePicker();
+    }
+  }
+
+  function bindLanguagePickerPageLoad() {
+    if (document.documentElement.dataset.languagePickerPageLoadBound === 'true') return;
+    document.documentElement.dataset.languagePickerPageLoadBound = 'true';
+    document.addEventListener('astro:page-load', setupLanguagePicker);
+  }
+
+  bindLanguagePickerPageLoad();
+  initLanguagePicker();
+</script>

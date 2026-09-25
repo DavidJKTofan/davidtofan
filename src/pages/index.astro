@@ -1,217 +1,127 @@
 ---
-import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
-import ArticleCard from '../components/ArticleCard.astro';
-import ProjectCard from '../components/ProjectCard.astro';
-import { siteConfig } from '../config/site';
-import { calculateReadingTime } from '../lib/readingTime';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+import Home from '../components/pages/Home.astro';
+import { resolvePreferredLang, isLang } from '../i18n/utils';
+import { resolveRegion, REGION_COOKIE, LANG_COOKIE, OFFER_COOKIE } from '../i18n/regions';
+import { defaultLang } from '../i18n/ui';
 
-// Get recent articles (sorted by date, non-draft only)
-const articles = await getCollection('articles', ({ data }) => !data.draft);
-const recentArticles = articles
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 6);
+/**
+ * The only on-demand route on the site.
+ *
+ * Everything else stays prerendered and is served straight from Workers static
+ * assets without invoking this Worker at all. This page is the one place where
+ * `request.cf` is available, so it is where the visitor's country is resolved
+ * and written to a cookie that the prerendered pages can then read client-side.
+ */
+/*
+ * Literal `true` on purpose, and flipped to `false` by the
+ * `geo-personalization-flag` integration in astro.config.mjs when
+ * GEO_PERSONALIZATION is enabled.
+ *
+ * It cannot be an expression: Astro reads this export with a regex over the
+ * raw file — /^\s*export\s+const\s+prerender\s*=\s*(true|false);?/m — so
+ * anything that is not a bare `true` or `false` is silently ignored and the
+ * route falls back to the default. The `astro:route:setup` hook is the
+ * supported way to decide this at build time.
+ */
+export const prerender = true;
 
-// Get featured projects (non-draft only)
-const projects = await getCollection('projects', ({ data }) => !data.draft);
-const featuredProjects = projects
-  .filter((p) => p.data.featured)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+/*
+ * When GEO_PERSONALIZATION is off this whole block is skipped and the page is
+ * prerendered: no request.cf to read, no cookies to set, and no response
+ * headers to mutate — all three are on-demand-only APIs. `__GEO_PERSONALIZATION__`
+ * is substituted as a literal at build time, so the dead branch is eliminated
+ * from the bundle rather than merely skipped at runtime.
+ */
+const geoEnabled = __GEO_PERSONALIZATION__;
+
+// Cloudflare attaches geolocation to the request itself. As of @astrojs/cloudflare
+// v13 this is read from the request rather than Astro.locals.runtime.
+const country = geoEnabled
+  ? ((Astro.request as Request & { cf?: { country?: string } }).cf?.country ?? null)
+  : null;
+
+const storedLang = geoEnabled ? Astro.cookies.get(LANG_COOKIE)?.value : undefined;
+const offerState = geoEnabled ? Astro.cookies.get(OFFER_COOKIE)?.value : undefined;
+const storedRegion = geoEnabled ? Astro.cookies.get(REGION_COOKIE)?.value : undefined;
+
+/*
+ * A stored language is the marker that the visitor has chosen for themselves,
+ * and the picker writes the matching region alongside it. So once a choice
+ * exists, geolocation must not overwrite it — otherwise someone in Spain who
+ * deliberately picked English would have the neutral palette they asked for
+ * replaced by Spain's on their next visit to `/`.
+ *
+ * With no stated preference, the country decides and is refreshed each visit.
+ */
+const hasExplicitChoice = isLang(storedLang);
+const region = hasExplicitChoice ? resolveRegion(storedRegion) : resolveRegion(country);
+
+// A stored preference is an explicit past choice, so honour it. This is not a
+// geo-redirect: country alone never triggers it.
+if (isLang(storedLang) && storedLang !== defaultLang) {
+  return Astro.redirect(getRelativeLocaleUrl(storedLang, ''), 302);
+}
+
+// Browser language leads; country is only consulted when the header says nothing.
+const preferred = geoEnabled
+  ? resolvePreferredLang(
+      Astro.preferredLocale,
+      Astro.request.headers.get('accept-language'),
+      country,
+    )
+  : defaultLang;
+
+// Offer the switch rather than performing it. Suppressed once the visitor has
+// answered either way, so we ask at most once.
+const offerLang = preferred !== defaultLang && !offerState ? preferred : null;
+
+// Hand the region to BaseLayout so <html data-region> is correct in the first
+// byte of HTML, rather than being corrected by the inline script after paint.
+Astro.locals.detectedRegion = region;
+
+// Remember the country so the prerendered pages can style themselves without
+// another Worker invocation. Country code and language tag only.
+// Skipped when the visitor has made an explicit choice — that cookie is theirs.
+if (geoEnabled && region && !hasExplicitChoice) {
+  Astro.cookies.set(REGION_COOKIE, region, {
+    path: '/',
+    maxAge: 31_536_000,
+    sameSite: 'lax',
+    httpOnly: false,
+  });
+}
+
+// public/_headers only applies to static assets, and this route is no longer
+// one. Re-apply what the `/` block there was providing, plus the caching rules
+// this page needs now that it varies per visitor.
+// Only an on-demand response has headers to set; on a prerendered page these
+// come from public/_headers like every other static route.
+const headers = geoEnabled ? Astro.response.headers : new Headers();
+headers.set(
+  'Link',
+  '</ai-licensing-terms/>; rel="describedby"; type="text/html", ' +
+    '</ai-licensing-terms/>; rel="license"; type="text/html", ' +
+    '</rsl.xml>; rel="license"; type="application/rsl+xml", ' +
+    '</sitemap-index.xml>; rel="sitemap"',
+);
+headers.set('X-Content-Type-Options', 'nosniff');
+headers.set('X-Frame-Options', 'SAMEORIGIN');
+headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+/*
+ * `no-store` would be the obvious choice for a per-visitor page, but Chrome
+ * treats it as a hard blocker for the back/forward cache, so every "back" to
+ * the homepage would pay a full round trip. `private, no-cache` keeps the
+ * response out of shared caches and revalidates before reuse, while leaving
+ * the page bfcache-eligible — which is what the Core Web Vitals actually
+ * measure on back navigation.
+ */
+headers.set('Cache-Control', 'private, no-cache, must-revalidate');
+headers.set('Vary', 'Accept-Language, Cookie');
+// The asset server sends a charset on static pages; an on-demand response has
+// to declare its own, or a locale offer in Chinese can mis-render before the
+// <meta charset> is parsed.
+headers.set('Content-Type', 'text/html; charset=utf-8');
 ---
 
-<BaseLayout
-  title={siteConfig.title}
-  description={siteConfig.description}
-  image={siteConfig.ogImage}
->
-  <!-- Hero Section -->
-  <section class="relative overflow-hidden">
-    <!-- Background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-br from-accent-50/50 via-transparent to-surface-100/50 dark:from-accent-950/20 dark:via-transparent dark:to-surface-900/50 pointer-events-none"></div>
-    
-    <!-- Decorative elements -->
-    <div class="absolute top-20 right-10 w-72 h-72 bg-accent-400/10 dark:bg-accent-400/5 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-10 left-10 w-96 h-96 bg-surface-300/20 dark:bg-surface-700/10 rounded-full blur-3xl pointer-events-none"></div>
-
-    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40">
-      <div class="max-w-3xl">
-        <!-- Greeting badge -->
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400 text-sm font-medium mb-6 animate-fade-up">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
-          </span>
-          Senior Customer Engineer @ Cloudflare
-        </div>
-
-        <!-- Main heading -->
-        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-surface-900 dark:text-surface-50 leading-[1.1] tracking-tight mb-6 animate-fade-up text-balance" style="animation-delay: 0.1s;">
-          Hi, I'm <span class="gradient-text">David</span>
-        </h1>
-
-        <!-- Subheading -->
-        <p class="text-lg sm:text-xl text-surface-600 dark:text-surface-400 leading-relaxed mb-8 max-w-2xl animate-fade-up" style="animation-delay: 0.2s;">
-          I'm passionate about <strong class="text-surface-800 dark:text-surface-200">Cloud ☁️</strong>, 
-          <strong class="text-surface-800 dark:text-surface-200">Data Science 📊</strong>, and 
-          <strong class="text-surface-800 dark:text-surface-200">Cybersecurity 🔐</strong>.<br> 
-          Always curious about why things work the way they do. 
-        </p>
-
-        <!-- CTA buttons -->
-        <div class="flex flex-wrap items-center gap-4 animate-fade-up" style="animation-delay: 0.3s;">
-          <a href="/articles" class="btn-primary">
-            Read Articles
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </a>
-          <a href="/projects" class="btn-secondary">
-            View Projects
-          </a>
-        </div>
-
-        <!-- Stats -->
-        <div class="flex flex-wrap items-center gap-8 mt-12 pt-8 border-t border-surface-200 dark:border-surface-800 animate-fade-up" style="animation-delay: 0.4s;">
-          <div>
-            <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
-              {articles.length}+
-            </div>
-            <div class="text-sm text-surface-500 dark:text-surface-400">Articles</div>
-          </div>
-          <div>
-            <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
-              {projects.length}+
-            </div>
-            <div class="text-sm text-surface-500 dark:text-surface-400">Projects</div>
-          </div>
-          <div>
-            <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
-              7+
-            </div>
-            <div class="text-sm text-surface-500 dark:text-surface-400">Years Experience</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Recent Articles Section -->
-  <section class="py-16 md:py-24 bg-surface-100/50 dark:bg-surface-900/50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Section header -->
-      <div class="flex items-end justify-between mb-10">
-        <div>
-          <h2 class="font-display font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-100 mb-2">
-            Recent Articles
-          </h2>
-          <p class="text-surface-600 dark:text-surface-400">
-            Thoughts on technology, cybersecurity, and cloud infrastructure
-          </p>
-        </div>
-        <a href="/articles" class="hidden sm:flex items-center gap-1.5 text-sm font-medium text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors">
-          View all articles
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </a>
-      </div>
-
-      <!-- Articles grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recentArticles.map((article) => (
-          <ArticleCard
-            title={article.data.title}
-            description={article.data.description}
-            date={article.data.date}
-            slug={article.id}
-            tags={article.data.tags}
-            featured={article.data.featured}
-            readingTime={article.data.readingTime ? `${article.data.readingTime} min read` : calculateReadingTime(article.body)}
-          />
-        ))}
-      </div>
-
-      <!-- Mobile view all link -->
-      <div class="mt-8 text-center sm:hidden">
-        <a href="/articles" class="btn-secondary">
-          View all articles
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Featured Projects Section -->
-  {featuredProjects.length > 0 && (
-    <section class="py-16 md:py-24">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section header -->
-        <div class="flex items-end justify-between mb-10">
-          <div>
-            <h2 class="font-display font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-100 mb-2">
-              Featured Projects
-            </h2>
-            <p class="text-surface-600 dark:text-surface-400">
-              Some of my recent work and side projects
-            </p>
-          </div>
-          <a href="/projects" class="hidden sm:flex items-center gap-1.5 text-sm font-medium text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 transition-colors">
-            View all projects
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-
-        <!-- Projects grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProjects.map((project) => (
-            <ProjectCard
-              title={project.data.title}
-              description={project.data.description}
-              slug={project.id}
-              website={project.data.website}
-              github={project.data.github}
-              tags={project.data.tags}
-              status={project.data.status}
-              featured={project.data.featured}
-            />
-          ))}
-        </div>
-
-        <!-- Mobile view all link -->
-        <div class="mt-8 text-center sm:hidden">
-          <a href="/projects" class="btn-secondary">
-            View all projects
-          </a>
-        </div>
-      </div>
-    </section>
-  )}
-
-  <!-- CTA Section -->
-  <section class="py-16 md:py-24 bg-gradient-to-br from-surface-900 to-surface-950 dark:from-surface-800 dark:to-surface-900">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="font-display font-bold text-2xl sm:text-3xl md:text-4xl text-white mb-4">
-        Let's Connect
-      </h2>
-      <p class="text-surface-300 text-lg mb-8 max-w-2xl mx-auto">
-        Interested in discussing cybersecurity, cloud architecture, or potential collaborations? 
-        I'm always open to new opportunities and conversations.
-      </p>
-      <div class="flex flex-wrap items-center justify-center gap-4">
-        <a 
-          href={`https://www.linkedin.com/in/${siteConfig.author.linkedin}/`}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn-primary bg-white text-surface-900 hover:bg-surface-100"
-        >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-          </svg>
-          LinkedIn
-        </a>
-      </div>
-    </div>
-  </section>
-</BaseLayout>
+<Home offerLang={offerLang} />

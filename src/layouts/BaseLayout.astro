@@ -2,8 +2,12 @@
 import '../styles/global.css';
 import { siteConfig } from '../config/site';
 import { ClientRouter } from 'astro:transitions';
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { localeFrom, useTranslations, HTML_LANG, OG_LOCALE, LANGS } from '../i18n/utils';
+import { defaultLang } from '../i18n/ui';
+import { TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION } from '../i18n/regions';
 
 type StructuredData = Record<string, unknown>;
 
@@ -38,15 +42,43 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+// Astro derives currentLocale from the URL, so this works on prerendered pages.
+const lang = localeFrom(Astro.currentLocale);
+const t = useTranslations(lang);
+
+// hreflang graph. Only the localized landing routes have real alternates, so
+// detail pages (which exist in English only) advertise none — telling crawlers
+// a /es/ copy exists when it does not is worse than staying silent.
+const LOCALIZED_ROUTES = new Set(['/', '/articles/', '/projects/', '/certificates/']);
+const localizedPath = '/' + Astro.url.pathname.split('/').filter((p) => LANGS.includes(p as never) === false).filter(Boolean).join('/');
+const normalizedPath = localizedPath === '/' ? '/' : `${localizedPath}/`;
+const hasAlternates = LOCALIZED_ROUTES.has(normalizedPath);
+const alternates = hasAlternates
+  ? LANGS.map((code) => ({
+      lang: HTML_LANG[code],
+      href: getAbsoluteLocaleUrl(code, normalizedPath === '/' ? '' : normalizedPath),
+    }))
+  : [];
+
+// The region accent is set before first paint by the inline script below. On
+// the on-demand homepage the country is already known server-side, so it is
+// rendered into the attribute directly and the script has nothing to correct.
+const serverRegion = Astro.locals?.detectedRegion ?? null;
 const ogImageURL = new URL(image, Astro.site);
-const pageTitle = title === siteConfig.title ? title : `${title} | ${siteConfig.name}`;
+// The homepage title already contains the site name, so it must not get the
+// "| David Tofan" suffix. Comparing against siteConfig.title alone stopped
+// working once the homepage title became per-locale, so compare against every
+// locale's homepage title instead.
+const homeTitles = new Set(LANGS.map((code) => useTranslations(code)('meta.home.title')));
+const pageTitle = homeTitles.has(title) ? title : `${title} | ${siteConfig.name}`;
 const structuredDataItems = structuredData
   ? (Array.isArray(structuredData) ? structuredData : [structuredData])
   : [];
 ---
 
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang={HTML_LANG[lang]} data-region={serverRegion ?? undefined} class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -66,6 +98,12 @@ const structuredDataItems = structuredData
     <meta name="description" content={description} />
     <meta name="author" content={siteConfig.author.name} />
     <link rel="canonical" href={canonicalURL} />
+    {alternates.map((alt) => (
+      <link rel="alternate" hreflang={alt.lang} href={alt.href} />
+    ))}
+    {hasAlternates && (
+      <link rel="alternate" hreflang="x-default" href={getAbsoluteLocaleUrl('en', normalizedPath === '/' ? '' : normalizedPath)} />
+    )}
 
     <!-- Robots: Control search engine indexing -->
     {noIndex ? (
@@ -95,7 +133,10 @@ const structuredDataItems = structuredData
     <meta property="og:description" content={description} />
     <meta property="og:image" content={ogImageURL} />
     <meta property="og:site_name" content={siteConfig.name} />
-    <meta property="og:locale" content={siteConfig.locale} />
+    <meta property="og:locale" content={OG_LOCALE[lang]} />
+    {hasAlternates && LANGS.filter((code) => code !== lang).map((code) => (
+      <meta property="og:locale:alternate" content={OG_LOCALE[code]} />
+    ))}
 
     {type === 'article' && publishedTime && (
       <meta property="article:published_time" content={publishedTime.toISOString()} />
@@ -144,6 +185,10 @@ const structuredDataItems = structuredData
           "@type": "WebPage",
           "@id": canonicalURL.toString(),
         },
+        // Google reads inLanguage to confirm the page's language matches the
+        // hreflang cluster it belongs to. Without it the signals rely on
+        // <html lang> alone.
+        "inLanguage": HTML_LANG[lang],
         "keywords": tags.join(", "),
       })} />
     ) : !noPersonSchema && (
@@ -153,7 +198,8 @@ const structuredDataItems = structuredData
         "name": siteConfig.author.name,
         "url": siteConfig.url,
         "jobTitle": "Senior Customer Engineer",
-        "description": siteConfig.description,
+        "description": t('meta.home.description'),
+        "inLanguage": HTML_LANG[lang],
         "image": new URL("/website-thumbnail.png", siteConfig.url).toString(),
         "sameAs": [
           `https://github.com/${siteConfig.author.github}`,
@@ -175,6 +221,94 @@ const structuredDataItems = structuredData
 
     <!-- View Transitions: Enables smooth page navigation and prefetching -->
     <ClientRouter />
+
+    <!--
+      Region Script. Deliberately mirrors the theme script below: an is:inline
+      script that resolves before first paint, plus an astro:before-swap hook so
+      the attribute survives View Transitions. Miss either and the accent
+      flashes on every navigation.
+
+      Resolution order: explicit choice -> cookie written by the on-demand `/`
+      -> IANA time zone. The time zone step is what gives a visitor arriving
+      straight at an article from search their regional accent without any
+      Worker invocation or network request.
+    -->
+    <script is:inline define:vars={{ TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION, GEO_ENABLED: __GEO_PERSONALIZATION__ }}>
+      (function () {
+        function readCookie(name) {
+          var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+          return match ? decodeURIComponent(match[1]) : null;
+        }
+
+        /*
+         * Local-only override so every profile can be checked without a VPN.
+         * Keyed on hostname rather than import.meta.env.DEV so it also works
+         * under `wrangler dev`, which serves the production build.
+         *
+         * It is consumed ONCE, on full page load, and written to localStorage.
+         * Re-reading location.search on every resolve would be wrong: during
+         * astro:before-swap the URL still carries the *previous* page's query,
+         * so a stale ?region= would outrank a choice the visitor just made in
+         * the picker and the palette would refuse to change.
+         *
+         * `?region=auto` clears it and returns to normal detection.
+         */
+        function consumeRegionOverride() {
+          var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+          if (!isLocal) return;
+          var forced = new URLSearchParams(location.search).get('region');
+          if (!forced) return;
+          try {
+            if (forced.toLowerCase() === 'auto') localStorage.removeItem('region');
+            else if (REGION_CODES.indexOf(forced.toUpperCase()) !== -1) {
+              localStorage.setItem('region', forced.toUpperCase());
+            }
+          } catch (e) { /* private mode */ }
+        }
+
+        function resolveRegion() {
+          // An explicit neutral choice must short-circuit: it is a preference,
+          // not an absence of one, so detection below must not override it.
+          try {
+            var stored = localStorage.getItem('region');
+            if (stored === NEUTRAL_REGION) return null;
+            if (stored && REGION_CODES.indexOf(stored) !== -1) return stored;
+          } catch (e) { /* private mode */ }
+
+          var cookie = readCookie(REGION_COOKIE);
+          if (cookie === NEUTRAL_REGION) return null;
+          if (cookie && REGION_CODES.indexOf(cookie) !== -1) return cookie;
+
+          // Time zone is a location signal, so it is gated with the rest of
+          // geolocation. An explicit language choice still themes the site
+          // above, because that is a stated preference, not an inference.
+          if (GEO_ENABLED) {
+            try {
+              var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+              if (tz && TIMEZONE_TO_REGION[tz]) return TIMEZONE_TO_REGION[tz];
+            } catch (e) { /* no Intl */ }
+          }
+
+          return null;
+        }
+
+        function applyRegion(doc) {
+          var region = resolveRegion();
+          if (region) {
+            doc.documentElement.setAttribute('data-region', region);
+          } else {
+            doc.documentElement.removeAttribute('data-region');
+          }
+        }
+
+        consumeRegionOverride();
+        applyRegion(document);
+
+        document.addEventListener('astro:before-swap', function (event) {
+          applyRegion(event.newDocument);
+        });
+      })();
+    </script>
 
     <!-- Theme Script (prevent flash and persist across View Transitions) -->
     <script is:inline>
@@ -211,6 +345,7 @@ const structuredDataItems = structuredData
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <!-- Noise texture overlay -->
+    <div class="fixed inset-0 pointer-events-none motif-layer z-0" aria-hidden="true"></div>
     <div class="fixed inset-0 pointer-events-none noise z-50" aria-hidden="true"></div>
     
     <Header />
@@ -223,6 +358,65 @@ const structuredDataItems = structuredData
     </main>
     
     <Footer />
+
+    <!--
+      Locale-sticky navigation.
+
+      Pages without a localized variant — the legal pages, article and project
+      detail pages, the 404 — are served from their English URLs, so their nav
+      is built for the default locale. A visitor reading /zh/ who followed the
+      footer to /disclaimer/ would therefore find every nav link pointing back
+      into the English tree, with no way home except `/`, which only re-enters
+      Chinese because of the redirect. That is the trap this closes.
+
+      It rewrites hrefs only, never labels: the page really is in English, so
+      relabelling its chrome would misdescribe it, and swapping text after paint
+      would flash. Re-pointing a link is invisible and reversible.
+
+      Crawlers have no preference cookie, so they always see the plain English
+      URLs. Nothing here is served differently to Googlebot than to a visitor in
+      the same state.
+    -->
+    <script is:inline define:vars={{ LANGS, LANG_COOKIE, DEFAULT_LANG: defaultLang }}>
+      (function () {
+        function storedLang() {
+          try {
+            var ls = localStorage.getItem('lang');
+            if (ls && LANGS.indexOf(ls) !== -1) return ls;
+          } catch (e) { /* private mode */ }
+          var m = document.cookie.match(new RegExp('(?:^|; )' + LANG_COOKIE + '=([^;]*)'));
+          var c = m ? decodeURIComponent(m[1]) : null;
+          return c && LANGS.indexOf(c) !== -1 ? c : null;
+        }
+
+        function currentUrlLocale() {
+          var first = location.pathname.split('/').filter(Boolean)[0];
+          return first && LANGS.indexOf(first) !== -1 ? first : null;
+        }
+
+        function applyLocaleNav() {
+          // Only act when the URL carries no locale of its own; a localized page
+          // already has correct server-rendered links.
+          if (currentUrlLocale()) return;
+
+          var lang = storedLang();
+          if (!lang || lang === DEFAULT_LANG) return;
+
+          var links = document.querySelectorAll('a[data-nav-path]');
+          for (var i = 0; i < links.length; i++) {
+            var path = links[i].getAttribute('data-nav-path') || '';
+            links[i].setAttribute('href', '/' + lang + '/' + path);
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', applyLocaleNav, { once: true });
+        } else {
+          applyLocaleNav();
+        }
+        document.addEventListener('astro:page-load', applyLocaleNav);
+      })();
+    </script>
 
     <!-- Theme toggle script -->
     <script>

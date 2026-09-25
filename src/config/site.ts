@@ -33,10 +33,10 @@ export const siteConfig: SiteConfig = {
 };
 
 export const navigation: NavItem[] = [
-  { label: 'Home', href: '/' },
-  { label: 'Articles', href: '/articles' },
-  { label: 'Projects', href: '/projects' },
-  { label: 'Certificates', href: '/certificates' },
+  { labelKey: 'nav.home', href: '/' },
+  { labelKey: 'nav.articles', href: '/articles' },
+  { labelKey: 'nav.projects', href: '/projects' },
+  { labelKey: 'nav.certificates', href: '/certificates' },
 ];
 
 export const socialLinks = [

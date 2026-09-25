@@ -26,7 +26,8 @@ export interface SiteConfig {
 }
 
 export interface NavItem {
-  label: string;
+  /** Dictionary key in src/i18n/ui.ts, resolved per locale at render time. */
+  labelKey: import('../i18n/ui').UIKey;
   href: string;
   icon?: string;
 }

@@ -1,5 +1,34 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import { navigation, siteConfig } from '../config/site';
+import LanguagePicker from './LanguagePicker.astro';
+import { localeFrom, useTranslations } from '../i18n/utils';
+
+const lang = localeFrom(Astro.currentLocale);
+const t = useTranslations(lang);
+
+// Nav labels and hrefs both follow the active locale. getRelativeLocaleUrl
+// honours prefixDefaultLocale, so English keeps its existing unprefixed URLs.
+const localizedNav = navigation.map((item) => {
+  // Locale-independent path, e.g. '' | 'articles/'. Emitted as data-nav-path so
+  // the script in BaseLayout can re-point these links when the visitor is on a
+  // page that has no localized variant. See "Locale-sticky navigation" there.
+  const navPath = item.href === '/' ? '' : `${item.href.replace(/^\/|\/$/g, '')}/`;
+  return {
+    label: t(item.labelKey),
+    href: getRelativeLocaleUrl(lang, navPath),
+    navPath,
+    // Home must match exactly. The old check exempted only the literal '/', so
+    // on a localized route the home href ('/es/') is a prefix of every other
+    // page in that locale and `startsWith` lit Home up everywhere.
+    isHome: navPath === '',
+  };
+});
+
+function isCurrent(item: (typeof localizedNav)[number]) {
+  if (item.isHome) return currentPath === item.href;
+  return currentPath === item.href || currentPath.startsWith(item.href);
+}
 
 const currentPath = Astro.url.pathname;
 const aiSearchConfig = siteConfig.aiSearch?.enabled ? siteConfig.aiSearch : null;
@@ -14,7 +43,7 @@ const aiSearchSnippetURL = aiSearchConfig
       <div class="flex items-center justify-between h-16 md:h-18">
         <!-- Logo -->
         <a
-          href="/"
+          href={getRelativeLocaleUrl(lang, '')}
           class="inline-flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-1.5 group"
           aria-label="DT — Home"
         >
@@ -27,13 +56,13 @@ const aiSearchSnippetURL = aiSearchConfig
         </a>
 
         <!-- Desktop Navigation -->
-        <nav class="hidden md:flex items-center gap-1" aria-label="Main navigation">
-          {navigation.map((item) => {
-            const isActive = currentPath === item.href || 
-              (item.href !== '/' && currentPath.startsWith(item.href));
+        <nav class="hidden md:flex items-center gap-1" aria-label={t('a11y.mainNav')}>
+          {localizedNav.map((item) => {
+            const isActive = isCurrent(item);
             return (
               <a
                 href={item.href}
+                data-nav-path={item.navPath}
                 class:list={[
                   'inline-flex min-h-11 cursor-pointer select-none items-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200',
                   isActive
@@ -55,7 +84,7 @@ const aiSearchSnippetURL = aiSearchConfig
               id="search-modal-trigger"
               type="button"
               class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
-              aria-label="Search David Tofan's site"
+              aria-label={t('a11y.search')}
               aria-haspopup="dialog"
               title="Search David Tofan's site (Cmd/Ctrl+K)"
               data-search-snippet-url={aiSearchSnippetURL}
@@ -74,12 +103,14 @@ const aiSearchSnippetURL = aiSearchConfig
             </button>
           )}
 
+          <LanguagePicker />
+
           <!-- Theme toggle -->
           <button
             id="theme-toggle"
             type="button"
             class="inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
-            aria-label="Switch to dark theme"
+            aria-label={t('a11y.toDarkTheme')}
             aria-pressed="false"
           >
             <!-- Sun icon (shown in dark mode) -->
@@ -112,7 +143,7 @@ const aiSearchSnippetURL = aiSearchConfig
             id="mobile-menu-toggle"
             type="button"
             class="md:hidden inline-flex h-11 w-11 cursor-pointer select-none items-center justify-center rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors duration-200"
-            aria-label="Toggle menu"
+            aria-label={t('a11y.toggleMenu')}
             aria-expanded="false"
             aria-controls="mobile-menu"
           >
@@ -133,13 +164,13 @@ const aiSearchSnippetURL = aiSearchConfig
     id="mobile-menu"
     class="md:hidden hidden absolute top-full left-0 right-0 glass border-b border-surface-200/50 dark:border-surface-800/50"
   >
-    <nav class="max-w-6xl mx-auto px-4 py-4 space-y-1" aria-label="Mobile navigation">
-      {navigation.map((item) => {
-        const isActive = currentPath === item.href || 
-          (item.href !== '/' && currentPath.startsWith(item.href));
+    <nav class="max-w-6xl mx-auto px-4 py-4 space-y-1" aria-label={t('a11y.mobileNav')}>
+      {localizedNav.map((item) => {
+        const isActive = isCurrent(item);
         return (
           <a
             href={item.href}
+            data-nav-path={item.navPath}
             class:list={[
               'block cursor-pointer select-none rounded-lg px-4 py-3 text-base font-medium transition-all duration-200',
               isActive
