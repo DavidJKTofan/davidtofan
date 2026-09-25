@@ -25,11 +25,19 @@ src/
 │   ├── CertificateCard.astro
 │   ├── Footer.astro
 │   ├── Header.astro
+│   ├── LanguagePicker.astro  # Language dropdown, beside the theme toggle
+│   ├── LocaleOffer.astro     # Dismissible "also available in …" line on /
 │   ├── ProjectCard.astro
 │   ├── ReadingProgress.astro
 │   ├── ScrollToTop.astro
 │   ├── TableOfContents.astro
-│   └── agent-ready-guide/  # Interactive components for the AI-agent-ready guide
+│   ├── agent-ready-guide/  # Interactive components for the AI-agent-ready guide
+│   └── pages/            # Page bodies shared by every locale's thin route
+│       ├── Articles.astro
+│       ├── Certificates.astro
+│       ├── Home.astro
+│       ├── NotFound.astro
+│       └── Projects.astro
 ├── config/
 │   └── site.ts           # Site config (name, URLs, nav, AI Search)
 ├── content/              # Markdown content
@@ -43,6 +51,10 @@ src/
 │           └── index.md
 ├── data/
 │   └── certificates.json # Certificates data
+├── i18n/                 # Language layer (no third-party i18n dependency)
+│   ├── regions.ts        # country→language, accent profiles, timezone fallback
+│   ├── ui.ts             # UI string dictionary for the 5 locales
+│   └── utils.ts          # useTranslations, Accept-Language resolution
 ├── layouts/
 │   └── BaseLayout.astro  # Main layout with SEO
 ├── lib/
@@ -51,7 +63,8 @@ src/
 │   └── readingTime.ts      # Reading time estimation
 ├── pages/
 │   ├── 404.astro
-│   ├── index.astro
+│   ├── index.astro               # Prerendered by default; the only route that
+│   │                              # can become on-demand (GEO_PERSONALIZATION)
 │   ├── certificates.astro
 │   ├── ai-licensing-terms.astro  # Legal — AI/crawler licensing (noindex)
 │   ├── disclaimer.astro          # Legal — disclaimer (noindex)
@@ -61,9 +74,14 @@ src/
 │   │   ├── [...slug].astro
 │   │   └── ai-agent-ready-website-cloudflare-guide/
 │   │       └── index.astro       # Custom-designed landing page for that guide
-│   └── projects/
-│       ├── index.astro
-│       └── [...slug].astro
+│   ├── projects/
+│   │   ├── index.astro
+│   │   └── [...slug].astro
+│   └── {es,de,it,zh}/            # Literal locale folders, as Astro's i18n
+│       ├── index.astro           # guide requires. Each file is three lines,
+│       ├── articles/index.astro  # rendering the shared component in
+│       ├── projects/index.astro  # components/pages/
+│       └── certificates.astro
 ├── styles/
 │   └── global.css
 ├── types/
@@ -112,6 +130,15 @@ npx wrangler check startup    # Report bundle size and Worker startup CPU time
 
 `wrangler check startup` writes a `worker-startup.cpuprofile` flamegraph to the repo root
 (gitignored) that can be opened in Chrome DevTools or VS Code.
+
+The site ships with `GEO_PERSONALIZATION` **off**, so a normal build is assets-only. If a
+release touches `src/pages/index.astro`, `astro.config.mjs` or `wrangler.jsonc`, build the other
+state too — the two produce structurally different deploys. See
+[Feature flag: `GEO_PERSONALIZATION`](#feature-flag-geo_personalization):
+
+```bash
+GEO_PERSONALIZATION=TRUE npm run build && npx wrangler deploy --dry-run
+```
 
 `wrangler dev` serves the real build output, so it is the closest local check to production.
 Two expected differences from production:
@@ -368,7 +395,7 @@ Setting `modified` updates three things at once, with no other file to touch:
 |:--|:--|
 | `<meta property="article:modified_time">` | `getEffectiveModifiedTime()` → `BaseLayout.astro` |
 | JSON-LD `BlogPosting.dateModified` | same helper, via `src/pages/articles/[...slug].astro` |
-| Sitemap `<lastmod>` | `buildLastmodMap()` in `src/lib/contentMetadata.js` |
+| Sitemap `<lastmod>` | `buildSitemapLastmodMap()` in `src/lib/contentMetadata.js` |
 
 When `modified` is absent, all three fall back to `date`, so leaving it off is safe — just less
 accurate. Because listing pages derive their own `lastmod` from the newest entry they list, a
@@ -429,6 +456,10 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 - **Dark/Light mode**: System detection with manual toggle, persists across page navigations
 - **AI Search modal**: Cloudflare AI Search button in the header with Cmd/Ctrl+K shortcut support
 - **Theme-aware browser chrome**: `html`-level `color-scheme` and custom scrollbar variables keep the right-edge gutter aligned with light/dark mode
+- **Language picker**: Dropdown beside the theme toggle, switching between the five supported
+  languages; the choice is remembered and also re-themes the site (see below)
+- **Regional accent**: `<html data-region>` swaps the accent ramp and a low-opacity geometric
+  motif based on the visitor's country, resolved before first paint
 - **View Transitions**: Smooth page navigation with Astro's ClientRouter
 - **Link Prefetching**: Hover-based prefetch for faster perceived navigation
 - **Mobile scroll-to-top button**: Floating button on articles/projects (hidden on desktop)
@@ -445,7 +476,8 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 - URL aliases with automatic redirects (Hugo compatibility)
 - Image optimization via Cloudflare's edge (`imageService: 'cloudflare'`): images use `/cdn-cgi/image/onerror=redirect,.../_astro/*` URLs, optimized at the edge when [Image Transformations](https://developers.cloudflare.com/images/transform-images/) are enabled on the zone, and transparently falling back to the original image when they are not
 - Custom 404 page with site branding
-- Dark blue accent color (#1e3a8a) with accent borders on article images
+- Accent colour is a CSS-variable ramp (`--accent-50` … `--accent-950`), blue by default and
+  overridden per region — see [Internationalization & SEO](#internationalization--seo)
 
 ## SEO & Performance
 
@@ -508,45 +540,300 @@ This site uses [Cloudflare Workers Static Assets](https://developers.cloudflare.
 
 These are assumptions:
 
+**As shipped, every request is a free static asset request** — the site deploys assets-only,
+with no Worker script at all.
+
 | Request Type | Served By | Cost |
 |:-------------|:----------|:-----|
-| HTML pages (`/`, `/articles/*`, etc.) | Static Assets | **FREE** |
+| `/` (homepage) — **default** | Static Assets | **FREE** |
+| `/` (homepage) — only if `GEO_PERSONALIZATION="TRUE"` | Worker (on-demand, personalized) | billed invocation |
+| All other HTML (`/articles/*`, `/es/*`, …) | Static Assets | **FREE** |
 | Astro assets (`/_astro/*.js`, `*.css`) | Static Assets | **FREE** |
 | Images, fonts, favicons | Static Assets | **FREE** |
 | 404 errors | Static Assets (`404.html`) | **FREE** |
 | Redirects (`/world` → `/projects/...`) | Static Assets (`_redirects`) | **FREE** |
 
 **Key points:**
-- All prerendered pages are served as static files (free, unlimited)
+- Every page is prerendered and served as a static file — [free and unlimited](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
+- The deployed Worker is Wrangler's `no-op-worker.js` (0.31 KiB); it exists only so the assets router has something to fall back to, and never runs in practice
 - Astro's configured `redirects` are compiled to a `_redirects` file and served by Static Assets — no Worker invocation. `wrangler dev` reports `Parsed 14 valid redirect rules`
-- The deployed Worker is Wrangler's `no-op-worker.js`; it exists only so the assets router has something to fall back to
-- No `run_worker_first` = assets served directly without Worker overhead
-- File storage is free; only Worker invocations are billed
+- File storage is free; only Worker invocations are billed, and in the default state there are none
+- The multilingual site is entirely static: `/es/`, `/de/`, `/it/`, `/zh/`, the language picker and the hreflang graph cost nothing
+- Flipping `GEO_PERSONALIZATION` to `"TRUE"` makes `/` on-demand so it can read `request.cf`. That is the only route that would ever invoke a Worker, and it also requires uncommenting `run_worker_first: ["/"]` — the documented opt-out of asset-first routing, kept commented out precisely because this site depends on asset-first. See [Feature flag](#feature-flag-geo_personalization) for why, and what it costs
 
 #### Configuration (`wrangler.jsonc`)
 
 Since `@astrojs/cloudflare` v14 this file only declares **custom** settings. The adapter
-resolves `main` and `assets.directory` itself and writes a deploy-ready config to
-`dist/client/wrangler.json`; Wrangler picks that up automatically via the redirect in
-`.wrangler/deploy/config.json`.
+resolves `main` and `assets.directory` itself and writes a deploy-ready config; Wrangler picks
+that up automatically via the redirect in `.wrangler/deploy/config.json`. Which file it writes
+depends on the flag: `dist/client/wrangler.json` in the default assets-only state, or
+`dist/server/wrangler.json` once `/` is on-demand.
 
 ```jsonc
 {
   "name": "davidtofan-astro",
+  "vars": {
+    "GEO_PERSONALIZATION": "FALSE"    // default — see Feature flag below
+  },
   "assets": {
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"  // Serves nearest 404.html
+    "not_found_handling": "404-page" // Serves nearest 404.html
+    // "run_worker_first": ["/"]     // Commented out — see Feature flag below
   }
   // plus: compatibility_date, compatibility_flags, kv_namespaces, observability, routes
 }
 ```
 
+`run_worker_first` is the documented **opt-out of asset-first routing**, so it is deliberately
+commented out: with the flag off this site is entirely asset-first, and the config should say
+what actually deploys. It is uncommented only when `/` genuinely needs a Worker.
+
+#### Feature flag: `GEO_PERSONALIZATION`
+
+Geolocation-based personalization is behind a single switch, declared as a Workers variable
+in `wrangler.jsonc`. **It ships off**, so the site stays assets-only and every request is free:
+
+```jsonc
+"vars": {
+  "GEO_PERSONALIZATION": "FALSE"   // default. Only "TRUE" enables it
+}
+```
+
+| | `"TRUE"` | anything else (**default**) |
+|:--|:--|:--|
+| `/` | rendered on demand | prerendered static file |
+| Worker invocations | one per homepage **view** | **zero** — assets-only deploy |
+| Country detection (`request.cf`) | yes | no |
+| Language offer on `/` | yes | no |
+| `dt-lang` cookie redirects `/` → `/es/` | yes | no (a static page cannot redirect) |
+| Region accent from location | yes | no — nothing about place is inferred |
+| Localized routes, picker, hreflang, sitemap | **unchanged** | **unchanged** |
+| Language picker re-themes on choice | yes | yes — a stated preference, not an inference |
+
+Turning it off does **not** dismantle the multilingual site. `/es/`, `/de/` … stay built, the
+picker still works, and the hreflang graph is untouched — those are static files and cost
+nothing. Only the parts that need a Worker or infer the visitor's location go away.
+
+##### Turning it on
+
+**Two lines in `wrangler.jsonc`, and they must move together.**
+
+1. Set the flag to exactly `"TRUE"`:
+   ```jsonc
+   "vars": { "GEO_PERSONALIZATION": "TRUE" }
+   ```
+2. Uncomment `run_worker_first` inside `"assets"` — and add the comma to the line above it:
+   ```jsonc
+   "not_found_handling": "404-page",
+   "run_worker_first": ["/"]
+   ```
+3. Rebuild and deploy:
+   ```bash
+   npm run deploy
+   ```
+
+Forgetting step 2 **fails the build** with instructions rather than shipping a broken site — see
+[Why the build guards this](#why-the-build-guards-this) below.
+
+Weigh the cost first — see [Cost, precisely](#cost-precisely). Every homepage view becomes a
+billed Worker request, and on the free plan a spike past the daily limit returns `429` on `/`
+instead of falling back to the static page.
+
+##### Turning it off again
+
+Reverse both edits: set the flag back to `"FALSE"`, re-comment `run_worker_first`, and remove the
+trailing comma from `"not_found_handling"`. Then deploy. Nothing else changes — no content, URL
+or translation is affected.
+
+Leaving `run_worker_first` uncommented with the flag off does not silently misbehave either:
+Wrangler refuses it outright, because an assets-only build has no Worker script.
+
+```text
+✘ [ERROR] Cannot set run_worker_first without a Worker script.
+```
+
+##### Why the build guards this
+
+The two settings are independent in the config but not in reality, and getting them out of step
+fails in an unusually quiet way. With `/` on-demand but `run_worker_first` missing, the
+`assets_navigation_prefers_asset_serving` compatibility flag (default since 2025-04-01) diverts
+any request carrying `Sec-Fetch-Mode: navigate` to asset serving, which finds no `index.html` and
+returns `404.html` — **before** the Worker runs. The homepage 404s on a hard refresh while `curl`
+still returns `200`, so it passes a scripted smoke test and fails for every real visitor.
+
+`astro.config.mjs` therefore refuses to build that combination:
+
+```text
+GEO_PERSONALIZATION is enabled, but assets.run_worker_first is not set to ["/"] in wrangler.jsonc.
+  …
+  Fix: uncomment this line in wrangler.jsonc, inside "assets":
+
+      "run_worker_first": ["/"]
+```
+
+Wrangler already enforces the opposite direction, so between them no mismatched pair can ship.
+
+##### Checking without committing
+
+`process.env` overrides the wrangler value, so either mode can be built and inspected without
+touching committed config:
+
+```bash
+GEO_PERSONALIZATION=TRUE npm run build && npx wrangler deploy --dry-run
+```
+
+> **Check with it, do not deploy with it.** The override changes how the site is *built*, but
+> `vars` in the uploaded config still comes from `wrangler.jsonc`. An env-overridden deploy would
+> therefore run on-demand while the dashboard reports `GEO_PERSONALIZATION: "FALSE"` — harmless
+> at runtime (nothing reads it there) but actively misleading later. To actually change modes,
+> edit `wrangler.jsonc` and run `npm run deploy`.
+
+The build announces which mode it used, so a wrong deploy is visible in the log:
+
+```text
+[geo] personalization DISABLED — / is prerendered (no Worker invocations)
+```
+
+Confirm the result rather than trusting the message — the two states differ in the build output:
+
+| | `"TRUE"` | off (**default**) |
+|:--|:--|:--|
+| `dist/client/index.html` | absent | present |
+| `dist/server/` | `entry.mjs` + chunks | empty |
+| adapter writes | `dist/server/wrangler.json` | `dist/client/wrangler.json` |
+| `wrangler deploy --dry-run` upload | ~2.9 MB Worker | **0.31 KiB** no-op Worker |
+| `wrangler check startup` bundle | ~2949 KiB | 0.31 KiB |
+
+> **Why it is read at build time, not runtime.** The flag controls `export const prerender` on
+> `src/pages/index.astro`, which Astro resolves while building — a runtime `env.GEO_PERSONALIZATION`
+> lookup inside the Worker could never turn `/` back into a static file. Changing the variable in
+> the Cloudflare dashboard alone therefore has no effect; change it in `wrangler.jsonc` and redeploy.
+
+> **Why the export is a literal.** Astro parses it with a regex over the raw file —
+> `/^\s*export\s+const\s+prerender\s*=\s*(true|false);?/m` — so an expression is silently
+> ignored and the route quietly falls back to the default. The value is therefore a literal
+> `true`, overridden by the `astro:route:setup` integration hook in `astro.config.mjs`, which is
+> the supported way to decide this per build.
+
+##### Cost, precisely
+
+In the default state nothing is billed: there is no Worker script, so every request is a static
+asset request.
+
+Turning the flag on means **every** request to `/` is a billed Worker request — not just the
+first per visitor. Cloudflare's own wording for `run_worker_first` is that "requests matching the
+specified patterns will always invoke your Worker script". The billing split is:
+
+| | Billed |
+|:--|:--|
+| `/` with the flag **off** (default) | no — served as a static asset |
+| `/` with the flag on | yes, every request |
+| Every other route, either state | no — ["requests to static assets are free and unlimited"](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/) |
+
+Note the cause: the cost comes from `/` being on-demand, not from `run_worker_first` itself.
+`run_worker_first` only ensures the request actually reaches the Worker — without it, navigation
+requests are diverted to asset serving and hit `404.html` instead.
+
+> **Free-plan caveat.** Per Cloudflare's billing docs, requests matched by `run_worker_first`
+> that exceed the free-tier limit "will receive a 429 (Too Many Requests) response instead of
+> falling back to static asset serving". On the free plan an unusually large traffic spike would
+> therefore 429 the homepage rather than degrading to a static page. Turning the flag off removes
+> that exposure entirely, because `/` becomes an ordinary static asset.
+
+#### Internationalization & SEO
+
+- **Two independent layers.** Language lives in the URL (`/es/…`) and is resolved by Astro's i18n routing; the regional accent lives in `<html data-region>` and never touches the URL. Madrid and Mexico City therefore share `/es/` but not the palette
+- **hreflang** is emitted on the five localized landing routes only — each cluster is bidirectional, self-referencing, and carries a single `x-default` pointing at `/`. Pages with no translation (articles, projects, legal) advertise no alternates, because claiming a `/es/` copy that does not exist is worse than staying silent. The language picker's own links use the same BCP-47 tags as the alternate graph, so the two never disagree
+- **`inLanguage`** is set on every JSON-LD block so the structured data agrees with the hreflang cluster it sits in
+- **Locale-sticky navigation**: pages without a localized variant are served from English URLs, so a visitor who followed the footer out of `/zh/` would otherwise find every nav link pointing back into the English tree. A small script re-points `a[data-nav-path]` hrefs — never labels, so nothing flashes and the page is not mislabelled. Crawlers have no preference cookie and always receive the plain English URLs; the HTML is byte-identical for everyone
+- **When the flag is on**, `/` is served `private, no-cache, must-revalidate` — deliberately not `no-store`, which is a hard back/forward-cache blocker in Chrome and would make every "back" to the homepage pay a full round trip. `no-cache` still keeps the personalized response out of shared caches, and `Vary: Accept-Language, Cookie` records what it varies on. In the default state `/` is an ordinary static asset and gets the same `public, max-age=0, must-revalidate` as every other page
+
+**Supported languages**: English (default, unprefixed), Spanish, German, Italian and Mandarin
+Chinese. UI strings live in `src/i18n/ui.ts`; a key missing from a locale falls back to English
+per-key, so a partial translation is always safe to ship.
+
+**English is the fallback for everything else.** `resolvePreferredLang()` has no path that
+returns an unsupported language: the browser's stated languages are tried first, then the
+visitor's country, and anything unresolved lands on English. Portuguese- and French-speaking
+countries are mapped explicitly to `'en'` in `COUNTRY_TO_LANG` rather than simply omitted — the
+result is identical, but it records the decision instead of leaving it looking like a gap.
+
+> **Note on place vs. language.** BR, PT and FR still have *accent profiles* in `global.css`
+> even though their languages are not offered. The two layers are independent by design: the
+> profile list is about place, not language, so a visitor in Lisbon or Paris reads English while
+> still getting the accent drawn from their own design tradition — the same way a visitor in the
+> US reads English and gets the neutral default. Remove an entry from `REGION_CODES` only to
+> drop that place's visual identity, not because a language went away.
+
+**Localized surface**: the chrome plus four landing routes (`/`, `/articles/`, `/projects/`,
+`/certificates/`). Article and project *bodies* stay English — machine-translating 40+ technical
+posts would read worse than not translating them. `i18n.fallback` is deliberately left unset in
+`astro.config.mjs`, because with `fallbackType: 'rewrite'` it would generate a localized copy of
+every article and project route in all five locales.
+
+**Detecting a visitor** (only when `GEO_PERSONALIZATION="TRUE"`): `/` is the only route where
+`request.cf` exists. It reads the country and `Accept-Language`, writes `dt-region` / `dt-lang`
+cookies, and *offers* a language switch rather than redirecting — the URL never changes under the
+visitor. Prerendered pages then read those cookies client-side, so no other route needs a Worker.
+A visitor who never touches `/` (arriving at an article from search) still gets their accent,
+resolved from `Intl.DateTimeFormat().resolvedOptions().timeZone`.
+
+With the flag off none of this runs: no country is read, no cookie is written, no offer is shown,
+and the time-zone fallback is skipped too, so nothing about the visitor's location is inferred.
+The language picker still works and still re-themes the site, because an explicit choice is a
+stated preference rather than an inference.
+
+> **Why the supplement to `Astro.preferredLocale`?** It only matches codes present in
+> `i18n.locales` verbatim, so a header of `es-ES` alone falls through to English. The documented
+> fix is custom locale paths (`{ path, codes }`), but that feature requires `output: "server"`
+> with *no* prerendered pages — the opposite of this site. `resolvePreferredLang()` in
+> `src/i18n/utils.ts` therefore re-reads the header and strips region subtags.
+
+**Language and colour**: switching language re-themes the site, *unless* the visitor's detected
+country already speaks the language they chose — someone in Mexico choosing Spanish keeps
+Mexico's palette instead of being flattened into Spain's. Choosing English stores the sentinel
+`NEUTRAL_REGION` rather than clearing the region, because "explicitly neutral" and "no preference
+yet" must not resolve the same way; clearing it would let detection re-apply the visitor's country
+on the next load.
+
+**Accent profiles** live in `src/styles/global.css`, one block per country. Each ramp is generated
+by holding the original blue's OKLCH *lightness* curve fixed and rotating only the hue, then
+darkening steps 500–700 until each meets or beats the blue's contrast against both `surface-50`
+and `surface-950` — which is why they are not round hex values. They reference design traditions,
+never flags, and a country without a hand-designed profile inherits the neutral default on
+purpose.
+
+**Breadcrumbs**: `BlogPosting` / `CreativeWork` pages emit `BreadcrumbList` in English only, since
+article and project detail pages have no localized variants.
+
+##### Adding or removing a language
+
+Everything derives from `src/i18n/ui.ts`, so the language list is not duplicated across the
+codebase — but four files still need to agree, because Astro's routing and the sitemap read
+their own copies:
+
+| File | Change |
+|:--|:--|
+| `src/i18n/ui.ts` | add/remove the entry in `languages` and its block in `ui` |
+| `src/i18n/utils.ts` | add/remove the `HTML_LANG` and `OG_LOCALE` entries |
+| `src/i18n/regions.ts` | `LANG_HOME_REGION`, and point that language's countries somewhere in `COUNTRY_TO_LANG` |
+| `astro.config.mjs` | `i18n.locales` **and** the sitemap integration's `i18n.locales` |
+| `src/pages/<code>/` | the four three-line route files |
+| `public/_headers` | the `/<code>/*` block |
+
+The picker, the hreflang graph, the 404's embedded strings and `LANGS` all derive from
+`languages`, so they follow automatically. Verify with a build: the sitemap's `hreflang` set and
+`dist/client/` locale folders should both match the new list exactly.
+
+> **Removing a language that has been indexed** leaves its URLs returning 404. If `/fr/` was ever
+> crawled, consider a redirect to `/` in `astro.config.mjs` rather than letting it 404.
+
 #### Astro 7 / Cloudflare Notes
 
 - Astro 7 requires Node `22.12.0+` and builds on Vite 8
-- **Build output is split**: `astro build` now emits `dist/client` (all static assets) and `dist/server`. Because every page is prerendered, `dist/server` is empty and the site deploys as an **assets-only Worker** — Wrangler uploads a `no-op-worker.js` (0.31 KiB) that never runs in practice
-- **`wrangler.jsonc` no longer needs `main` or `assets.directory`.** The adapter (via `@cloudflare/vite-plugin`) resolves both and writes `dist/client/wrangler.json`; `.wrangler/deploy/config.json` redirects Wrangler to it. Wrangler prints `Using redirected Wrangler configuration` to confirm
+- **Build output is split**: `astro build` emits `dist/client` (all static assets) and `dist/server`. In the default state every page is prerendered, so `dist/server` is empty and the site deploys as an **assets-only Worker** — Wrangler uploads a `no-op-worker.js` (0.31 KiB) that never runs in practice. With `GEO_PERSONALIZATION="TRUE"`, `dist/server` holds a real Worker entry (`entry.mjs`) and only `/` invokes it
+- **`wrangler.jsonc` still does not need `main` or `assets.directory`.** The adapter (via `@cloudflare/vite-plugin`) resolves both and writes `dist/client/wrangler.json` when the build is assets-only, or `dist/server/wrangler.json` when a Worker entry exists; `.wrangler/deploy/config.json` redirects Wrangler to whichever applies. Wrangler prints `Using redirected Wrangler configuration` to confirm
 - **Markdown**: Astro 7 makes [Sätteri](https://satteri.bruits.org/) the default processor and no longer bundles `@astrojs/markdown-remark`. This site keeps the `unified()` pipeline for `rehype-external-links`, so `@astrojs/markdown-remark` is now an **explicit dependency** in `package.json`
 - The adapter's `platformProxy` option no longer exists in v14 (the Cloudflare Vite plugin provides the real `workerd` runtime in dev) and has been removed from `astro.config.mjs`
 - `astro.config.mjs` imports `ChangeFreqEnum` from `@astrojs/sitemap` rather than reaching into the transitive `sitemap` package, so every import resolves to a declared dependency
@@ -556,6 +843,49 @@ resolves `main` and `assets.directory` itself and writes a deploy-ready config t
 - The old `postcss.config.cjs` file was removed as part of the Tailwind v4 migration
 - Astro-scoped `<style>` blocks that use Tailwind utilities via `@apply` should add an `@reference` to `src/styles/global.css`
 - **Image service**: this site uses `imageService: 'cloudflare'` in the adapter config. Build-time `imageService: 'compile'` (sharp) was used previously but broke for prerendered sites (build fails with `ENOENT … dist/_astro/*` during image generation). Note that `@astrojs/cloudflare` v14 changed the *default* to `cloudflare-binding`, which transforms at runtime and would invoke the Worker; this site pins `'cloudflare'`, which keeps the build fully static and relies on Cloudflare edge Image Transformations, with `onerror=redirect` falling back to the original image when Transformations are not enabled. Because `/cdn-cgi/image/` only exists at the edge, these images 404 under `npx wrangler dev` but render normally under `npm run dev` and in production. If you prefer no optimization and no Cloudflare dependency, set `imageService: 'passthrough'` — but note that on a fully prerendered site `passthrough` emits `/_image` URLs that require a runtime endpoint.
+
+### Measured results
+
+Lighthouse 12 (headless Chromium, local `wrangler dev` build), and the same audit against the
+deployed site for comparison:
+
+| | perf | a11y | best-practices | SEO |
+|:--|--:|--:|--:|--:|
+| `/` — `GEO_PERSONALIZATION=TRUE` | 100 | 95 | 100 | 92 |
+| `/` — `GEO_PERSONALIZATION=FALSE` | 100 | 95 | 100 | 92 |
+| `/es/`, `/articles/`, an article page | 100 | 95 | 100 | 92 |
+
+FCP 1.2 s · LCP 1.4 s · TBT 0 ms · CLS 0.003, identical in both flag states.
+
+> Local numbers are not comparable to production: there is no network latency, and the
+> Cloudflare Web Analytics beacon and AI Search snippet are injected at the edge, so they are
+> absent locally. The meaningful comparison is the *audit list*, not the score — and no audit
+> fails locally that does not also fail on the deployed site.
+
+The four audits that do not reach 100 are all pre-existing and unrelated to the i18n work:
+
+| Audit | Cause | Deliberate? |
+|:--|:--|:--|
+| `robots-txt` "unknown directive" | `Content-Signal:` and `License:` lines | **Yes** — IETF AIPREF and RSL directives Lighthouse's validator does not know |
+| `color-contrast` | white text on `.btn-primary`; `text-surface-500` links in dark mode | No — see below |
+| `label-content-name-mismatch` | article cards use `aria-labelledby` | No — pre-dates this work |
+| `render-blocking-resources` | the single stylesheet | No — pre-dates this work |
+
+#### Known: `.btn-primary` contrast
+
+White text on `accent-500` is **3.68:1** on the default blue, below the 4.5:1 AA threshold for
+normal text. Every regional ramp was generated to match that baseline rather than exceed it, so
+all ten land between 3.68 and 3.90 — the shortfall is inherited from the original palette, not
+introduced by regional theming:
+
+```text
+default #3b82f6  3.68     ES #cb6900  3.78     MX #ca5b8c  3.90
+IT      #4d953d  3.70     DE #cc6164  3.85     FR #9a70c8  3.80
+```
+
+Moving `.btn-primary` to `accent-600` would clear AA in every region at once (worst case 5.17:1),
+at the cost of slightly darker buttons sitewide. That is a design decision about the original
+palette, so it is left as-is and recorded here rather than changed silently.
 
 ### Static Asset Headers (`public/_headers`)
 
@@ -568,6 +898,35 @@ Custom headers for Cloudflare Workers Static Assets:
   - `X-Frame-Options: SAMEORIGIN`
   - `Referrer-Policy: strict-origin-when-cross-origin`
 - **Preview protection**: *not currently enabled* — see the note in `public/_headers`. `_headers` supports host matching (`https://<worker>.<account>.workers.dev/*`), but it cannot be verified with `wrangler dev`, and an over-matching rule would `noindex` the production domain. Setting `"workers_dev": false` in `wrangler.jsonc` is the safer way to remove the preview URL.
+
+#### Caching model (verified against production)
+
+Three layers, each doing one job:
+
+| Resource | `Cache-Control` | Set by | Edge |
+|:--|:--|:--|:--|
+| `/_astro/*` (fingerprinted) | `public, max-age=31536000, immutable` | `_headers` | `HIT` |
+| Fonts (`.woff`, `.woff2`) | `public, max-age=31536000, immutable` | `_headers` | `HIT` |
+| Images, `robots.txt`, manifest | `public, max-age=36000` | `_headers` | `HIT` |
+| **Prerendered HTML** (incl. `/` by default) | `public, max-age=0, must-revalidate` | Workers Static Assets default | `HIT` |
+| **`/` — only when the flag is on** | `private, no-cache, must-revalidate` | `src/pages/index.astro` | never cached |
+
+The HTML line looks aggressive but is correct, and is Cloudflare's own default for Static
+Assets. The two directives serve different consumers: the *browser* revalidates on every
+navigation, so a deploy is visible immediately, while *Cloudflare* still answers from its edge
+cache (`cf-cache-status: HIT`). Because every prerendered page carries an `ETag`, that
+revalidation is a `304` from the nearest edge, not a re-download.
+
+**With the flag on**, `/` is deliberately excluded from all shared caching: it is personalized
+per visitor, so `private` keeps it out of the edge and `no-cache` forces revalidation. That does
+mean the homepage costs a Worker invocation on every view rather than only on the first — the
+price of resolving geolocation server-side instead of flashing it in after paint. In the default
+state `/` is cached at the edge like every other page.
+
+> **Tempting but unsafe**: adding `stale-while-revalidate` to HTML would remove the 304 round
+> trip. There is no safe `_headers` rule for it here — HTML paths like `/articles/*` also match
+> `/articles/<slug>/featured.png`, and duplicate `Cache-Control` values are *joined*, not
+> overridden, producing exactly the breakage described below. Leave HTML on the default.
 
 #### Splats vs. placeholders (avoid duplicate headers)
 
@@ -597,7 +956,13 @@ curl -sI http://localhost:8787/_astro/<some-fingerprinted-file>.png
 Each of `Cache-Control`, `Content-Type`, and `X-Content-Type-Options` should appear once, with a
 single value.
 
-> **Note**: All pages are prerendered (no SSR), so security headers are applied via `_headers` file, not middleware. For additional headers, use Cloudflare [Transform Rules](https://developers.cloudflare.com/rules/transform/).
+> **Note**: `public/_headers` only applies to **static assets**. In the default state every
+> route is prerendered, so all security headers come from there. When `GEO_PERSONALIZATION` is
+> on, `/` is rendered on demand and is no longer an asset, so it sets the same `Link`,
+> `X-Content-Type-Options`, `X-Frame-Options` and `Referrer-Policy` values itself via
+> `Astro.response.headers` in `src/pages/index.astro` — **if you change one in `_headers`, change
+> it there too, or the two states will disagree.** For additional headers, use Cloudflare
+> [Transform Rules](https://developers.cloudflare.com/rules/transform/).
 
 ### Robots & Indexing
 

@@ -117,11 +117,19 @@ export async function buildSitemapLastmodMap(siteUrl) {
     ['/certificates/', readNewestCertificateDate(readFileSync, existsSync, join(projectRoot, 'src', 'data', 'certificates.json'))],
   ]);
 
+  // Localized copies of the listing pages are the same content in another
+  // language, so they share their English original's freshness. Without this
+  // the localized routes ship with no `lastmod` at all.
+  const localePrefixes = ['', '/es', '/de', '/fr', '/pt', '/it', '/zh'];
+
   for (const [route, lastmod] of listingLastmods) {
     if (!lastmod) {
       continue;
     }
-    lastmodMap.set(new URL(route, siteUrl).toString(), lastmod.toISOString());
+    for (const prefix of localePrefixes) {
+      const localizedRoute = prefix === '' ? route : `${prefix}${route}`;
+      lastmodMap.set(new URL(localizedRoute, siteUrl).toString(), lastmod.toISOString());
+    }
   }
 
   for (const page of Object.values(sitePageMetadata)) {

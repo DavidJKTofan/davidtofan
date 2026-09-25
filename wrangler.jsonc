@@ -29,6 +29,28 @@
 		"binding": "ASSETS",
 		"html_handling": "auto-trailing-slash",
 		"not_found_handling": "404-page"
+		/**
+		 * COMMENTED OUT ON PURPOSE — uncomment together with
+		 * GEO_PERSONALIZATION: "TRUE" above. The build fails with instructions
+		 * if you change one without the other.
+		 *
+		 * Workers Static Assets is asset-first by design, and this site relies
+		 * on that: with the flag off every route is a static file and nothing is
+		 * billed. `run_worker_first` is the documented opt-out of asset-first
+		 * routing, so it belongs here only while `/` actually needs a Worker.
+		 *
+		 * Why it is required in that case: since compatibility_date 2025-04-01
+		 * the `assets_navigation_prefers_asset_serving` flag is on by default, so
+		 * a request carrying `Sec-Fetch-Mode: navigate` prefers asset serving and
+		 * falls back to `404.html` *before* the Worker is invoked. With `/`
+		 * on-demand there is no `index.html` to serve, so a hard refresh on the
+		 * homepage returns the 404 page while `curl` succeeds — a failure that
+		 * only shows up in a browser.
+		 *
+		 * Scoping it to exactly `/` leaves every other route asset-first.
+		 * https://developers.cloudflare.com/workers/static-assets/routing/worker-script/
+		 */
+		// "run_worker_first": ["/"]
 	},
 	// Astro Sessions are backed by Cloudflare KV via the SESSION binding (the
 	// @astrojs/cloudflare adapter enables this automatically). Pin the existing
@@ -40,6 +62,25 @@
 			"id": "3198ea8b77fb4040974377ab70d9b93c"
 		}
 	],
+	/**
+	 * Feature flag for geolocation-based personalization.
+	 *
+	 * "FALSE" (the default) -> `/` is prerendered. Zero Worker invocations; the
+	 *            site deploys as assets-only, so every request is a free static
+	 *            asset request. The localized routes, the language picker and the
+	 *            hreflang graph all keep working — they are static files too.
+	 * "TRUE"  -> `/` renders on demand: detects country + language, offers a
+	 *            language switch. Costs a billed Worker invocation on EVERY
+	 *            homepage view, and on the free plan a spike past the daily limit
+	 *            returns 429 on `/` rather than falling back to the static page.
+	 *
+	 * Read at BUILD time by astro.config.mjs, because `prerender` is decided when
+	 * the site is built. Changing it in the dashboard alone will not take effect;
+	 * change it here and redeploy.
+	 */
+	"vars": {
+		"GEO_PERSONALIZATION": "FALSE"
+	},
 	"observability": {
 		"enabled": true
 	},

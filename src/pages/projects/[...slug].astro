@@ -150,6 +150,8 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
 <script type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
   "@type": "CreativeWork",
+  // Project detail pages exist only in English, matching their BreadcrumbList.
+  "inLanguage": "en",
   "name": project.data.title,
   "description": project.data.description,
   "image": new URL(projectImage, siteConfig.url).toString(),
