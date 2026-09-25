@@ -8,6 +8,7 @@ import Footer from '../components/Footer.astro';
 import { localeFrom, useTranslations, HTML_LANG, OG_LOCALE, LANGS } from '../i18n/utils';
 import { defaultLang } from '../i18n/ui';
 import { TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION } from '../i18n/regions';
+import { languages } from '../i18n/ui';
 
 type StructuredData = Record<string, unknown>;
 
@@ -221,6 +222,47 @@ const structuredDataItems = structuredData
 
     <!-- View Transitions: Enables smooth page navigation and prefetching -->
     <ClientRouter />
+
+    <!--
+      Remembered-language redirect.
+
+      Runs only on `/`, and only for a visitor who has previously chosen a
+      language for themselves. It is what makes the `dt-lang` cookie actually
+      route someone, and it works with GEO_PERSONALIZATION switched OFF — the
+      homepage stays a free static asset, so there is no Worker and no
+      server-side redirect to do it.
+
+      Deliberate details:
+      - `location.replace`, not `href`: the `/` entry is replaced rather than
+        added, so pressing Back from `/de/` goes wherever the visitor came from
+        instead of bouncing them straight back into `/de/`.
+      - Only fires when the stored language is not English, so someone who
+        explicitly picked English is never redirected away from `/`.
+      - Crawlers carry no cookie, so Googlebot always sees the English `/`.
+        This honours a stated preference; it is not geo-detection, which stays
+        behind GEO_PERSONALIZATION.
+      - With GEO_PERSONALIZATION on, the Worker has already redirected before
+        this runs, so the two never fight.
+    -->
+    <script is:inline define:vars={{ LANG_COOKIE, LANG_CODES: Object.keys(languages), DEFAULT_LANG: 'en' }}>
+      (function () {
+        if (window.location.pathname !== '/') return;
+
+        var chosen = null;
+        try {
+          chosen = localStorage.getItem('lang');
+        } catch (e) { /* private mode */ }
+
+        if (!chosen) {
+          var match = document.cookie.match(new RegExp('(?:^|; )' + LANG_COOKIE + '=([^;]*)'));
+          chosen = match ? decodeURIComponent(match[1]) : null;
+        }
+
+        if (!chosen || chosen === DEFAULT_LANG || LANG_CODES.indexOf(chosen) === -1) return;
+
+        window.location.replace('/' + chosen + '/' + window.location.search + window.location.hash);
+      })();
+    </script>
 
     <!--
       Region Script. Deliberately mirrors the theme script below: an is:inline

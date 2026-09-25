@@ -606,7 +606,7 @@ in `wrangler.jsonc`. **It ships off**, so the site stays assets-only and every r
 | Worker invocations | one per homepage **view** | **zero** — assets-only deploy |
 | Country detection (`request.cf`) | yes | no |
 | Language offer on `/` | yes | no |
-| `dt-lang` cookie redirects `/` → `/es/` | yes | no (a static page cannot redirect) |
+| `dt-lang` cookie redirects `/` → `/es/` | yes, server-side (302) | yes, client-side (see below) |
 | Region accent from location | yes | no — nothing about place is inferred |
 | Localized routes, picker, hreflang, sitemap | **unchanged** | **unchanged** |
 | Language picker re-themes on choice | yes | yes — a stated preference, not an inference |
@@ -789,6 +789,20 @@ stated preference rather than an inference.
 > fix is custom locale paths (`{ path, codes }`), but that feature requires `output: "server"`
 > with *no* prerendered pages — the opposite of this site. `resolvePreferredLang()` in
 > `src/i18n/utils.ts` therefore re-reads the header and strips region subtags.
+
+**Remembering a choice**: picking a language writes `dt-lang` (and `dt-region`) for **30 days**
+— `PREF_COOKIE_MAX_AGE` in `src/i18n/regions.ts`, the single value all three call sites read.
+They hold a language tag and a country code, nothing personal.
+
+A returning visitor is routed back to their language by an inline script in the head of `/`,
+which works with `GEO_PERSONALIZATION` **off** — the homepage stays a free static asset. It uses
+`location.replace`, so `/` is replaced rather than pushed and Back from `/de/` goes where the
+visitor actually came from. It never fires for a stored `en`, so choosing English is respected.
+
+Crawlers carry no cookie, never run it, and index the English `/`; the served HTML is
+byte-identical with and without the cookie, so the edge cache is not fragmented. With
+`GEO_PERSONALIZATION` on, the Worker issues a 302 before this script runs and the two never
+conflict — the only difference is that the server-side version avoids a round trip.
 
 **Language and colour**: switching language re-themes the site, *unless* the visitor's detected
 country already speaks the language they chose — someone in Mexico choosing Spanish keeps

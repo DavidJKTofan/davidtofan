@@ -2,7 +2,7 @@
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import { languages, type Lang } from '../i18n/ui';
 import { localeFrom, useTranslations, LANGS, HTML_LANG } from '../i18n/utils';
-import { LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION } from '../i18n/regions';
+import { LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE } from '../i18n/regions';
 
 const lang = localeFrom(Astro.currentLocale);
 const t = useTranslations(lang);
@@ -89,7 +89,7 @@ const options = LANGS.map((code) => ({
   </div>
 </div>
 
-<script define:vars={{ LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION }}>
+<script define:vars={{ LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE }}>
   /*
    * Follows the same binding contract as the mobile menu in Header.astro:
    * an AbortController-scoped set of listeners, a dataset guard so repeated
@@ -183,8 +183,8 @@ const options = LANGS.map((code) => ({
           } catch (e) {
             /* private mode */
           }
-          document.cookie = `${LANG_COOKIE}=${encodeURIComponent(chosen)}; path=/; max-age=31536000; samesite=lax`;
-          document.cookie = `${REGION_COOKIE}=${encodeURIComponent(storedRegion)}; path=/; max-age=31536000; samesite=lax`;
+          document.cookie = `${LANG_COOKIE}=${encodeURIComponent(chosen)}; path=/; max-age=${PREF_COOKIE_MAX_AGE}; samesite=lax`;
+          document.cookie = `${REGION_COOKIE}=${encodeURIComponent(storedRegion)}; path=/; max-age=${PREF_COOKIE_MAX_AGE}; samesite=lax`;
 
           // Apply immediately so the new palette is visible on this page rather
           // than only after the navigation lands. The one-frame transition
