@@ -68,7 +68,7 @@ src/
 │   ├── certificates.astro
 │   ├── ai-licensing-terms.astro  # Legal — AI/crawler licensing (noindex)
 │   ├── disclaimer.astro          # Legal — disclaimer (noindex)
-│   ├── imprint.astro             # Legal — site identification (noindex)
+│   ├── imprint.astro             # Legal — site identification + privacy notice (noindex)
 │   ├── articles/
 │   │   ├── index.astro
 │   │   ├── [...slug].astro
@@ -623,6 +623,7 @@ in `wrangler.jsonc`. **It ships off**, so the site stays assets-only and every r
 | Region accent from location | yes | no — nothing about place is inferred |
 | Localized routes, picker, hreflang, sitemap | **unchanged** | **unchanged** |
 | Language picker re-themes on choice | yes | yes — a stated preference, not an inference |
+| Privacy notice on `/imprint/` | adds the country, `Accept-Language` and time-zone signals | states that no location signal is used |
 
 Turning it off does **not** dismantle the multilingual site. `/es/`, `/de/` … stay built, the
 picker still works, and the hreflang graph is untouched — those are static files and cost
@@ -649,9 +650,18 @@ nothing. Only the parts that need a Worker or infer the visitor's location go aw
 Forgetting step 2 **fails the build** with instructions rather than shipping a broken site — see
 [Why the build guards this](#why-the-build-guards-this) below.
 
-Weigh the cost first — see [Cost, precisely](#cost-precisely). Every homepage view becomes a
-billed Worker request, and on the free plan a spike past the daily limit returns `429` on `/`
-instead of falling back to the static page.
+Weigh two things before deploying:
+
+- **Cost.** Every homepage view becomes a billed Worker request, and on the free plan a spike past
+  the daily limit returns `429` on `/` instead of falling back to the static page. See
+  [Cost, precisely](#cost-precisely).
+- **Consent.** `/` writes `dt-region` from `request.cf.country` on the first visit, before the
+  visitor has chosen anything. That falls outside the consent exemption the site otherwise relies
+  on (see [Privacy notice](#privacy-notice)), so `/imprint/` drops its "no cookie banner" claim in
+  this mode. Either remove that write from `src/pages/index.astro` — the time-zone fallback
+  already covers the prerendered pages — or put it behind consent.
+
+`/imprint/` itself needs no edit: it reads the same flag and rewrites its privacy section to match.
 
 ##### Turning it off again
 
@@ -786,14 +796,15 @@ posts would read worse than not translating them. `i18n.fallback` is deliberatel
 every article and project route in all five locales.
 
 **Detecting a visitor** (only when `GEO_PERSONALIZATION="TRUE"`): `/` is the only route where
-`request.cf` exists. It reads the country and `Accept-Language`, writes `dt-region` / `dt-lang`
-cookies, and *offers* a language switch rather than redirecting — the URL never changes under the
-visitor. Prerendered pages then read those cookies client-side, so no other route needs a Worker.
+`request.cf` exists. It reads the country and `Accept-Language`, writes a `dt-region` cookie, and
+*offers* a language switch rather than redirecting — the URL never changes under the visitor.
+Prerendered pages then read that cookie client-side, so no other route needs a Worker.
 A visitor who never touches `/` (arriving at an article from search) still gets their accent,
 resolved from `Intl.DateTimeFormat().resolvedOptions().timeZone`.
 
-With the flag off none of this runs: no country is read, no cookie is written, no offer is shown,
-and the time-zone fallback is skipped too, so nothing about the visitor's location is inferred.
+With the flag off none of this runs: no country is read, no offer is shown, nothing is written
+until the visitor picks a language, and the time-zone fallback is skipped too, so nothing about
+the visitor's location is inferred.
 The language picker still works and still re-themes the site, because an explicit choice is a
 stated preference rather than an inference.
 
@@ -803,9 +814,11 @@ stated preference rather than an inference.
 > with *no* prerendered pages — the opposite of this site. `resolvePreferredLang()` in
 > `src/i18n/utils.ts` therefore re-reads the header and strips region subtags.
 
-**Remembering a choice**: picking a language writes `dt-lang` (and `dt-region`) for **30 days**
-— `PREF_COOKIE_MAX_AGE` in `src/i18n/regions.ts`, the single value all three call sites read.
-They hold a language tag and a country code, nothing personal.
+**Remembering a choice**: picking a language writes `dt-lang` and `dt-region` for **30 days**
+(`PREF_COOKIE_MAX_AGE` in `src/i18n/regions.ts`, the single value every writer — and the privacy
+notice — reads). Both are mirrored into `localStorage` as `lang` / `region`, which has no expiry
+and is read first, so in practice a choice lasts until the visitor clears site data. See
+[Privacy notice](#privacy-notice) for why none of this needs a cookie banner.
 
 A returning visitor is routed back to their language by an inline script in the head of `/`,
 which works with `GEO_PERSONALIZATION` **off** — the homepage stays a free static asset. It uses
@@ -1056,13 +1069,41 @@ and `noIndexRoutes` in `src/lib/contentMetadata.js`, and add an `X-Robots-Tag` b
 
 > **Note**: The jurisdiction in `/disclaimer/` is deliberately kept generic ("the author's country of
 > residence in the European Union") rather than naming a country. The imprint likewise gives a name
-> and a LinkedIn contact only, with no postal address.
+> and an email address only.
+
+### Privacy notice
 
 The GDPR Art. 13 privacy notice lives in `/imprint/` under the `#privacy` anchor rather than on its
 own page — Art. 12(1) requires it to be "easily accessible", not separately hosted, and the imprint
 already carries the controller identity and contact that Art. 13(1)(a) asks for. If the site ever
 gains a contact form, newsletter, account system, or third-party analytics, split it into its own
 `/privacy` page: the notice will grow past what belongs inside an imprint.
+
+Everything the site stores in the visitor's browser:
+
+| Name | Where | Written when | Lifetime |
+|:--|:--|:--|:--|
+| `dt-lang` | cookie | the visitor picks a language | 30 days |
+| `dt-region` | cookie | the visitor picks a language — **flag on:** also by `/`, from `request.cf.country` | 30 days |
+| `dt-lang-offer` | cookie | **flag on only:** the visitor accepts or dismisses the language offer on `/` | 30 days |
+| `lang`, `region` | `localStorage` | the visitor picks a language (copies of the cookies) | until cleared |
+| `theme` | `localStorage` | the visitor picks a theme that differs from the OS | until cleared |
+
+Cloudflare adds its own security cookies (`__cf_bm` and similar) at the edge; none come from this
+repo. Web Analytics is cookieless.
+
+**Why there is no cookie banner.** [ePrivacy Art. 5(3)](https://www.cloudflare.com/learning/privacy/what-is-eprivacy-directive/ ) requires consent before anything is stored on
+a visitor's device, except where it is strictly necessary for a service the visitor explicitly
+asked for. Cloudflare's security cookies qualify, and so does everything in the table as long as
+it is written *only* on an explicit choice — which holds with the flag off. With it on, `dt-region`
+is also written without a choice; see [Turning it on](#turning-it-on).
+
+**Keeping it in sync.** Cookie names and the 30-day lifetime are imported from
+`src/i18n/regions.ts`, and the geolocation wording follows the same build-time
+`__GEO_PERSONALIZATION__` constant as `/`, so renaming a cookie or flipping the flag updates the
+notice on its own. Anything *new* does not: a new cookie, storage key, third-party script, or use
+of a request signal (`request.cf`, a header, a browser API) needs a line in
+`src/pages/imprint.astro` and a bumped `lastModified`.
 
 * * * *
 

@@ -14,7 +14,7 @@ export const sitePageMetadata = {
   },
   imprint: {
     route: '/imprint/',
-    lastModified: '2026-08-28',
+    lastModified: '2026-09-27',
   },
 };
 
