@@ -197,15 +197,17 @@ const filteredHeadings = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
         const target = document.getElementById(targetId);
         
         if (target) {
-          const headerOffset = 100;
-          const elementPosition = target.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.scrollY - headerOffset;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          });
-          
+          // `scroll-padding-top` on <html> keeps the heading clear of the fixed
+          // header, so no pixel offset is needed here. Honour reduced motion.
+          const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          target.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
+
+          // Move focus to the heading as well, so keyboard and screen-reader
+          // users continue from the section they jumped to rather than from
+          // the TOC. tabindex=-1 makes it focusable without adding a tab stop.
+          if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+          target.focus({ preventScroll: true });
+
           // Update URL hash without jumping
           history.pushState(null, '', href);
         }

@@ -86,7 +86,9 @@ export default {
       },
       animation: {
         'fade-in': 'fadeIn 0.6s ease-out forwards',
-        'fade-up': 'fadeUp 0.6s ease-out forwards',
+        // `both`, not `forwards`: with a delay, `forwards` leaves the element
+        // fully visible until the animation starts, then snaps it to opacity 0.
+        'fade-up': 'fadeUp 0.6s ease-out both',
         'slide-in': 'slideIn 0.4s ease-out forwards',
         'progress': 'progress 1s ease-out forwards',
         'pulse-subtle': 'pulseSubtle 2s ease-in-out infinite',
@@ -129,6 +131,10 @@ export default {
             '--tw-prose-code': theme('colors.surface.800'),
             '--tw-prose-pre-bg': theme('colors.surface.900'),
             '--tw-prose-pre-code': theme('colors.surface.100'),
+            // Blockquote text goes through the plugin's own variables so that
+            // `prose-invert` swaps it. A hard-coded `color` on `blockquote`
+            // ignored dark mode and left quotes at 2.58:1 on surface-950.
+            '--tw-prose-quotes': theme('colors.surface.600'),
             '--tw-prose-invert-body': theme('colors.surface.300'),
             '--tw-prose-invert-headings': theme('colors.surface.50'),
             '--tw-prose-invert-links': theme('colors.accent.400'),
@@ -136,6 +142,14 @@ export default {
             '--tw-prose-invert-code': theme('colors.surface.200'),
             '--tw-prose-invert-pre-bg': theme('colors.surface.800'),
             '--tw-prose-invert-pre-code': theme('colors.surface.200'),
+            '--tw-prose-invert-quotes': theme('colors.surface.400'),
+            // Long unbreakable tokens — Cloudflare rule expressions, API paths,
+            // URLs — must wrap instead of running past narrow viewports, where
+            // <body>'s overflow clip would otherwise cut them off. `break-word`
+            // is inherited by all prose text without changing table min-content
+            // sizing; `anywhere` on code and links also lets them shrink inside
+            // flex and grid items. Neither breaks a word that already fits.
+            overflowWrap: 'break-word',
             'h1, h2, h3, h4': {
               fontFamily: displayFontStack.join(', '),
               fontWeight: '600',
@@ -145,6 +159,7 @@ export default {
               textDecoration: 'none',
               fontWeight: '500',
               borderBottom: `1px solid ${theme('colors.accent.300')}`,
+              overflowWrap: 'anywhere',
               transition: 'border-color 0.2s ease, color 0.2s ease',
               '&:hover': {
                 borderColor: theme('colors.accent.500'),
@@ -157,6 +172,7 @@ export default {
               padding: '0.125rem 0.375rem',
               borderRadius: '0.25rem',
               fontSize: '0.875em',
+              overflowWrap: 'anywhere',
             },
             'code::before': {
               content: '""',
@@ -175,7 +191,6 @@ export default {
             blockquote: {
               borderLeftColor: theme('colors.accent.400'),
               fontStyle: 'normal',
-              color: theme('colors.surface.600'),
             },
             // Blue border around images in articles
             img: {

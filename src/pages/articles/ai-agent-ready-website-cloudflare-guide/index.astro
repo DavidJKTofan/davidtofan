@@ -72,13 +72,13 @@ const readingTime = data?.readingTime ?? 14;
   <ScrollToTop />
 
   <div class="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-    <div class="lg:grid lg:grid-cols-[1fr_15rem] xl:grid-cols-[1fr_17rem] lg:gap-10 xl:gap-12 lg:items-start">
+    <div class="lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] xl:grid-cols-[minmax(0,1fr)_17rem] lg:gap-10 xl:gap-12 lg:items-start">
 
-      <!-- ── Main article column ─────────────────────────────────────── -->
+      {/* ── Main article column ─────────────────────────────────────── */}
       <div class="min-w-0">
-        <!-- Back link -->
+        {/* Back link */}
         <a
-          href="/articles"
+          href="/articles/"
           class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors mb-8 group"
         >
           <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -87,7 +87,7 @@ const readingTime = data?.readingTime ?? 14;
           Back to articles
         </a>
 
-        <!-- Article header -->
+        {/* Article header */}
         <header class="mb-10">
           <div class="flex flex-wrap gap-2 mb-4">
             {tags.slice(0, 4).map((tag: string) => (
@@ -133,7 +133,7 @@ const readingTime = data?.readingTime ?? 14;
           </div>
         </header>
 
-        <!-- ── Section 1: Historic phase ──────────────────────────────── -->
+        {/* ── Section 1: Historic phase ──────────────────────────────── */}
         <SectionBlock
           number="01"
           id="historic-phase"
@@ -154,7 +154,7 @@ const readingTime = data?.readingTime ?? 14;
           </div>
         </SectionBlock>
 
-        <!-- ── Section 2: What agent-ready means ──────────────────────── -->
+        {/* ── Section 2: What agent-ready means ──────────────────────── */}
         <SectionBlock
           number="02"
           id="readiness-pillars"
@@ -170,7 +170,7 @@ const readingTime = data?.readingTime ?? 14;
           <PillarsGrid />
         </SectionBlock>
 
-        <!-- ── Section 3: Discoverability ─────────────────────────────── -->
+        {/* ── Section 3: Discoverability ─────────────────────────────── */}
         <SectionBlock
           number="03"
           id="discoverability"
@@ -219,7 +219,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 4: Content ─────────────────────────────────────── -->
+        {/* ── Section 4: Content ─────────────────────────────────────── */}
         <SectionBlock
           number="04"
           id="content"
@@ -250,7 +250,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 5: Bot access control ──────────────────────────── -->
+        {/* ── Section 5: Bot access control ──────────────────────────── */}
         <SectionBlock
           number="05"
           id="bot-control"
@@ -309,7 +309,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 6: Capabilities ────────────────────────────────── -->
+        {/* ── Section 6: Capabilities ────────────────────────────────── */}
         <SectionBlock
           number="06"
           id="capabilities"
@@ -356,7 +356,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 7: Commerce ────────────────────────────────────── -->
+        {/* ── Section 7: Commerce ────────────────────────────────────── */}
         <SectionBlock
           number="07"
           id="commerce"
@@ -428,7 +428,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </style>
         </SectionBlock>
 
-        <!-- ── Section 8: Performance ─────────────────────────────────── -->
+        {/* ── Section 8: Performance ─────────────────────────────────── */}
         <SectionBlock
           number="08"
           id="performance"
@@ -511,7 +511,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 9: AI Security implications ────────────────────── -->
+        {/* ── Section 9: AI Security implications ────────────────────── */}
         <SectionBlock
           number="09"
           id="security"
@@ -531,7 +531,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 10: Business case ──────────────────────────────── -->
+        {/* ── Section 10: Business case ──────────────────────────────── */}
         <SectionBlock
           number="10"
           id="business-case"
@@ -575,7 +575,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Section 11: Developer workflow ─────────────────────────── -->
+        {/* ── Section 11: Developer workflow ─────────────────────────── */}
         <SectionBlock
           number="11"
           id="developer-workflow"
@@ -732,7 +732,7 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </style>
         </SectionBlock>
 
-        <!-- ── Section 12: Checklist + CTA ────────────────────────────── -->
+        {/* ── Section 12: Checklist + CTA ────────────────────────────── */}
         <SectionBlock
           number="12"
           id="checklist"
@@ -806,14 +806,14 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
           </div>
         </SectionBlock>
 
-        <!-- ── Article footer ─────────────────────────────────────────── -->
+        {/* ── Article footer ─────────────────────────────────────────── */}
         <footer id="article-footer" class="mt-12 pt-8 border-t border-surface-200 dark:border-surface-800">
           <div class="mb-8">
             <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide mb-3">Topics</h3>
             <div class="flex flex-wrap gap-2">
               {tags.map((tag: string) => (
                 <a
-                  href={`/articles?tag=${encodeURIComponent(tag)}`}
+                  href={`/articles/?tag=${encodeURIComponent(tag)}`}
                   class="tag hover:bg-accent-100 hover:text-accent-700 dark:hover:bg-accent-900/30 dark:hover:text-accent-400"
                 >
                   {tag}
@@ -862,24 +862,14 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
         </footer>
       </div>
 
-      <!-- ── TOC anchor (grid placeholder) ──────────────────────────── -->
-      <div id="toc-anchor" class="hidden lg:block" aria-hidden="true"></div>
+      {/* ── Sticky TOC column, lg+ only (see [...slug].astro) ────────── */}
+      <div class="hidden lg:block sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain scrollbar-hide">
+        <TableOfContents headings={headings} />
+      </div>
     </div>
   </div>
 
-  <!-- ── Fixed TOC sidebar ──────────────────────────────────────────── -->
-  <aside
-    id="toc-sidebar"
-    class="hidden lg:flex flex-col fixed z-30"
-    style="top: 6rem; max-height: calc(100vh - 7rem);"
-    aria-label="Table of contents"
-  >
-    <div class="overflow-y-auto scrollbar-hide flex-1">
-      <TableOfContents headings={headings} />
-    </div>
-  </aside>
-
-  <!-- JSON-LD BreadcrumbList -->
+  {/* JSON-LD BreadcrumbList */}
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -919,58 +909,10 @@ Link: &lt;/openapi.json&gt;; rel=&quot;service-desc&quot;; type=&quot;applicatio
     return () => copyBtn.removeEventListener('click', onClick);
   }
 
-  const TOC_TOP = 96;
-  const BOTTOM_GAP = 16;
-
-  function updateTOCSidebar() {
-    const anchor = document.getElementById('toc-anchor');
-    const sidebar = document.getElementById('toc-sidebar');
-    const footer = document.getElementById('article-footer');
-    if (!anchor || !sidebar) return;
-
-    if (window.innerWidth < 1024) {
-      sidebar.style.left = '';
-      sidebar.style.width = '';
-      sidebar.style.maxHeight = '';
-      return;
-    }
-
-    const rect = anchor.getBoundingClientRect();
-    sidebar.style.left = `${rect.left}px`;
-    sidebar.style.width = `${rect.width}px`;
-
-    const viewportHeight = window.innerHeight;
-    let maxH: number;
-    if (footer) {
-      const footerTop = footer.getBoundingClientRect().top;
-      const available = footerTop - TOC_TOP - BOTTOM_GAP;
-      const viewportBound = viewportHeight - TOC_TOP - BOTTOM_GAP;
-      maxH = Math.max(0, Math.min(available, viewportBound));
-    } else {
-      maxH = viewportHeight - TOC_TOP - BOTTOM_GAP;
-    }
-    sidebar.style.maxHeight = `${maxH}px`;
-  }
-
-  let resizeTimer: ReturnType<typeof setTimeout>;
-  function onResize() {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(updateTOCSidebar, 60);
-  }
-
+  // The TOC is positioned by CSS (position: sticky); only copy-link needs JS.
   function setup() {
     cleanupArticlePage();
-    const cleanupCopyLink = setupCopyLink();
-    updateTOCSidebar();
-    window.addEventListener('scroll', updateTOCSidebar, { passive: true });
-    window.addEventListener('resize', onResize);
-
-    cleanupArticlePage = () => {
-      cleanupCopyLink();
-      window.removeEventListener('scroll', updateTOCSidebar);
-      window.removeEventListener('resize', onResize);
-      clearTimeout(resizeTimer);
-    };
+    cleanupArticlePage = setupCopyLink();
   }
 
   function initArticlePage() {

@@ -378,6 +378,14 @@ if [ "$FAILURES" -eq 0 ]; then
     for p in / /articles/ /projects/ /certificates/ /robots.txt /sitemap-index.xml /favicon.png; do
       check_route "$p" 200; done
     check_route /world 301
+    check_route /sitemap.xml 301
+    # Alias redirects must land on the trailing-slash URL in one hop; a
+    # slash-less target would add a second (307) redirect.
+    WORLD_LOC="$(curl -s -o /dev/null -w '%{redirect_url}' -m 15 "$B/world" || true)"
+    case "$WORLD_LOC" in
+      */) pass=$((pass+1)); log "  [route ok] /world -> $WORLD_LOC" ;;
+      *) fail=$((fail+1)); bad "/world redirects to '$WORLD_LOC' (expected a trailing slash)" ;;
+    esac
     check_route /articles 307
     check_route /this-path-should-not-exist/ 404
     [ "$fail" -eq 0 ] && ok "routes: $pass/$((pass+fail)) passed" || bad "routes: $fail failed"
@@ -394,6 +402,18 @@ if [ "$FAILURES" -eq 0 ]; then
       else
         warn "_headers: /_astro asset has duplicate Cache-Control ($CC_V) — check for overlapping rules"
       fi
+    fi
+
+    # Regression guard: internal page links must carry their trailing slash, or
+    # every click costs a 307 from html_handling: auto-trailing-slash. (Astro's
+    # trailingSlash: 'always' would catch these in dev, but it breaks the bare
+    # alias redirects — see astro.config.mjs.)
+    SLASHLESS="$(grep -rhoE 'href="/[^"#?]*[^/"#?]"' dist/client --include='*.html' \
+      | grep -vE '\.[A-Za-z0-9]+"$' | sort -u | head -5 | tr '\n' ' ' || true)"
+    if [ -z "$SLASHLESS" ]; then
+      ok "links: every internal page link ends in a trailing slash"
+    else
+      warn "links: slash-less internal links (each costs a 307): $SLASHLESS"
     fi
   fi
   stop_dev
