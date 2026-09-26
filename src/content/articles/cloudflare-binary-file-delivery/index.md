@@ -8,7 +8,7 @@ type: "article"
 
 Plenty of companies ship software rather than web pages: an MSI or EXE installer, a macOS DMG/PKG, a Linux DEB/RPM, a multi-gigabyte game client or patch, firmware images, SDK archives, ML model weights, or nightly build artifacts. The delivery problem looks nothing like optimizing a landing page – there is no Largest Contentful Paint (LCP) to chase, no third-party script to offload. There is one very large response, and the questions are: **does it come from cache, how fast does the last byte arrive, and who is allowed to download it?**
 
-This guide covers the options for that with Cloudflare, in two flavours:
+This guide covers the options for that with Cloudflare, in two flavours – with detours into the two cases that behave least like a plain download: [delta patches](#delta-patches-trading-bytes-for-objects) and [OTA firmware](#ota-firmware-updates-fleets-are-not-browsers).
 
 - **Public downloads** – anyone with the URL can fetch the file (open-source releases, drivers, demo clients, public patches).
 - **Protected downloads** – the file is gated behind a login, a licence, a purchase, or a partner agreement.
@@ -152,11 +152,18 @@ Same bytes, three cache entries, three origin fills. On a release announcement w
 Things worth knowing before you customize the key:
 
 - **Custom keys shard the cache by design.** Every component you add multiplies the number of stored copies. For binaries, the goal is almost always *fewer* components, not more.
+- **A rule scoped to `GET` breaks single-file purge**, because purge requests use a different HTTP method internally. Match on path and extension rather than on `http.request.method`.
 - **Custom cache keys change how single-file purge works.** Purge by tag, host, prefix, and purge everything are unaffected, but a purge *by URL* must also carry the headers and query strings that are part of your custom key – which the dashboard's single-file purge cannot express, so do it through the [API](https://developers.cloudflare.com/cache/how-to/purge-cache/purge-cache-key/).
 - **[Prefetch URLs](https://developers.cloudflare.com/speed/optimization/content/prefetch-urls/) is incompatible with custom cache keys** – Prefetch always uses the default key, so the two never match. Relevant if you were planning to use Prefetch to warm a release.
 - **A maximum of 100 query string parameters** can go into a custom key, and headers you include count toward Cloudflare's [request size limits](https://developers.cloudflare.com/fundamentals/reference/connection-limits/#request-limits).
 - **If you use [URL normalization](https://developers.cloudflare.com/rules/normalization/), also enable "Normalize URLs to origin".** Mismatched normalization between the key and the origin request is a cache-poisoning vector.
 - **Changing your [SSL/TLS encryption mode](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/) busts the default key.** With the default key, `$scheme` is the *origin* scheme, so moving from Flexible to Full (or Off to Full) changes every key in the Zone and forces a complete re-fill.
+
+**The origin can add to the cache key too, with [`Vary`](https://developers.cloudflare.com/cache/concepts/vary/).** Where a Cache Rule decides the key ahead of time, a `Vary` response header lets the origin say "this URL's content depends on these request headers" – and Cloudflare honours it, on all plans, configured through the [Vary setting](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#vary) in Cache Rules.
+
+For binaries the temptation this creates is content negotiation: one tidy `/download/installer` URL that sniffs the `User-Agent` and returns the Windows, macOS, or Linux build. Resist it. `Vary: *` bypasses cache unconditionally, and Cloudflare's own guidance is to set high-cardinality headers such as `user-agent` to the `bypass` action – where *bypass* means the response is not cached at all. A URL that negotiates on `User-Agent` is a multi-gigabyte object served from origin on every request.
+
+**Put the platform, architecture, and version in the path instead.** `/downloads/2.4.1/windows-x64/app-setup.exe` is cacheable, purgeable by prefix, greppable in logs, and can be linked to directly. If your origin genuinely does emit `Vary` on a download response, set a restrictive `default` of `bypass`, then enumerate the few headers you actually expect and give them `normalize` – which folds equivalent values like `en-US, fr;q=0.8` and `fr;q=0.8, en-GB` onto one entry rather than two.
 
 To see which key was actually applied to a request, use [Cloudflare Trace](https://developers.cloudflare.com/rules/trace-request/) and expand **Cache Parameters → View parameter detail**.
 
@@ -225,7 +232,7 @@ For a worldwide launch of one large file, Smart Tiered Cache plus Regional Tiere
 
 **One geography that is its own problem:** if a meaningful share of your users are in mainland China, none of the above changes the fact that they are downloading across a congested border. [China Network](https://developers.cloudflare.com/china-network/) provides in-China caching regardless of where the origin sits, and [Global Acceleration](https://developers.cloudflare.com/china-network/concepts/global-acceleration/) improves the origin-to-China leg.
 
-Because Cache Reserve is priced per operation and per GB-month, scope it rather than enabling it for the whole Zone. The Cache Rule setting **Cache Reserve eligibility** takes a `minimum_file_size`, which lets you persist only the large artifacts that actually benefit:
+Because Cache Reserve is priced per operation and per GB-month, scope it rather than enabling it for the whole Zone. The Cache Rule setting **Cache Reserve eligibility** takes a [`minimum_file_size`](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#cache-reserve-eligibility), which lets you persist only the large artifacts that actually benefit:
 
 ```json
 "action_parameters": {
@@ -266,6 +273,8 @@ Repeat the request from a second location. A `MISS` followed by a `HIT` is expec
 > One header discrepancy that confuses people reading logs: [`CacheResponseBytes`](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/#cacheresponsebytes) is the *uncompressed* size from cache or origin, while [`EdgeResponseBytes`](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/#edgeresponsebytes) is the *compressed* size sent to the client. For already-compressed binaries the two are usually close; for anything Cloudflare [compresses](https://developers.cloudflare.com/rules/compression-rules/) on the way out, they will not match. Refer to [edgeResponseBytes and cacheResponseBytes discrepancy](https://developers.cloudflare.com/cache/troubleshooting/edge-vs-cache-response-bytes/).
 
 > While you are looking at [Compression Rules](https://developers.cloudflare.com/rules/compression-rules/): a ZIP, DMG, or ZST artifact is already compressed, so running it through Brotli or Gzip burns CPU on both ends for roughly zero saving. If you compress selectively by path or content type, exclude your download paths rather than leaving it to chance.
+>
+> Cloudflare's own engineering agrees, for what it is worth: a 2026 prototype called [Cache Transcoding](https://blog.cloudflare.com/cache-transcoding/) re-encodes cached objects with Zstandard to save disk, and it deliberately skips binary content, range requests, and already-compressed responses – because "compressing it again would burn CPU for nothing". Treat that as corroboration, not as a feature to plan around: it is a prototype, not something you can switch on.
 
 ### Versioning Beats Purging
 
@@ -317,6 +326,109 @@ A launch is a thundering herd against a cold cache. Several things help:
 - **Pre-warm the cache** by requesting the new artifacts from several regions before you flip the `latest` redirect. A useful quirk: once Cloudflare has started fetching from origin, it will finish and cache the object **even if the client disconnects midway**. You do not have to download 4 GB to warm an edge – you only have to start, and let it run. (If the visitor disconnects *before* the origin responds at all, nothing is cached.)
 - **[Waiting Room](https://developers.cloudflare.com/waiting-room/)** in front of the download or licensing endpoint, to queue users instead of collapsing the origin.
 - **Do not change origin DNS or SSL/TLS encryption mode near a launch** – both invalidate work you have already done, by reassigning Tiered Cache upper tiers and by changing every cache key respectively.
+
+### Delta Patches: Trading Bytes for Objects
+
+Shipping a 40 MB patch instead of a 4 GB client is the largest bandwidth saving available to a game or firmware publisher, and it is worth being clear about where that happens: **Cloudflare has no binary-diffing product.** Generating deltas is your build system's job – `bsdiff`, `zstd --patch-from`, Courgette, or whatever your package format provides. The CDN just ships whatever objects you produce.
+
+What *does* change on the CDN side is the shape of your cache. Deltas trade **bytes for objects**, and that trade has consequences worth planning for.
+
+A full image is one object that every updating device requests. Deltas are a matrix: *N* source versions × *M* hardware or locale variants produces up to *N × M* objects, each requested by a slice of the fleet. Three things follow:
+
+1. **Per-object request volume collapses, so LRU eviction bites.** A `2.1.4 → 2.2.0` delta might see a few hundred requests a week spread across the world. That object falls out of edge cache between requests, and the next device to ask for it pays an origin fill. This is the textbook [Cache Reserve](https://developers.cloudflare.com/cache/advanced-configuration/cache-reserve/) case – long tail, low volume, high re-fill cost.
+2. **Delta files are small, which fights the Cache Reserve threshold you set for big artifacts.** If you scoped Cache Reserve to `minimum_file_size: 104857600` to persist only full images, your deltas are excluded by design. Either add a second Cache Rule with a lower threshold for the delta prefix, or accept that deltas live only in edge cache.
+3. **Bound the matrix.** Most shipping systems generate deltas only from the last *K* releases and fall back to the full image beyond that. That is a caching decision as much as a storage one: it keeps cardinality finite and per-object volume high enough to stay warm.
+
+**Content-addressed chunking is the middle ground**, and it composes with the chunking already recommended for [size limits](#size-limits-two-different-numbers). Split each release into content-addressed chunks; unchanged chunks keep the same URL across versions, so they stay hot in cache and are shared by every device regardless of which version it is coming from. You get most of the bandwidth saving of deltas without an *N × M* object matrix.
+
+Two operational notes:
+
+- **Tag deltas by target version** (`Cache-Tag: release:2.2.0`) so pulling a bad release is one purge rather than an enumeration of every source-version pair.
+- **Measure hit ratio per path prefix, not per zone.** A healthy-looking 98% zone-wide ratio can easily hide a 40% ratio on `/patches/`, because the full images dominate request counts. Break Cache Analytics down by URI path, or group by path in [Logpush](https://developers.cloudflare.com/logs/logpush/).
+
+### OTA Firmware Updates: Fleets Are Not Browsers
+
+Firmware distribution looks like software distribution until you notice that the clients have no browser, no cookies, no user to retry manually, a fixed update schedule, and a habit of doing everything at the same moment.
+
+**The thundering herd is recurring, not one-off.** A release-day spike decays; a fleet that checks for updates on a cron schedule comes back every interval, and if that schedule is UTC-aligned rather than jittered, the whole fleet arrives in the same second, forever. [Request collapsing](#release-day-surges) and Tiered Cache absorb a great deal of this, and [Waiting Room](https://developers.cloudflare.com/waiting-room/) can queue the manifest endpoint. But the honest answer is that the fix belongs in the device: **jitter the check-in and back off on failure.** No CDN configuration repairs a fleet that synchronizes itself.
+
+**Staged rollout by percentage.** There are two mechanisms, and they solve different problems.
+
+*Option A – [gradual deployments](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/) with version affinity.* Upload a new Worker version without deploying it, then split traffic between versions:
+
+```bash
+npx wrangler versions upload   # creates a version without deploying it
+npx wrangler versions deploy   # interactive: assign percentages per version
+```
+
+**Test it on a real hostname first.** Nothing about an OTA gateway is worth validating on a `workers.dev` URL: the whole apparatus you care about – Cache Rules, the WAF certificate check, mTLS, Tiered Cache – belongs to the zone, and a `workers.dev` hostname has none of it. [Previews](https://developers.cloudflare.com/workers/previews/) (Wrangler 4.135.0+) are the documented answer, and they can be served from **your own domain**:
+
+```jsonc
+{
+  "routes": [
+    {
+      "pattern": "ota-preview.example.com",
+      "custom_domain": true,
+      "previews_enabled": true,
+      "enabled": false          // this hostname serves Preview traffic only
+    }
+  ]
+}
+```
+
+`npx wrangler preview` then gives that branch its own environment – its own variables, secrets, bindings, and observability – reachable at `<preview-name>.ota-preview.example.com` and running behind the same zone configuration production uses. A second, immutable **deployment URL** (`<deployment-id>-<preview-name>.…`) pins one exact build, which is what you want to reference when a device test fails and you need to reproduce it.
+
+Two things to get right before pointing devices at it:
+
+- **Preview URLs are public by default.** Cloudflare adds `X-Robots-Tag: noindex` automatically to `workers.dev` Preview URLs but **not** to custom domain ones, so an unreleased firmware endpoint on your own domain is both reachable and indexable. Put [Cloudflare Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/) in front of it.
+- **Cloudflare issues a wildcard certificate** for the Preview hostname (`*.ota-preview.example.com`), so use a dedicated hostname rather than one that already has subdomains. Going deeper than one level may need [Advanced Certificate Manager](https://developers.cloudflare.com/ssl/edge-certificates/advanced-certificate-manager/) with [Total TLS](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/total-tls/).
+
+> [Version URLs](https://developers.cloudflare.com/workers/versions-and-deployments/version-urls/) (formerly *preview URLs*; the Wrangler field is still `preview_urls`) are a narrower tool, and the docs are direct about it: use them only to inspect one uploaded version immediately before a deployment or gradual rollout – not for branch testing, and not as a staging environment. They run on `workers.dev` against production resources. To exercise a specific version through your production hostname instead, deploy it at 0% and reach it with a [version override](https://developers.cloudflare.com/workers/versions-and-deployments/version-overrides/) header:
+>
+> ```bash
+> curl -sI https://downloads.example.com/firmware/manifest \
+>   -H 'Cloudflare-Workers-Version-Overrides: ota-gateway="<VERSION_ID>"'
+> ```
+
+By default **each request is routed independently**, so a device that retries can hit a different version every time – which for OTA means it could be offered `2.2.0`, fail, retry, and be offered `2.1.9`. [Version affinity](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/version-affinity/) fixes that: set a `Cloudflare-Workers-Version-Key` header to a stable device identifier and the platform hashes it to a deterministic version assignment. Critically, devices only ever move **one way**: as you raise the percentage from 10% to 50%, devices already on the new version stay there and others join them, but nothing flips back unless you roll back. Set the header with a [Transform Rule](https://developers.cloudflare.com/rules/transform/request-header-modification/) from whatever identity the device presents:
+
+```txt
+Header name:  Cloudflare-Workers-Version-Key
+Value:        http.request.headers["x-device-id"][0]
+```
+
+Transform Rules need the Worker on a route on a zone you control – they are not available on `*.workers.dev`, where you would set the header from the client or an upstream Worker instead.
+
+*Option B – cohort in code.* Gradual deployments roll out **Worker versions, not firmware**: the Worker decides which image to offer, and you are rolling out the code that makes that decision. For most OTA campaigns the rollout percentage is data, not code – you want to go from 5% to 25% without a deploy. So hash the device identifier in the Worker and compare against a threshold you keep in [KV](https://developers.cloudflare.com/kv/):
+
+```js
+const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(deviceId));
+const bucket = new DataView(buf).getUint32(0) % 100;          // stable per device
+const rollout = Number(await env.CONFIG.get("rollout:2.2.0")); // 0–100, no deploy needed
+const target = bucket < rollout ? "2.2.0" : currentVersion;
+```
+
+Hash the device ID, not a random value: the bucket has to be stable across retries, and it has to only ever move one way as `rollout` climbs. Both properties are free if you derive it deterministically, and both are lost the moment you reach for `Math.random()`.
+
+**Authenticating a device.** Devices with no identity provider are exactly the case [mTLS](https://developers.cloudflare.com/ssl/client-certificates/) exists for, and zone-level mTLS is available with a Cloudflare-managed CA (Enterprise can upload up to five of its own). Once it is enabled, a WAF Custom Rule can check the certificate before anything else runs – same shape as the HMAC rule earlier, blocking what fails rather than allowing what passes:
+
+```txt
+# WAF Custom Rule – action: Block
+(starts_with(http.request.uri.path, "/firmware/")
+ and not (cf.tls_client_auth.cert_verified and not cf.tls_client_auth.cert_revoked))
+```
+
+> The `cf.tls_client_auth.*` fields are available to **WAF Custom Rules**, not to Cache Rules – the [fields Cache Rules accept](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/#fields) are URL, host, cookie, headers, user agent, and a short list of others. Do the certificate check in the WAF, which runs first anyway, and let the Cache Rule match on path.
+
+> Check both fields. [`cf.tls_client_auth.cert_verified`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_verified/) returns `true` for a certificate that is valid **but revoked** – you have to test [`cf.tls_client_auth.cert_revoked`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.tls_client_auth.cert_revoked/) separately, or a decommissioned device keeps downloading firmware.
+
+`cf.tls_client_auth.cert_serial` gives you a per-device identity usable in rules and as a version-affinity key. As always, it authorizes the request – it must not reach the [cache key](#keeping-authorization-out-of-the-cache-key). The firmware image is identical for every entitled device in the cohort, and that is the whole point.
+
+**Three smaller things that matter more for devices than for desktops:**
+
+- **Resumability is not optional.** A constrained device on a marginal link will lose the connection, and everything in [Range Requests](#range-requests-and-resumable-downloads) applies with less margin for error. Verify `accept-ranges: bytes` and `Content-Length` on the firmware path specifically.
+- **The long tail never ends.** Fleets are never fully updated – there is always a population stranded on an old build. Cache Reserve's 30-day retention window, which resets on every request, is a better fit for that access pattern than edge LRU.
+- **Per-device rate limiting is an Enterprise capability.** [Rate limiting rules](https://developers.cloudflare.com/waf/rate-limiting-rules/) count by IP on Free and Pro, IP with NAT support on Business, and only add headers, cookies, path, and custom characteristics on Enterprise. Throttling by a device-ID header therefore needs Enterprise; below that, IP-based counting will group an entire NAT'd site as one device.
 
 ---
 
@@ -561,11 +673,12 @@ One more operational detail: the [proxy read timeout](https://developers.cloudfl
 4. **Set the Cache Key deliberately.** Ignore query strings on versioned artifacts so campaign and mirror parameters do not shard one object into many.
 5. **Check the file sizes against your plan's cacheable limit** – and do not confuse it with the maximum upload size. Chunk, or request an increase, if you are above it.
 6. **Verify `Content-Length` and `accept-ranges: bytes`** are present so downloads are resumable and Cache Reserve is possible.
-7. **Enable Tiered Cache** (set a cloud region hint if your origin is on a public cloud), then evaluate Cache Reserve for long-tail artifacts on non-R2 origins.
+7. **Enable Tiered Cache** (set a [cloud region hint](https://blog.cloudflare.com/smart-tiered-cache-for-public-clouds/) if your origin is on a public cloud), then evaluate Cache Reserve for long-tail artifacts on non-R2 origins.
 8. **Move to versioned, immutable URLs**, and make `latest` a 302 Redirect Rule rather than a cached file.
 9. **For gated files, authorize at the edge** (HMAC, JWT, Workers, or Access) and keep the authorization material *out of the cache key*. If you serve them from a Worker, remember zone Cache Rules do not apply – enable Workers Cache in your Wrangler config instead.
 10. **Wire purging into CI/CD** with batched, prefix- or tag-based calls.
-11. **Instrument it** – Cache Analytics for the ratio, Logpush for Download Success Rate and Throughput, NEL for the failures clients never report, Cloudflare Trace for the one-off mystery, and alerts on regressions.
+11. **If you ship deltas or firmware**, bound the delta matrix, scope Cache Reserve to reach small delta objects, make rollout cohorts deterministic per device, and measure hit ratio per path prefix rather than per zone.
+12. **Instrument it** – Cache Analytics for the ratio, Logpush for Download Success Rate and Throughput, NEL for the failures clients never report, Cloudflare Trace for the one-off mystery, and alerts on regressions.
 
 ## Further Reading
 
@@ -577,6 +690,9 @@ One more operational detail: the [proxy read timeout](https://developers.cloudfl
 - [Investigate uncached responses](https://developers.cloudflare.com/cache/troubleshooting/investigating-uncached-responses/) – a troubleshooting path for unexpected MISS/BYPASS/DYNAMIC
 - [TCP connections](https://developers.cloudflare.com/fundamentals/reference/tcp-connections/) – keep-alives, idle timeouts, and why long transfers need to resume
 - [China Network](https://developers.cloudflare.com/china-network/) – in-China caching, if that is where your users are
+- [Gradual deployments](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/) and [version affinity](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/version-affinity/) – percentage rollouts that do not flip a client between versions
+- [Previews](https://developers.cloudflare.com/workers/previews/) and [Compare workflows](https://developers.cloudflare.com/workers/previews/compare-workflows/) – branch environments on your own domain, and when to use them over Version URLs
+- [Client certificates (mTLS)](https://developers.cloudflare.com/ssl/client-certificates/) – authenticating devices that have no identity provider
 - [Storing user-generated content](https://developers.cloudflare.com/reference-architecture/diagrams/storage/storing-user-generated-content/) – reference architecture
 - [Designing a distributed web performance architecture](https://developers.cloudflare.com/reference-architecture/diagrams/content-delivery/distributed-web-performance-architecture/)
 - [Content delivery network reference architecture](https://developers.cloudflare.com/reference-architecture/architectures/cdn/)
