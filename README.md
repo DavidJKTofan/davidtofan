@@ -453,7 +453,9 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 ### UI/UX
 - **Fixed header**: Always visible navigation bar on all devices
-- **Dark/Light mode**: System detection with manual toggle, persists across page navigations
+- **Dark/Light mode**: Follows the OS setting — including live changes — until the visitor picks a
+  theme with the toggle. Only a choice that differs from the OS is stored, so toggling back to the
+  OS's own theme returns to "follow system". Persists across page navigations
 - **AI Search modal**: Cloudflare AI Search button in the header with Cmd/Ctrl+K shortcut support
 - **Theme-aware browser chrome**: `html`-level `color-scheme` and custom scrollbar variables keep the right-edge gutter aligned with light/dark mode
 - **Language picker**: Dropdown beside the theme toggle, switching between the five supported
@@ -461,14 +463,25 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 - **Regional accent**: `<html data-region>` swaps the accent ramp and a low-opacity geometric
   motif based on the visitor's country, resolved before first paint
 - **View Transitions**: Smooth page navigation with Astro's ClientRouter
-- **Link Prefetching**: Hover-based prefetch for faster perceived navigation
+- **Link Prefetching**: every same-origin link is prefetched on hover/focus (`prefetchAll: true`,
+  the ClientRouter default), falling back to tap under Save-Data or slow connections. Prefetches are
+  static-asset requests, so they cost nothing
+- **Reduced motion**: `prefers-reduced-motion` turns off smooth scrolling, entry animations and
+  transitions site-wide; the homepage's LCP text (heading and tagline) is never animated
+- **Skip link**: "Skip to content" (localized) is the first Tab stop and jumps to `<main>`
+- **Accessible cards**: article and project cards are stretched-link cards — the whole card is
+  clickable, but the link's accessible name is exactly the visible title
 - **Mobile scroll-to-top button**: Floating button on articles/projects (hidden on desktop)
-- **Responsive design**: Mobile-first with optimized text sizes (`prose-base` on mobile, `prose-lg` on desktop)
+- **Responsive design**: Mobile-first with optimized text sizes (`prose-base` on mobile, `prose-lg` on desktop);
+  long code tokens and URLs wrap, and wide Markdown tables scroll inside their own focusable region
+  (`rehypeScrollableTables` in `astro.config.mjs`) instead of widening the page
 
 ### Articles
 - Reading progress bar
 - Dynamic reading time calculation
-- Sticky table of contents with scroll highlighting (desktop)
+- Sticky table of contents with scroll highlighting (desktop) — pure CSS `position: sticky`, so
+  it causes no layout shift. This depends on `overflow-x: clip` (never `hidden`) on `html`/`body`;
+  see `src/styles/global.css`
 - Tag filtering
 
 ### Content
@@ -744,7 +757,7 @@ requests are diverted to asset serving and hit `404.html` instead.
 #### Internationalization & SEO
 
 - **Two independent layers.** Language lives in the URL (`/es/…`) and is resolved by Astro's i18n routing; the regional accent lives in `<html data-region>` and never touches the URL. Madrid and Mexico City therefore share `/es/` but not the palette
-- **hreflang** is emitted on the five localized landing routes only — each cluster is bidirectional, self-referencing, and carries a single `x-default` pointing at `/`. Pages with no translation (articles, projects, legal) advertise no alternates, because claiming a `/es/` copy that does not exist is worse than staying silent. The language picker's own links use the same BCP-47 tags as the alternate graph, so the two never disagree
+- **hreflang** is emitted on the five localized landing routes only — each cluster is bidirectional, self-referencing, and carries a single `x-default` pointing at `/`. Pages with no translation (articles, projects, legal) advertise no alternates, because claiming a `/es/` copy that does not exist is worse than staying silent. The language picker's own links and the sitemap's `xhtml:link` alternates use the same BCP-47 tags as the alternate graph (`en`, `es`, `de`, `it`, `zh-Hans` — `HTML_LANG` in `src/i18n/utils.ts`), so none of them disagree
 - **`inLanguage`** is set on every JSON-LD block so the structured data agrees with the hreflang cluster it sits in
 - **Locale-sticky navigation**: pages without a localized variant are served from English URLs, so a visitor who followed the footer out of `/zh/` would otherwise find every nav link pointing back into the English tree. A small script re-points `a[data-nav-path]` hrefs — never labels, so nothing flashes and the page is not mislabelled. Crawlers have no preference cookie and always receive the plain English URLs; the HTML is byte-identical for everyone
 - **When the flag is on**, `/` is served `private, no-cache, must-revalidate` — deliberately not `no-store`, which is a hard back/forward-cache blocker in Chrome and would make every "back" to the homepage pay a full round trip. `no-cache` still keeps the personalized response out of shared caches, and `Vary: Accept-Language, Cookie` records what it varies on. In the default state `/` is an ordinary static asset and gets the same `public, max-age=0, must-revalidate` as every other page
@@ -846,6 +859,17 @@ The picker, the hreflang graph, the 404's embedded strings and `LANGS` all deriv
 #### Astro 7 / Cloudflare Notes
 
 - Astro 7 requires Node `22.12.0+` and builds on Vite 8
+- **Trailing slashes**: pages are built as `<route>/index.html`, and Workers Static Assets
+  (`html_handling: "auto-trailing-slash"`) answers the slash-less URL with a `307`. Internal links
+  and redirect destinations therefore always end in `/`; `npm run deps:update` warns if the build
+  contains one that doesn't. `trailingSlash` itself stays at Astro's default (`'ignore'`): with
+  `'always'`, the adapter writes only slashed sources to `_redirects` (`/world/`, `/sitemap.xml/`),
+  so the bare `/world` and `/sitemap.xml` would 404
+- **Inline scripts**: every `<script define:vars>` is inlined into — and re-sent with — every HTML
+  page. Only scripts that must run before first paint (theme, region, the `/`-only language
+  redirect) stay inline; the rest are processed `<script>` modules that import from `src/i18n/`
+  and are cached. Template comments use `{/* */}`, which Astro strips, rather than `<!-- -->`,
+  which it ships
 - **Build output is split**: `astro build` emits `dist/client` (all static assets) and `dist/server`. In the default state every page is prerendered, so `dist/server` is empty and the site deploys as an **assets-only Worker** — Wrangler uploads a `no-op-worker.js` (0.31 KiB) that never runs in practice. With `GEO_PERSONALIZATION="TRUE"`, `dist/server` holds a real Worker entry (`entry.mjs`) and only `/` invokes it
 - **`wrangler.jsonc` still does not need `main` or `assets.directory`.** The adapter (via `@cloudflare/vite-plugin`) resolves both and writes `dist/client/wrangler.json` when the build is assets-only, or `dist/server/wrangler.json` when a Worker entry exists; `.wrangler/deploy/config.json` redirects Wrangler to whichever applies. Wrangler prints `Using redirected Wrangler configuration` to confirm
 - **Markdown**: Astro 7 makes [Sätteri](https://satteri.bruits.org/) the default processor and no longer bundles `@astrojs/markdown-remark`. This site keeps the `unified()` pipeline for `rehype-external-links`, so `@astrojs/markdown-remark` is now an **explicit dependency** in `package.json`
@@ -869,21 +893,25 @@ deployed site for comparison:
 | `/` — `GEO_PERSONALIZATION=FALSE` | 100 | 95 | 100 | 92 |
 | `/es/`, `/articles/`, an article page | 100 | 95 | 100 | 92 |
 
-FCP 1.2 s · LCP 1.4 s · TBT 0 ms · CLS 0.003, identical in both flag states.
+FCP 1.2 s · LCP 1.4 s · TBT 0 ms · CLS 0, identical in both flag states. Desktop CLS on the
+long articles was 0.27 while the table of contents was positioned by JavaScript; it is 0 with
+CSS `position: sticky`.
 
 > Local numbers are not comparable to production: there is no network latency, and the
 > Cloudflare Web Analytics beacon and AI Search snippet are injected at the edge, so they are
 > absent locally. The meaningful comparison is the *audit list*, not the score — and no audit
 > fails locally that does not also fail on the deployed site.
 
-The four audits that do not reach 100 are all pre-existing and unrelated to the i18n work:
+The three audits that do not reach 100 are all pre-existing and unrelated to the i18n work:
 
 | Audit | Cause | Deliberate? |
 |:--|:--|:--|
 | `robots-txt` "unknown directive" | `Content-Signal:` and `License:` lines | **Yes** — IETF AIPREF and RSL directives Lighthouse's validator does not know |
-| `color-contrast` | white text on `.btn-primary`; `text-surface-500` links in dark mode | No — see below |
-| `label-content-name-mismatch` | article cards use `aria-labelledby` | No — pre-dates this work |
-| `render-blocking-resources` | the single stylesheet | No — pre-dates this work |
+| `color-contrast` | white text on `.btn-primary`; `text-surface-500` footer legal links | No — see below |
+| `render-blocking-resources` | the single stylesheet | No — Lighthouse estimates 0 ms FCP/LCP savings |
+
+`label-content-name-mismatch` (cards labelled via `aria-labelledby`) and the dark-mode blockquote
+contrast failure (2.58:1) used to appear here too; both are fixed.
 
 #### Known: `.btn-primary` contrast
 

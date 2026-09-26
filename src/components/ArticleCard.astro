@@ -19,13 +19,18 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
 
 // Calculate reading time if not provided (rough estimate)
 const estimatedReadingTime = readingTime || '5 min read';
-const titleId = `article-card-${slug.replace(/[^a-zA-Z0-9_-]/g, '-')}-title`;
 ---
 
+{/*
+  Stretched-link card: the only link is the title, and its ::after overlay
+  covers the whole card, so the entire card stays clickable while the link's
+  accessible name is exactly its visible title (WCAG 2.5.3 Label in Name). The
+  keyboard focus ring is drawn on that overlay, i.e. around the whole card.
+*/}
 <article class="group h-full">
-  <a href={`/articles/${slug}`} class="block card p-6 h-full article-card" aria-labelledby={titleId}>
+  <div class="relative card p-6 h-full article-card">
     <div class="flex flex-col h-full">
-      <!-- Meta info -->
+      {/* Meta info */}
       <div class="flex items-center gap-3 text-[15px] sm:text-sm text-surface-500 dark:text-surface-400 mb-3 min-h-6">
         <time datetime={date.toISOString()} class="flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -49,12 +54,17 @@ const titleId = `article-card-${slug.replace(/[^a-zA-Z0-9_-]/g, '-')}-title`;
         )}
       </div>
 
-      <!-- Title -->
-      <h3 id={titleId} class="font-display font-semibold text-lg text-surface-900 dark:text-surface-100 mb-2 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200 line-clamp-2 min-h-[3.5rem] leading-7">
-        {title}
+      {/* Title */}
+      <h3 class="font-display font-semibold text-lg text-surface-900 dark:text-surface-100 mb-2 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200 line-clamp-2 min-h-[3.5rem] leading-7">
+        <a
+          href={`/articles/${slug}/`}
+          class="after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent-500"
+        >
+          {title}
+        </a>
       </h3>
 
-      <!-- Description -->
+      {/* Description */}
       <p
         class="text-surface-600 dark:text-surface-400 text-[15px] sm:text-sm leading-relaxed mb-4"
         style="display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;"
@@ -62,7 +72,7 @@ const titleId = `article-card-${slug.replace(/[^a-zA-Z0-9_-]/g, '-')}-title`;
         {description}
       </p>
 
-      <!-- Tags -->
+      {/* Tags */}
       {tags.length > 0 && (
         <div class="flex flex-wrap gap-2 mt-auto min-h-7 content-start">
           {tags.slice(0, 3).map((tag) => (
@@ -78,15 +88,15 @@ const titleId = `article-card-${slug.replace(/[^a-zA-Z0-9_-]/g, '-')}-title`;
         </div>
       )}
 
-      <!-- Read more indicator -->
-      <div class="flex items-center gap-1.5 mt-4 text-sm font-medium text-accent-600 dark:text-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1">
+      {/* Read more indicator (decorative: the title link already says where it goes) */}
+      <div class="flex items-center gap-1.5 mt-4 text-sm font-medium text-accent-600 dark:text-accent-400 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-0 group-hover:translate-x-1" aria-hidden="true">
         Read article
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
       </div>
     </div>
-  </a>
+  </div>
 </article>
 
 <style>

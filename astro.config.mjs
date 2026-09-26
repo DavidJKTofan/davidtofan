@@ -113,12 +113,53 @@ console.log(
   `[geo] personalization ${GEO_PERSONALIZATION ? 'ENABLED  — / renders on demand (billed Worker invocations)' : 'DISABLED — / is prerendered (no Worker invocations)'}`,
 );
 
+/**
+ * Rehype plugin: wrap every Markdown table in a horizontally scrollable region.
+ *
+ * Several articles have tables wider than a phone's reading column. Without a
+ * wrapper they either get clipped by the page's overflow clip or push the
+ * mobile layout viewport wider than the screen. The wrapper scrolls on its
+ * own instead, and is a focusable, named region so keyboard users can scroll
+ * it (styled by .table-scroll in src/styles/global.css). Tables keep their
+ * native table semantics — only the wrapper changes, never the <table>.
+ *
+ * Written against the hast tree directly so it needs no extra dependency.
+ */
+function rehypeScrollableTables() {
+  const wrapTables = (node) => {
+    if (!Array.isArray(node.children)) return;
+    node.children = node.children.map((child) => {
+      if (child.type === 'element' && child.tagName === 'table') {
+        return {
+          type: 'element',
+          tagName: 'div',
+          properties: { className: ['table-scroll'], tabIndex: 0, role: 'region', ariaLabel: 'Table' },
+          children: [child],
+        };
+      }
+      wrapTables(child);
+      return child;
+    });
+  };
+  return (tree) => wrapTables(tree);
+}
+
 const siteUrl = 'https://davidtofan.com';
 const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl);
 
 // https://astro.build/config
 export default defineConfig({
   site: siteUrl,
+  // Trailing slashes: every page is built as <route>/index.html, and Workers
+  // Static Assets (html_handling: 'auto-trailing-slash') answers the slash-less
+  // form with a 307. Internal links and redirect targets therefore always carry
+  // the trailing slash; scripts/update-deps.sh checks the build for any that
+  // don't.
+  //
+  // `trailingSlash` itself is deliberately left at its default ('ignore').
+  // With 'always', the Cloudflare adapter writes only slashed redirect sources
+  // to _redirects (`/world/`, `/sitemap.xml/`), so the bare `/world` and
+  // `/sitemap.xml` that people and crawlers actually request would 404.
   // Language layer. Regional *styling* deliberately does NOT live in the URL —
   // it is an <html data-region> attribute, so Madrid and Mexico City share the
   // /es/ routes but not the palette. See src/i18n/regions.ts.
@@ -133,21 +174,27 @@ export default defineConfig({
       prefixDefaultLocale: false,
     },
   },
-  // Prefetch configuration for View Transitions
-  // Links are prefetched on hover/focus for faster navigation
+  // Prefetch every same-origin link on hover/focus. This is what <ClientRouter />
+  // enables by default; `prefetchAll: false` (the previous value) turned it off
+  // entirely, because no link carries `data-astro-prefetch`. Astro skips external
+  // links and falls back to `tap` under Save-Data or slow connections. Every
+  // page is a free static asset, so prefetches cost nothing.
+  // https://docs.astro.build/en/guides/prefetch/#using-with-view-transitions
   prefetch: {
-    prefetchAll: false, // Only prefetch links with data-astro-prefetch or on hover
-    defaultStrategy: 'hover', // Prefetch on hover (good balance of speed vs bandwidth)
+    prefetchAll: true,
+    defaultStrategy: 'hover',
   },
-  // Redirects for content aliases (Hugo compatibility)
+  // Redirects for content aliases (Hugo compatibility). Destinations carry the
+  // trailing slash so each alias is a single 301, not a 301 followed by the
+  // platform's 307 to the slashed URL.
   redirects: {
     // Projects aliases
-    '/world': '/projects/world-of-opportunities',
-    '/travel': '/projects/google-travel-lists',
-    '/webinars': '/projects/webinars',
-    '/referrals': '/projects/referrals',
-    '/promotions': '/projects/referrals',
-    '/perks': '/projects/referrals',
+    '/world': '/projects/world-of-opportunities/',
+    '/travel': '/projects/google-travel-lists/',
+    '/webinars': '/projects/webinars/',
+    '/referrals': '/projects/referrals/',
+    '/promotions': '/projects/referrals/',
+    '/perks': '/projects/referrals/',
     // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
     '/sitemap.xml': '/sitemap-index.xml',
   },
@@ -179,10 +226,14 @@ export default defineConfig({
       },
     },
     sitemap({
-      // Emits xhtml:link hreflang alternates for the localized routes.
+      // Emits xhtml:link hreflang alternates for the localized routes. These
+      // values MUST match HTML_LANG in src/i18n/utils.ts, which drives <html lang>
+      // and the <link rel="alternate" hreflang> graph in BaseLayout — Google
+      // treats sitemap and HTML hreflang as equivalent signals, so the two must
+      // not disagree (this previously said en-US while the HTML said en).
       i18n: {
         defaultLocale: 'en',
-        locales: { en: 'en-US', es: 'es', de: 'de', it: 'it', zh: 'zh-Hans' },
+        locales: { en: 'en', es: 'es', de: 'de', it: 'it', zh: 'zh-Hans' },
       },
       // Legal pages are served with `noindex, nofollow` (meta tag + X-Robots-Tag),
       // so listing them here would tell crawlers to index what the page itself
@@ -246,6 +297,7 @@ export default defineConfig({
             rel: ['nofollow', 'noopener', 'external'],
           },
         ],
+        rehypeScrollableTables,
       ],
     }),
   },

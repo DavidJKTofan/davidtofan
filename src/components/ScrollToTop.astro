@@ -9,7 +9,7 @@
  * - Only visible on mobile/tablet (hidden on lg: screens)
  * - Appears after scrolling down 300px
  * - Transparent, semi-opaque design
- * - Smooth scroll animation
+ * - Smooth scroll animation (instant when the visitor prefers reduced motion)
  */
 ---
 
@@ -28,7 +28,7 @@
          transition-all duration-300 ease-out
          hover:bg-surface-900/70 dark:hover:bg-surface-100/60
          active:scale-95
-         focus:outline-hidden focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
+         focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
 >
   <svg 
     class="w-5 h-5" 
@@ -86,9 +86,10 @@
 
     // Click handler
     function scrollToTop() {
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: reduceMotion ? 'auto' : 'smooth'
       });
     }
 

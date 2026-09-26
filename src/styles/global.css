@@ -26,12 +26,25 @@
     --accent-950: #172554;
   }
 
-  /* Smooth scrolling and prevent horizontal overflow */
+  /*
+   * Horizontal overflow uses `clip`, never `hidden`, on both <html> and <body>.
+   * With `hidden`, <body> (whose value no longer propagates to the viewport
+   * once <html> sets its own) becomes a scroll container, which silently breaks
+   * `position: sticky` everywhere — the article TOC relies on it. `clip` hides
+   * overflow without creating a scroll container. On <html> it also stops
+   * mobile browsers widening the layout viewport to fit stray overflow.
+   * Content should not rely on this: wide tables scroll inside their own
+   * region (.table-scroll) and long tokens wrap (tailwind.config.mjs).
+   *
+   * scroll-padding-top keeps anchor targets — TOC jumps, the skip link,
+   * scrollIntoView() — clear of the fixed header (h-16 / md:h-18), so focused
+   * content is never hidden underneath it (WCAG 2.4.11).
+   */
   html {
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+    overflow-x: clip;
+    scroll-padding-top: 5rem;
     background-color: #fafaf9;
     color-scheme: light;
     --selection-bg: #bfdbfe;
@@ -40,6 +53,36 @@
     --scrollbar-thumb-hover: #a8a29e;
   }
 
+  @media (width >= 48rem) {
+    html {
+      scroll-padding-top: 5.5rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /*
+   * Reduced-motion safety net. Components opt in to motion with `motion-safe:`
+   * where it matters (the hero), but this catches everything else — hover
+   * lifts, pulse dots, the reading-progress bar, per-component keyframes.
+   * Durations collapse rather than being removed, so `forwards` fills still
+   * land every element on its final, visible state. Astro's <ClientRouter />
+   * already disables its own view-transition animations for this preference.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 
   /*
    * Motif layer. Rendered as a mask tinted with the region's own accent, so a
@@ -269,7 +312,9 @@
     @apply bg-surface-50 text-surface-800 dark:bg-surface-950 dark:text-surface-200;
     @apply transition-colors duration-300;
     font-feature-settings: 'ss01' 1, 'ss02' 1, 'cv01' 1;
-    overflow-x: hidden;
+    /* clip, not hidden: it clips without creating a scroll container, so
+       sticky descendants still stick to the viewport. */
+    overflow-x: clip;
     /* Ensure minimum readable text size on mobile */
     @apply text-base;
   }
@@ -342,19 +387,6 @@
     --search-snippet-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
     --search-snippet-shadow-lg: 0 28px 96px rgba(0, 0, 0, 0.55);
   }
-
-  /* Heading anchors */
-  .heading-anchor {
-    @apply opacity-0 transition-opacity duration-200;
-    @apply text-accent-500 ml-2 no-underline border-none;
-  }
-
-  h1:hover .heading-anchor,
-  h2:hover .heading-anchor,
-  h3:hover .heading-anchor,
-  h4:hover .heading-anchor {
-    @apply opacity-100;
-  }
 }
 
 @layer components {
@@ -369,36 +401,34 @@
     @apply hover:-translate-y-0.5;
   }
 
-  /* Button styles */
+  /*
+   * Button styles. No focus ring here on purpose: the global :focus-visible
+   * outline above is the single keyboard focus indicator, and it does not
+   * appear on mouse clicks the way a `focus:` ring did.
+   */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2;
     @apply min-h-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
-    @apply focus:ring-2 focus:ring-offset-2;
     @apply bg-accent-500 text-white;
     @apply hover:bg-accent-600;
-    @apply focus:ring-accent-500;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2;
     @apply min-h-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
-    @apply focus:ring-2 focus:ring-offset-2;
     @apply bg-surface-100 dark:bg-surface-800;
     @apply text-surface-700 dark:text-surface-200;
     @apply hover:bg-surface-200 dark:hover:bg-surface-700;
-    @apply focus:ring-surface-400;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2;
     @apply min-h-11 min-w-11 px-4 py-2 rounded-lg font-medium;
     @apply transition-all duration-200;
-    @apply focus:ring-2 focus:ring-offset-2;
     @apply text-surface-600 dark:text-surface-400;
     @apply hover:bg-surface-100 dark:hover:bg-surface-800;
-    @apply focus:ring-surface-400;
   }
 
   /* Tag/badge styles */
@@ -415,6 +445,17 @@
     @apply bg-accent-100 dark:bg-accent-900/30;
     @apply text-accent-700 dark:text-accent-400;
     @apply hover:bg-accent-200 dark:hover:bg-accent-800/40;
+  }
+
+  /*
+   * Markdown tables are wrapped in <div class="table-scroll"> by the
+   * rehypeScrollableTables plugin (astro.config.mjs). A table wider than the
+   * reading column scrolls inside this region instead of overflowing the page;
+   * the wrapper is focusable (tabindex=0) so keyboard users can scroll it too.
+   */
+  .table-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
   }
 
   /* Glass effect */

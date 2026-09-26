@@ -1,7 +1,6 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import { useTranslations } from '../i18n/utils';
-import { OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE } from '../i18n/regions';
 import type { Lang } from '../i18n/ui';
 
 interface Props {
@@ -54,7 +53,15 @@ const href = offerLang ? getRelativeLocaleUrl(offerLang, '') : '/';
   </div>
 )}
 
-<script define:vars={{ OFFER_COOKIE, LANG_COOKIE, REGION_COOKIE, LANG_HOME_REGION, COUNTRY_TO_LANG, NEUTRAL_REGION, PREF_COOKIE_MAX_AGE }}>
+<script>
+  /*
+   * Bundled module, not a define:vars inline script. Home.astro only renders
+   * this component when there is an offer to make, so with GEO_PERSONALIZATION
+   * off this script never ships at all.
+   */
+  import { OFFER_COOKIE } from '../i18n/regions';
+  import { rememberLanguageChoice, writePrefCookie } from '../i18n/client';
+
   function setupLocaleOffer() {
     const banner = document.getElementById('locale-offer');
     if (!(banner instanceof HTMLElement)) return;
@@ -62,34 +69,17 @@ const href = offerLang ? getRelativeLocaleUrl(offerLang, '') : '/';
     banner.dataset.localeOfferBound = 'true';
 
     // Dismissing is remembered, so the offer is made once and not repeatedly.
-    function remember(name, value) {
-      document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${PREF_COOKIE_MAX_AGE}; samesite=lax`;
-    }
-
     banner.querySelector('[data-locale-offer-dismiss]')?.addEventListener('click', () => {
-      remember(OFFER_COOKIE, 'dismissed');
+      writePrefCookie(OFFER_COOKIE, 'dismissed');
       banner.remove();
     });
 
     banner.querySelector('[data-locale-offer-accept]')?.addEventListener('click', (event) => {
       const chosen = event.currentTarget instanceof HTMLElement ? event.currentTarget.dataset.lang : null;
-      if (chosen) {
-        remember(LANG_COOKIE, chosen);
-        // Mirror the picker: accepting the offer re-themes as well, keeping the
-        // detected country's palette when it already speaks the chosen language.
-        const currentRegion = document.documentElement.getAttribute('data-region');
-        const keepRegion = currentRegion && COUNTRY_TO_LANG[currentRegion] === chosen;
-        const nextRegion = keepRegion ? currentRegion : LANG_HOME_REGION[chosen] ?? null;
-        const storedRegion = nextRegion || NEUTRAL_REGION;
-        try {
-          localStorage.setItem('lang', chosen);
-          localStorage.setItem('region', storedRegion);
-        } catch (e) {
-          /* private mode */
-        }
-        remember(REGION_COOKIE, storedRegion);
-      }
-      remember(OFFER_COOKIE, 'accepted');
+      // Mirror the picker: accepting the offer re-themes as well, keeping the
+      // detected country's palette when it already speaks the chosen language.
+      if (chosen) rememberLanguageChoice(chosen);
+      writePrefCookie(OFFER_COOKIE, 'accepted');
     });
   }
 

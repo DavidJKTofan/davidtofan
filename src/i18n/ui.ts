@@ -41,6 +41,7 @@ export const ui = {
     'a11y.search': "Search David Tofan's site",
     'a11y.mainNav': 'Main navigation',
     'a11y.mobileNav': 'Mobile navigation',
+    'a11y.skipToContent': 'Skip to content',
 
     'home.role': 'Senior Customer Engineer @ Cloudflare',
     'home.greeting': "Hi, I'm",
@@ -137,6 +138,7 @@ export const ui = {
     'a11y.search': 'Buscar en el sitio de David Tofan',
     'a11y.mainNav': 'Navegación principal',
     'a11y.mobileNav': 'Navegación móvil',
+    'a11y.skipToContent': 'Saltar al contenido',
 
     'home.role': 'Senior Customer Engineer @ Cloudflare',
     'home.greeting': 'Hola, soy',
@@ -233,6 +235,7 @@ export const ui = {
     'a11y.search': 'Website von David Tofan durchsuchen',
     'a11y.mainNav': 'Hauptnavigation',
     'a11y.mobileNav': 'Mobile Navigation',
+    'a11y.skipToContent': 'Zum Inhalt springen',
 
     'home.role': 'Senior Customer Engineer @ Cloudflare',
     'home.greeting': 'Hallo, ich bin',
@@ -331,6 +334,7 @@ export const ui = {
     'a11y.search': 'Cerca nel sito di David Tofan',
     'a11y.mainNav': 'Navigazione principale',
     'a11y.mobileNav': 'Navigazione mobile',
+    'a11y.skipToContent': 'Vai al contenuto',
 
     'home.role': 'Senior Customer Engineer @ Cloudflare',
     'home.greeting': 'Ciao, sono',
@@ -427,6 +431,7 @@ export const ui = {
     'a11y.search': '搜索 David Tofan 的网站',
     'a11y.mainNav': '主导航',
     'a11y.mobileNav': '移动端导航',
+    'a11y.skipToContent': '跳到主要内容',
 
     'home.role': 'Cloudflare 高级客户工程师',
     'home.greeting': '你好，我是',

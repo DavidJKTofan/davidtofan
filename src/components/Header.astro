@@ -41,21 +41,24 @@ const aiSearchSnippetURL = aiSearchConfig
   <div class="glass border-b border-surface-200/50 dark:border-surface-800/50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 md:h-18">
-        <!-- Logo -->
+        {/*
+          Logo. The accessible name is the visible site name (WCAG 2.5.3 Label
+          in Name): the "DT" monogram is decorative, and on phones the name is
+          visually hidden rather than display:none so it still names the link.
+        */}
         <a
           href={getRelativeLocaleUrl(lang, '')}
           class="inline-flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-1.5 group"
-          aria-label="DT — Home"
         >
-          <div class="relative w-9 h-9 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/25 group-hover:shadow-accent-500/40 transition-shadow duration-300">
+          <div class="relative w-9 h-9 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center shadow-lg shadow-accent-500/25 group-hover:shadow-accent-500/40 transition-shadow duration-300" aria-hidden="true">
             <span class="pointer-events-none text-white font-display font-bold text-sm">DT</span>
           </div>
-          <span class="pointer-events-none hidden sm:block font-display font-bold text-lg text-surface-900 dark:text-surface-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
+          <span class="pointer-events-none sr-only sm:not-sr-only font-display font-bold text-lg text-surface-900 dark:text-surface-50 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors duration-200">
             {siteConfig.name}
           </span>
         </a>
 
-        <!-- Desktop Navigation -->
+        {/* Desktop Navigation */}
         <nav class="hidden md:flex items-center gap-1" aria-label={t('a11y.mainNav')}>
           {localizedNav.map((item) => {
             const isActive = isCurrent(item);
@@ -77,7 +80,7 @@ const aiSearchSnippetURL = aiSearchConfig
           })}
         </nav>
 
-        <!-- Right side actions -->
+        {/* Right side actions */}
         <div class="flex items-center gap-2">
           {aiSearchConfig && (
             <button
@@ -105,7 +108,7 @@ const aiSearchSnippetURL = aiSearchConfig
 
           <LanguagePicker />
 
-          <!-- Theme toggle -->
+          {/* Theme toggle */}
           <button
             id="theme-toggle"
             type="button"
@@ -113,7 +116,7 @@ const aiSearchSnippetURL = aiSearchConfig
             aria-label={t('a11y.toDarkTheme')}
             aria-pressed="false"
           >
-            <!-- Sun icon (shown in dark mode) -->
+            {/* Sun icon (shown in dark mode) */}
             <svg
               class="pointer-events-none hidden w-5 h-5 dark:block"
               fill="none"
@@ -125,7 +128,7 @@ const aiSearchSnippetURL = aiSearchConfig
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
-            <!-- Moon icon (shown in light mode) -->
+            {/* Moon icon (shown in light mode) */}
             <svg
               class="pointer-events-none block w-5 h-5 dark:hidden"
               fill="none"
@@ -138,7 +141,7 @@ const aiSearchSnippetURL = aiSearchConfig
             </svg>
           </button>
 
-          <!-- Mobile menu button -->
+          {/* Mobile menu button */}
           <button
             id="mobile-menu-toggle"
             type="button"
@@ -159,7 +162,7 @@ const aiSearchSnippetURL = aiSearchConfig
     </div>
   </div>
 
-  <!-- Mobile menu -->
+  {/* Mobile menu */}
   <div
     id="mobile-menu"
     class="md:hidden hidden absolute top-full left-0 right-0 glass border-b border-surface-200/50 dark:border-surface-800/50"

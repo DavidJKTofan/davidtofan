@@ -6,7 +6,6 @@ import { getAbsoluteLocaleUrl } from 'astro:i18n';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { localeFrom, useTranslations, HTML_LANG, OG_LOCALE, LANGS } from '../i18n/utils';
-import { defaultLang } from '../i18n/ui';
 import { TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION } from '../i18n/regions';
 import { languages } from '../i18n/ui';
 
@@ -76,10 +75,18 @@ const pageTitle = homeTitles.has(title) ? title : `${title} | ${siteConfig.name}
 const structuredDataItems = structuredData
   ? (Array.isArray(structuredData) ? structuredData : [structuredData])
   : [];
+
+// Inline scripts are re-sent with every HTML response and never cached, so
+// only ship them where they can do something:
+// - the remembered-language redirect only ever acts on `/`;
+// - the time-zone -> region map is only read when geo-personalization is on.
+const isRootHome = Astro.url.pathname === '/';
+const timezoneToRegion = __GEO_PERSONALIZATION__ ? TIMEZONE_TO_REGION : {};
 ---
 
 <!doctype html>
-<html lang={HTML_LANG[lang]} data-region={serverRegion ?? undefined} class="scroll-smooth">
+{/* Smooth scrolling lives in global.css, gated on prefers-reduced-motion. */}
+<html lang={HTML_LANG[lang]} data-region={serverRegion ?? undefined}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -89,11 +96,11 @@ const structuredDataItems = structuredData
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="generator" content={Astro.generator} />
 
-    <!-- Theme color for mobile browsers -->
+    {/* Theme color for mobile browsers */}
     <meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
 
-    <!-- Primary Meta Tags -->
+    {/* Primary Meta Tags */}
     <title>{pageTitle}</title>
     <meta name="title" content={pageTitle} />
     <meta name="description" content={description} />
@@ -106,28 +113,28 @@ const structuredDataItems = structuredData
       <link rel="alternate" hreflang="x-default" href={getAbsoluteLocaleUrl('en', normalizedPath === '/' ? '' : normalizedPath)} />
     )}
 
-    <!-- Robots: Control search engine indexing -->
+    {/* Robots: Control search engine indexing */}
     {noIndex ? (
       <meta name="robots" content="noindex, nofollow" />
     ) : (
       <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     )}
 
-    <!-- Keywords -->
+    {/* Keywords */}
     {tags.length > 0 && <meta name="keywords" content={tags.join(', ')} />}
 
-    <!-- Sitemap -->
+    {/* Sitemap */}
     <link rel="sitemap" href="/sitemap-index.xml" />
 
-    <!-- AI agent discovery — mirrors the Link response headers set in public/_headers.
+    {/* AI agent discovery — mirrors the Link response headers set in public/_headers.
          rel="describedby" per RFC 9727 §3, rel="license" per the Cloudflare
          ai-crawl-control + Transform Rules guide. The application/rsl+xml entry
-         points at the RSL 1.0 machine-readable license (https://rslstandard.org/rsl). -->
+         points at the RSL 1.0 machine-readable license (https://rslstandard.org/rsl). */}
     <link rel="describedby" type="text/html" href="/ai-licensing-terms/" />
     <link rel="license" type="text/html" href="/ai-licensing-terms/" />
     <link rel="license" type="application/rsl+xml" href="/rsl.xml" />
 
-    <!-- Open Graph / Facebook -->
+    {/* Open Graph / Facebook */}
     <meta property="og:type" content={type} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={pageTitle} />
@@ -149,7 +156,7 @@ const structuredDataItems = structuredData
       <meta property="article:tag" content={tag} />
     ))}
 
-    <!-- Twitter -->
+    {/* Twitter */}
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content={canonicalURL} />
     <meta property="twitter:title" content={pageTitle} />
@@ -157,7 +164,7 @@ const structuredDataItems = structuredData
     <meta property="twitter:image" content={ogImageURL} />
     <meta property="twitter:creator" content={siteConfig.author.twitter} />
 
-    <!-- JSON-LD Structured Data -->
+    {/* JSON-LD Structured Data */}
     {structuredDataItems.length > 0 ? (
       structuredDataItems.map((item) => (
         <script type="application/ld+json" set:html={JSON.stringify(item)} />
@@ -243,28 +250,32 @@ const structuredDataItems = structuredData
         behind GEO_PERSONALIZATION.
       - With GEO_PERSONALIZATION on, the Worker has already redirected before
         this runs, so the two never fight.
+      - Emitted into `/`'s HTML only (isRootHome); every other page would just
+        carry it as dead weight. The runtime pathname check stays as a guard.
     -->
-    <script is:inline define:vars={{ LANG_COOKIE, LANG_CODES: Object.keys(languages), DEFAULT_LANG: 'en' }}>
-      (function () {
-        if (window.location.pathname !== '/') return;
+    {isRootHome && (
+      <script is:inline define:vars={{ LANG_COOKIE, LANG_CODES: Object.keys(languages), DEFAULT_LANG: 'en' }}>
+        (function () {
+          if (window.location.pathname !== '/') return;
 
-        var chosen = null;
-        try {
-          chosen = localStorage.getItem('lang');
-        } catch (e) { /* private mode */ }
+          var chosen = null;
+          try {
+            chosen = localStorage.getItem('lang');
+          } catch (e) { /* private mode */ }
 
-        if (!chosen) {
-          var match = document.cookie.match(new RegExp('(?:^|; )' + LANG_COOKIE + '=([^;]*)'));
-          chosen = match ? decodeURIComponent(match[1]) : null;
-        }
+          if (!chosen) {
+            var match = document.cookie.match(new RegExp('(?:^|; )' + LANG_COOKIE + '=([^;]*)'));
+            chosen = match ? decodeURIComponent(match[1]) : null;
+          }
 
-        if (!chosen || chosen === DEFAULT_LANG || LANG_CODES.indexOf(chosen) === -1) return;
+          if (!chosen || chosen === DEFAULT_LANG || LANG_CODES.indexOf(chosen) === -1) return;
 
-        window.location.replace('/' + chosen + '/' + window.location.search + window.location.hash);
-      })();
-    </script>
+          window.location.replace('/' + chosen + '/' + window.location.search + window.location.hash);
+        })();
+      </script>
+    )}
 
-    <!--
+    {/*
       Region Script. Deliberately mirrors the theme script below: an is:inline
       script that resolves before first paint, plus an astro:before-swap hook so
       the attribute survives View Transitions. Miss either and the accent
@@ -274,8 +285,11 @@ const structuredDataItems = structuredData
       -> IANA time zone. The time zone step is what gives a visitor arriving
       straight at an article from search their regional accent without any
       Worker invocation or network request.
-    -->
-    <script is:inline define:vars={{ TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION, GEO_ENABLED: __GEO_PERSONALIZATION__ }}>
+
+      TIMEZONE_TO_REGION is only serialized when GEO_PERSONALIZATION is on; with
+      it off the time-zone step never runs, so the ~4 KB map is left out.
+    */}
+    <script is:inline define:vars={{ TIMEZONE_TO_REGION: timezoneToRegion, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION, GEO_ENABLED: __GEO_PERSONALIZATION__ }}>
       (function () {
         function readCookie(name) {
           var match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
@@ -352,56 +366,82 @@ const structuredDataItems = structuredData
       })();
     </script>
 
-    <!-- Theme Script (prevent flash and persist across View Transitions) -->
+    {/*
+      Theme Script (prevent flash and persist across View Transitions).
+
+      A stored `theme` is an explicit override; without one the site follows
+      the OS, including live changes (e.g. automatic dark mode at sunset). The
+      toggle only stores a value when it differs from the OS preference, so
+      switching back to the system theme returns to "follow system".
+    */}
     <script is:inline>
-      // Get the user's theme preference
-      function getThemePreference() {
-        if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-          return localStorage.getItem('theme');
-        }
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      }
+      (function () {
+        var media = window.matchMedia('(prefers-color-scheme: dark)');
 
-      // Apply the theme to the document
-      function applyTheme(theme) {
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
+        function storedTheme() {
+          try {
+            return localStorage.getItem('theme');
+          } catch (e) {
+            return null; /* private mode */
+          }
         }
-      }
 
-      // Apply theme immediately on initial load
-      applyTheme(getThemePreference());
-
-      // Persist theme across View Transitions (before the new document swaps in)
-      document.addEventListener('astro:before-swap', (event) => {
-        const theme = getThemePreference();
-        if (theme === 'dark') {
-          event.newDocument.documentElement.classList.add('dark');
-        } else {
-          event.newDocument.documentElement.classList.remove('dark');
+        function getThemePreference() {
+          return storedTheme() || (media.matches ? 'dark' : 'light');
         }
-      });
+
+        function applyTheme(root, theme) {
+          root.classList.toggle('dark', theme === 'dark');
+        }
+
+        // Apply theme immediately on initial load
+        applyTheme(document.documentElement, getThemePreference());
+
+        // Persist theme across View Transitions (before the new document swaps in)
+        document.addEventListener('astro:before-swap', function (event) {
+          applyTheme(event.newDocument.documentElement, getThemePreference());
+        });
+
+        // Follow OS theme changes live, unless the visitor chose explicitly.
+        // `theme:change` lets the toggle button and the search modal re-sync.
+        media.addEventListener('change', function () {
+          if (storedTheme()) return;
+          applyTheme(document.documentElement, getThemePreference());
+          document.dispatchEvent(new CustomEvent('theme:change'));
+        });
+      })();
     </script>
   </head>
   <body class="min-h-screen flex flex-col antialiased">
-    <!-- Noise texture overlay -->
+    {/*
+      Skip link (WCAG 2.4.1 Bypass Blocks): the first focusable element, visible
+      only while focused. scroll-padding-top in global.css keeps #main clear of
+      the fixed header when it lands.
+    */}
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2.5 focus:text-sm focus:font-medium focus:text-surface-900 focus:shadow-lg dark:focus:bg-surface-900 dark:focus:text-surface-100"
+    >
+      {t('a11y.skipToContent')}
+    </a>
+
+    {/* Noise texture overlay */}
     <div class="fixed inset-0 pointer-events-none motif-layer z-0" aria-hidden="true"></div>
     <div class="fixed inset-0 pointer-events-none noise z-50" aria-hidden="true"></div>
     
     <Header />
     
-    <!-- Spacer for fixed header (h-16 on mobile, h-18 on md+) -->
+    {/* Spacer for fixed header (h-16 on mobile, h-18 on md+) */}
     <div class="h-16 md:h-18 shrink-0" aria-hidden="true"></div>
     
-    <main class="flex-1">
+    {/* tabindex=-1 lets the skip link move focus here; it is not a tab stop. */}
+    <main id="main" tabindex="-1" class="flex-1 focus:outline-none">
       <slot />
     </main>
     
     <Footer />
 
-    <!--
+    {/*
       Locale-sticky navigation.
 
       Pages without a localized variant — the legal pages, article and project
@@ -418,49 +458,56 @@ const structuredDataItems = structuredData
       Crawlers have no preference cookie, so they always see the plain English
       URLs. Nothing here is served differently to Googlebot than to a visitor in
       the same state.
-    -->
-    <script is:inline define:vars={{ LANGS, LANG_COOKIE, DEFAULT_LANG: defaultLang }}>
-      (function () {
-        function storedLang() {
-          try {
-            var ls = localStorage.getItem('lang');
-            if (ls && LANGS.indexOf(ls) !== -1) return ls;
-          } catch (e) { /* private mode */ }
-          var m = document.cookie.match(new RegExp('(?:^|; )' + LANG_COOKIE + '=([^;]*)'));
-          var c = m ? decodeURIComponent(m[1]) : null;
-          return c && LANGS.indexOf(c) !== -1 ? c : null;
+
+      A bundled module rather than a define:vars inline script: nothing here has
+      to run before first paint, so it can be cached instead of re-sent inside
+      every HTML page.
+    */}
+    <script>
+      import { defaultLang, languages } from '../i18n/ui';
+      import { LANG_COOKIE } from '../i18n/regions';
+
+      const LANGS: string[] = Object.keys(languages);
+
+      function storedLang(): string | null {
+        try {
+          const ls = localStorage.getItem('lang');
+          if (ls && LANGS.includes(ls)) return ls;
+        } catch {
+          /* private mode */
         }
+        const m = document.cookie.match(new RegExp(`(?:^|; )${LANG_COOKIE}=([^;]*)`));
+        const c = m ? decodeURIComponent(m[1]) : null;
+        return c && LANGS.includes(c) ? c : null;
+      }
 
-        function currentUrlLocale() {
-          var first = location.pathname.split('/').filter(Boolean)[0];
-          return first && LANGS.indexOf(first) !== -1 ? first : null;
-        }
+      function currentUrlLocale(): string | null {
+        const first = location.pathname.split('/').filter(Boolean)[0];
+        return first && LANGS.includes(first) ? first : null;
+      }
 
-        function applyLocaleNav() {
-          // Only act when the URL carries no locale of its own; a localized page
-          // already has correct server-rendered links.
-          if (currentUrlLocale()) return;
+      function applyLocaleNav() {
+        // Only act when the URL carries no locale of its own; a localized page
+        // already has correct server-rendered links.
+        if (currentUrlLocale()) return;
 
-          var lang = storedLang();
-          if (!lang || lang === DEFAULT_LANG) return;
+        const lang = storedLang();
+        if (!lang || lang === defaultLang) return;
 
-          var links = document.querySelectorAll('a[data-nav-path]');
-          for (var i = 0; i < links.length; i++) {
-            var path = links[i].getAttribute('data-nav-path') || '';
-            links[i].setAttribute('href', '/' + lang + '/' + path);
-          }
-        }
+        document.querySelectorAll('a[data-nav-path]').forEach((link) => {
+          link.setAttribute('href', `/${lang}/${link.getAttribute('data-nav-path') ?? ''}`);
+        });
+      }
 
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyLocaleNav, { once: true });
-        } else {
-          applyLocaleNav();
-        }
-        document.addEventListener('astro:page-load', applyLocaleNav);
-      })();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyLocaleNav, { once: true });
+      } else {
+        applyLocaleNav();
+      }
+      document.addEventListener('astro:page-load', applyLocaleNav);
     </script>
 
-    <!-- Theme toggle script -->
+    {/* Theme toggle script */}
     <script>
       function syncAISearchTheme() {
         const modal = document.getElementById('site-search-modal');
@@ -482,10 +529,28 @@ const structuredDataItems = structuredData
 
         themeToggle.addEventListener('click', () => {
           const isDark = document.documentElement.classList.toggle('dark');
-          localStorage.setItem('theme', isDark ? 'dark' : 'light');
+          const theme = isDark ? 'dark' : 'light';
+          const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          // Store an override only when it differs from the OS. Choosing the
+          // OS's own theme clears it, so the site goes back to following the
+          // system (see the theme script in <head>).
+          try {
+            if (theme === systemTheme) localStorage.removeItem('theme');
+            else localStorage.setItem('theme', theme);
+          } catch {
+            /* private mode: the choice lasts for this page only */
+          }
           syncThemeToggleState(themeToggle);
           syncAISearchTheme();
         });
+      }
+
+      // Fired by the <head> theme script when the OS theme changes and the
+      // visitor has no explicit override.
+      function onSystemThemeChange() {
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle instanceof HTMLButtonElement) syncThemeToggleState(themeToggle);
+        syncAISearchTheme();
       }
 
       function syncThemeToggleState(themeToggle) {
@@ -507,6 +572,7 @@ const structuredDataItems = structuredData
 
         document.documentElement.dataset.themeTogglePageLoadBound = 'true';
         document.addEventListener('astro:page-load', setupThemeToggle);
+        document.addEventListener('theme:change', onSystemThemeChange);
       }
 
       bindThemeTogglePageLoad();

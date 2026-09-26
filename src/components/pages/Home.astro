@@ -42,43 +42,51 @@ const featuredProjects = projects
   description={t('meta.home.description')}
   image={siteConfig.ogImage}
 >
-  <LocaleOffer offerLang={offerLang} />
+  {/* Rendered only when there is an offer, so its script ships only then. */}
+  {offerLang && <LocaleOffer offerLang={offerLang} />}
 
-  <!-- Hero Section -->
+  {/* Hero Section */}
   <section class="relative overflow-hidden">
-    <!-- Background gradient -->
+    {/* Background gradient */}
     <div class="absolute inset-0 bg-gradient-to-br from-accent-50/50 via-transparent to-surface-100/50 dark:from-accent-950/20 dark:via-transparent dark:to-surface-900/50 pointer-events-none"></div>
-    
-    <!-- Decorative elements -->
+
+    {/* Decorative elements */}
     <div class="absolute top-20 right-10 w-72 h-72 bg-accent-400/10 dark:bg-accent-400/5 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute bottom-10 left-10 w-96 h-96 bg-surface-300/20 dark:bg-surface-700/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 lg:py-40">
+    {/* Tighter vertical padding on phones so the first article card peeks
+         above the fold; unchanged from sm up. */}
+    <div class="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 sm:py-24 md:py-32 lg:py-40">
       <div class="max-w-3xl">
-        <!-- Greeting badge -->
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400 text-sm font-medium mb-6 animate-fade-up">
+        {/* Greeting badge */}
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-100 dark:bg-accent-900/30 text-accent-700 dark:text-accent-400 text-sm font-medium mb-6 motion-safe:animate-fade-up">
           <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
+            <span class="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
           </span>
           {t('home.role')}
         </div>
 
-        <!-- Main heading -->
-        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-surface-900 dark:text-surface-50 leading-[1.1] tracking-tight mb-6 animate-fade-up text-balance" style="animation-delay: 0.1s;">
+        {/*
+          The heading and tagline are this page's LCP candidates, so they are
+          deliberately NOT animated: an entry animation starting at opacity 0
+          delays the moment the browser counts them as painted.
+        */}
+        {/* Main heading */}
+        <h1 class="font-display font-bold text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-surface-900 dark:text-surface-50 leading-[1.1] tracking-tight mb-6 text-balance">
           {t('home.greeting')} <span class="gradient-text">David</span>
         </h1>
 
-        <!-- Subheading -->
-        <p class="text-lg sm:text-xl text-surface-600 dark:text-surface-400 leading-relaxed mb-8 max-w-2xl animate-fade-up" style="animation-delay: 0.2s;">
+        {/* Subheading */}
+        <p class="text-lg sm:text-xl text-surface-600 dark:text-surface-400 leading-relaxed mb-8 max-w-2xl">
           {t('home.tagline.intro')} <strong class="text-surface-800 dark:text-surface-200">{t('home.tagline.cloud')} ☁️</strong>,
           <strong class="text-surface-800 dark:text-surface-200">{t('home.tagline.data')} 📊</strong>,
           <strong class="text-surface-800 dark:text-surface-200">{t('home.tagline.security')} 🔐</strong>.<br>
           {t('home.tagline.curious')}
         </p>
 
-        <!-- CTA buttons -->
-        <div class="flex flex-wrap items-center gap-4 animate-fade-up" style="animation-delay: 0.3s;">
+        {/* CTA buttons */}
+        <div class="flex flex-wrap items-center gap-4 motion-safe:animate-fade-up" style="animation-delay: 0.1s;">
           <a href={localePath('articles/')} class="btn-primary">
             {t('home.cta.articles')}
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -90,8 +98,8 @@ const featuredProjects = projects
           </a>
         </div>
 
-        <!-- Stats -->
-        <div class="flex flex-wrap items-center gap-8 mt-12 pt-8 border-t border-surface-200 dark:border-surface-800 animate-fade-up" style="animation-delay: 0.4s;">
+        {/* Stats */}
+        <div class="flex flex-wrap items-center gap-8 mt-10 pt-6 sm:mt-12 sm:pt-8 border-t border-surface-200 dark:border-surface-800 motion-safe:animate-fade-up" style="animation-delay: 0.2s;">
           <div>
             <div class="text-2xl sm:text-3xl font-display font-bold text-surface-900 dark:text-surface-100">
               {articles.length}+
@@ -115,10 +123,10 @@ const featuredProjects = projects
     </div>
   </section>
 
-  <!-- Recent Articles Section -->
-  <section class="py-16 md:py-24 bg-surface-100/50 dark:bg-surface-900/50">
+  {/* Recent Articles Section */}
+  <section class="pt-12 pb-16 sm:py-16 md:py-24 bg-surface-100/50 dark:bg-surface-900/50">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Section header -->
+      {/* Section header */}
       <div class="flex items-end justify-between mb-10">
         <div>
           <h2 class="font-display font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-100 mb-2">
@@ -136,7 +144,7 @@ const featuredProjects = projects
         </a>
       </div>
 
-      <!-- Articles grid -->
+      {/* Articles grid */}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {recentArticles.map((article) => (
           <ArticleCard
@@ -151,7 +159,7 @@ const featuredProjects = projects
         ))}
       </div>
 
-      <!-- Mobile view all link -->
+      {/* Mobile view all link */}
       <div class="mt-8 text-center sm:hidden">
         <a href={localePath('articles/')} class="btn-secondary">
           {t('home.recent.all')}
@@ -160,11 +168,11 @@ const featuredProjects = projects
     </div>
   </section>
 
-  <!-- Featured Projects Section -->
+  {/* Featured Projects Section */}
   {featuredProjects.length > 0 && (
     <section class="py-16 md:py-24">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Section header -->
+        {/* Section header */}
         <div class="flex items-end justify-between mb-10">
           <div>
             <h2 class="font-display font-bold text-2xl sm:text-3xl text-surface-900 dark:text-surface-100 mb-2">
@@ -182,7 +190,7 @@ const featuredProjects = projects
           </a>
         </div>
 
-        <!-- Projects grid -->
+        {/* Projects grid */}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProjects.map((project) => (
             <ProjectCard
@@ -198,7 +206,7 @@ const featuredProjects = projects
           ))}
         </div>
 
-        <!-- Mobile view all link -->
+        {/* Mobile view all link */}
         <div class="mt-8 text-center sm:hidden">
           <a href={localePath('projects/')} class="btn-secondary">
             {t('home.featured.all')}
@@ -208,7 +216,7 @@ const featuredProjects = projects
     </section>
   )}
 
-  <!-- CTA Section -->
+  {/* CTA Section */}
   <section class="py-16 md:py-24 bg-gradient-to-br from-surface-900 to-surface-950 dark:from-surface-800 dark:to-surface-900">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 class="font-display font-bold text-2xl sm:text-3xl md:text-4xl text-white mb-4">
