@@ -1,7 +1,8 @@
 ---
 title: "Securing Every AI and MCP Interaction with Cloudflare"
 date: 2026-08-31
-description: "How to gain visibility into and control every AI interaction – workforce browsers and IDEs, agents and MCP clients, public AI apps, and SaaS AI providers – using Cloudflare One and the Developer Platform."
+modified: 2026-09-27
+description: "How to gain visibility into and control every AI interaction – workforce browsers and IDEs, agents and MCP clients, public AI apps, and SaaS AI providers – and keep credentials out of agents' reach, using Cloudflare One and the Developer Platform."
 tags:
   [
     "cybersecurity",
@@ -19,7 +20,7 @@ type: "article"
 
 Most organizations already have an AI usage policy. Very few can tell you whether it is being followed.
 
-That is a visibility problem, not a policy problem. An employee pasting customer data into a chatbot, a coding agent calling an LLM API from an IDE, an MCP client invoking a tool against production, and a customer-facing chatbot answering a prompt injection are four different traffic flows. They share no protocol, no identity model, and no logging surface – so a control that catches one silently misses the other three. Here are all four, the Cloudflare inspection point that governs each, and how to build agents that stay inside them.
+That is a visibility problem, not a policy problem. An employee pasting customer data into a chatbot, a coding agent calling an LLM API from an IDE, an MCP client invoking a tool against production, and a customer-facing chatbot answering a prompt injection are four different traffic flows. They share no protocol, no identity model, and no logging surface – so a control that catches one silently misses the other three. Here are all four, the Cloudflare inspection point that governs each, how to build agents that stay inside them, and how to keep their credentials out of reach.
 
 ---
 
@@ -222,7 +223,7 @@ An agent does two different things: it **calls a model** to think, and it **call
 
 ### 2.1 Model Calls: AI Gateway
 
-The goal is to eliminate the shared API key. While a team shares one provider key, you cannot attribute usage, enforce per-person limits, or revoke one individual.
+The goal is to eliminate the shared API key. While a team shares one provider key, you cannot attribute usage, enforce per-person limits, or revoke one individual. (Where the provider key itself should live – and why the agent should never hold it – is covered under [Credentials](#credentials-keep-the-key-out-of-the-agent).)
 
 **Start with a custom domain.** [AI Gateway custom domains](https://developers.cloudflare.com/ai-gateway/configuration/custom-domains/) collapse:
 ```
@@ -264,6 +265,8 @@ Criteria: experimental.is_mcp and not(net.onramp.type == "mcp_portal")
 ```
 
 That rule converts a portal from a convenience into a control. Detection depends on TLS inspection, so the blind spots above apply here too.
+
+**From which tools to which writes.** A portal decides which tools an agent sees; [**WriteGuard**](https://blog.cloudflare.com/mcp-portal-writeguard-private-beta/) (private beta, announced in Agents Week) decides what a write may do. Each tool is tiered **Read Only**, **Minimal Impact**, **Contained Write**, or **Critical**, with policy defined alongside the tool rather than in the MCP server: reads pass through unchanged, writes carry agent attribution into the downstream app, Critical calls such as merging code are blocked before they execute, and write activity is audit-logged with sensitive data scrubbed. Agents keep the permissions of the human they act for, with no separate agent accounts – the permission parity of `Require user auth`, applied per tool.
 
 **Why this got easier.** The stateless [**MCP 2026-07-28 specification (MCP v2)**](https://blog.cloudflare.com/mcp-v2/) adds `Mcp-Method` and `Mcp-Name` headers, so gateways and WAF rules see which operation is being performed **without parsing JSON bodies**; RFC 8707 audience binding stops a token minted for one server being replayed against another; and RFC 9207 issuer identification prevents authorization-server confusion. Cloudflare's [Agents SDK](https://developers.cloudflare.com/changelog/post/2026-07-27-agents-sdk-v0.20.0-mcp-sdk-v2/) speaks it and the 2025 protocols with automatic fallback.
 
@@ -374,6 +377,91 @@ One implementation detail is directly transferable: **user-controlled content is
 
 ---
 
+## Credentials: Keep the Key Out of the Agent
+
+Every control above assumes a credential stays where you put it. Agents break that assumption: anything in an agent's reach – an environment variable, a config file, its own context – can be talked out of it.
+
+The fix is **credential injection** (also called token injection): the agent sends a plain request, and trusted code *outside* the agent attaches the credential on the way out. As Cloudflare's [Dynamic Workers post](https://blog.cloudflare.com/dynamic-workers/#http-filtering-and-credential-injection) puts it, the agent "never knows the secret credentials, and therefore cannot leak them."
+
+### A $600,000 Example
+
+[METR's disclosure](https://metr.org/blog/2026-08-31-security-update/) shows the situation end to end. In March 2026, a researcher ran agents on a personal EC2 instance behind Google authentication. A fail-open bug in the vibe-coded app silently disabled that authentication, and the attacker simply asked an agent for its model provider API key, added an SSH key for persistence, and used about $600,000 of model credits over three weeks. Heavy legitimate usage hid the traffic, and the key could not be given a spending limit. [The Hacker News](https://thehackernews.com/2026/09/zero-trust-for-ai-agents-starts-with.html) cites it to argue that zero trust for agents starts with visibility. Each link in the chain maps to a control in this article:
+
+<div style="overflow-x: auto;">
+
+| What failed | Cloudflare control | Effect |
+| --- | --- | --- |
+| The app's own login failed open | [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/) with an [Access policy](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/self-hosted-public-app/) in front | No inbound ports; identity is checked at Cloudflare before a request reaches the app, so an app auth bug is no longer the only gate |
+| The agent could read the provider key | Key stored in [AI Gateway BYOK](https://developers.cloudflare.com/ai-gateway/configuration/bring-your-own-keys/); gateway access attached outside the agent – a [Worker binding](https://developers.cloudflare.com/ai-gateway/configuration/authentication/) or an [outbound handler](#where-each-credential-should-live) | The agent has nothing to reveal |
+| A raw key sat on personal infrastructure | Employees get an [Access-protected gateway hostname](#21-model-calls-ai-gateway), never the key | Once in [Secrets Store](https://developers.cloudflare.com/secrets-store/), a key cannot be read back by anyone; access is per user and revocable in one place |
+| No spend cap; three weeks unnoticed | [Spend limits](https://developers.cloudflare.com/ai-gateway/features/spend-limits/) per user or gateway, plus the identity-aware anomaly feed | Over-budget requests get a `429`; outlier sessions are flagged per user |
+
+</div>
+
+None of this patches a vulnerable host or removes an attacker's SSH key. It limits what a compromised host can leak and how long misuse goes unseen – and only for agents pointed at the governed path: you cannot govern agents you cannot see.
+
+### Where Each Credential Should Live
+
+<div style="overflow-x: auto;">
+
+| Credential | Where it lives | What attaches it |
+| --- | --- | --- |
+| Model provider key | AI Gateway BYOK – or nowhere, with Unified Billing | AI Gateway, per request |
+| Upstream MCP / SaaS OAuth | MCP Server Portal, per user | The portal, as it proxies each tool call |
+| Anything a sandbox calls | Worker secret or Secrets Store | An outbound handler, outside the sandbox |
+| Anything generated code calls | The parent Worker | A `globalOutbound` entrypoint or RPC binding |
+| Anything tenant code calls | The platform's Outbound Worker | The Outbound Worker, per customer |
+
+</div>
+
+**Model provider keys.** [Unified Billing](https://developers.cloudflare.com/ai-gateway/features/unified-billing/) removes the provider key entirely (usage is billed against Cloudflare credits); [BYOK](https://developers.cloudflare.com/ai-gateway/configuration/bring-your-own-keys/) keeps your own key in Secrets Store and attaches it at runtime, with aliases for staged rotation. Mind the [precedence](https://developers.cloudflare.com/ai-gateway/features/unified-billing/#credential-precedence): a provider key sent *on the request* is forwarded unchanged and BYOK is never consulted, so strip provider auth headers from clients. Without a `default` BYOK key, requests fall through to Unified Billing unless you turn on [**Require provider credentials**](https://developers.cloudflare.com/changelog/post/2026-09-14-require-provider-credentials/) (`byok_only`). One scoping gap to plan around: AI Gateway `Run` permission [cannot be limited to a single gateway](https://developers.cloudflare.com/ai-gateway/configuration/authentication/), so a token for one gateway can call every gateway in the account, BYOK-backed ones included. For isolation, use separate accounts or Worker bindings, which are pre-authenticated and need no token.
+
+**Tool credentials.** With `Require user auth`, the [MCP Server Portal](https://developers.cloudflare.com/cloudflare-one/access-controls/ai-controls/mcp-portals/) runs the upstream OAuth flow for each user and attaches their token when it proxies a call; the client only ever holds its portal token. Since July 2026, portals also reach upstream servers that lack Dynamic Client Registration – [Slack and GitHub among them](https://developers.cloudflare.com/changelog/post/2026-07-31-mcp-portal-manual-oauth/) – via a pre-registered OAuth client whose secret is encrypted, write-only, and never returned by the API. Operational gotcha: admin OAuth tokens can expire silently, and the server then drops out of the portal with no notification, so monitor server status.
+
+**Sandboxes and Containers.** [Outbound handlers](https://developers.cloudflare.com/sandbox/guides/outbound-traffic/) are egress proxies running in the Workers runtime, outside the sandbox, with access to Workers bindings ([`@cloudflare/sandbox@0.8.9`, `@cloudflare/containers@0.3.0`](https://developers.cloudflare.com/changelog/post/2026-04-13-sandbox-outbound-workers-tls-auth/) or later):
+
+```javascript
+import { Sandbox, ContainerProxy } from "@cloudflare/sandbox";
+export { ContainerProxy };
+
+export class MySandbox extends Sandbox {
+  allowedHosts = ["github.com"]; // deny by default
+}
+
+MySandbox.outboundByHost = {
+  "github.com": async (request, env, ctx) => {
+    const token = await env.KEYS.get(ctx.containerId); // per-instance credential
+    const authed = new Request(request);
+    authed.headers.set("Authorization", `Bearer ${token}`);
+    return fetch(authed);
+  },
+};
+```
+
+- **The sandbox never sees the token.** Rotate it in the Worker and the next request uses the new value.
+- **Policy changes at runtime.** `setOutboundHandler()` can open GitHub and npm for `npm install`, then lock egress down – no restart.
+- **HTTPS without the CA problem.** Each instance gets its own ephemeral CA, whose private key never leaves the runtime sidecar. Sandboxes intercept by default and auto-trust the CA on common distros, which removes the certificate-distribution pain from [the blind spots above](#be-honest-about-the-blind-spots). [Containers](https://developers.cloudflare.com/containers/guides/outbound-traffic/) must opt in with `interceptHttps = true` and add the CA to their trust store.
+- **Limits.** Only HTTP(S) on ports 80 and 443 reaches the handlers; other traffic bypasses them (or is blocked with `enableInternet = false`), and DNS goes only to Cloudflare's resolvers.
+
+**Generated code.** For [Dynamic Workers](https://developers.cloudflare.com/dynamic-workers/api-reference/), [`globalOutbound: null`](https://developers.cloudflare.com/dynamic-workers/usage/egress-control/) cuts off `fetch()` and `connect()` entirely, while pointing `globalOutbound` at a `WorkerEntrypoint` (with `props` identifying the caller) makes that entrypoint the injection point. Cloudflare's own advice is to prefer narrow RPC bindings over filtering HTTP: exposing only the allowed functions is easier to get right than a proxy that must interpret every API call.
+
+**Platforms running customer code.** A [Workers for Platforms Outbound Worker](https://developers.cloudflare.com/cloudflare-for-platforms/workers-for-platforms/configuration/outbound-workers/) sees every `fetch()` from tenant Workers and receives parameters from the dispatcher, such as the customer's name. That lets it mint a per-customer credential – a JWT, for example – so tenant code never holds platform keys. It does not see `connect()` sockets or requests from Durable Objects or mTLS certificate bindings.
+
+**Storage.** [Secrets Store](https://developers.cloudflare.com/secrets-store/) holds account-level secrets that, once written, cannot be decrypted or read back through the API or dashboard; only the bound service uses them. [Scopes](https://developers.cloudflare.com/secrets-store/access-control/) (`workers`, `ai-gateway`) decide which services may consume a secret, roles separate who edits (Admin), binds (Deployer), or only sees metadata (Reporter), and every action is audit-logged.
+
+**Injection stops the key leaking, not the key being used.** A hijacked agent can still send any request the handler will authenticate, so scope the handler – hosts, methods, paths – as tightly as you would scope the key itself.
+
+### Catch What Still Leaks
+
+- **DLP.** The predefined [Credentials and Secrets profile](https://developers.cloudflare.com/cloudflare-one/data-loss-prevention/dlp-profiles/predefined-profiles/#credentials-and-secrets) matches AWS, Azure, and GCP keys, SSH keys, and – [since April 2026](https://developers.cloudflare.com/changelog/post/2026-04-14-cloudflare-api-token-detections/) – Cloudflare API credentials by their `cfk_`, `cfut_`, and `cfat_` prefixes. Profiles are shared with AI Gateway DLP, so the same profile can block a key pasted into a prompt or returned in a tool result. There are no predefined entries for model provider keys; add a custom entry for the formats you use.
+- **Secret scanning.** New-format Cloudflare API tokens are [recognized by GitHub Secret Scanning](https://developers.cloudflare.com/changelog/post/2026-04-10-secret-scanning-support/) in public repositories: Cloudflare deactivates a leaked token immediately, emails its creator, and marks it **Exposed**. DLP does not match tokens created before the [format change](https://developers.cloudflare.com/fundamentals/api/get-started/token-formats/), which is another reason to roll old ones.
+
+### Where Agent Credentials Are Heading
+
+Two Agents Week posts look past static secrets. The [**Agent Access Model (AAM)**](https://blog.cloudflare.com/the-agent-access-model/) is a reference architecture, not a product: credentials are minted per task via OAuth 2.0 Token Exchange (RFC 8693), expire when the task ends, and are sender-constrained with DPoP (RFC 9449) using a proof key held by the harness outside the agent runtime, so a token the agent leaks is useless on its own. [**Cloudflare Wallets**](https://blog.cloudflare.com/wallets/) apply the same idea to money: agents spend from Virtual Wallets with per-transaction caps, periodic budgets, and merchant allowlists, and need a human to raise them (payments are still marked coming soon).
+
+---
+
 ## Summary
 
 <div style="overflow-x: auto;">
@@ -385,6 +473,7 @@ One implementation detail is directly transferable: **user-controlled content is
 | [2.2 – MCP clients calling tools](#22-tool-calls-mcp-server-portals) | MCP Server Portal | Per-tool request logs, shadow MCP dashboard | Curated catalog, per-user auth, portal-only rule |
 | [3 – Customers hitting your AI app](#surface-3-your-public-ai-apps-and-apis) | AI Security for Apps | LLM endpoint discovery, threat scores, crawler analytics | Injection, PII and unsafe-topic rules; crawler policy |
 | [4 – Data at rest in SaaS tenants](#surface-4-saas-ai-providers) | CASB (out-of-band API) | Misconfiguration and exposure findings | Posture remediation, provider data-handling review |
+| [Credentials – across all surfaces](#credentials-keep-the-key-out-of-the-agent) | Secrets Store, BYOK, outbound handlers | Key last-use, DLP credential matches, exposed tokens | Injection outside the agent, spend limits, automatic token deactivation |
 
 </div>
 
@@ -398,10 +487,10 @@ Order matters more than completeness:
 
 1. **Fix the on-ramps, and prepare properly for TLS decryption.** The longest step, and the one that sinks projects when treated as a checkbox: deploy the [device client](https://developers.cloudflare.com/cloudflare-one/networks/connectivity-options/) through your [MDM](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/deployment/); distribute the [root certificate](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/user-side-certificates/) to the OS trust store *and* to applications that keep their own; and write the [Do Not Inspect](https://developers.cloudflare.com/cloudflare-one/traffic-policies/http-policies/#do-not-inspect) policies for pinned and mTLS applications before your users find them.
 2. **Discover before you block.** Run Gateway and the AI Security report for a few weeks, and classify applications rather than guessing.
-3. **Give agents a governed path for models** – an AI Gateway custom domain, callers migrated off shared API keys, then Access on.
+3. **Give agents a governed path for models** – an AI Gateway custom domain, provider keys moved into BYOK, callers migrated off shared API keys, then Access on.
 4. **Give agents a governed path for tools** – approved MCP servers behind a portal with a curated catalog and per-user auth.
 5. **Only then, close the bypass.** Blocking non-portal MCP traffic before step 4 just pushes people onto unmanaged devices.
-6. **Run Surfaces 3 and 4 in parallel**, and **make the safe build path the easy one**: sandboxed execution, zero-permission defaults, gatekeepered credentials.
+6. **Run Surfaces 3 and 4 in parallel**, and **make the safe build path the easy one**: sandboxed execution, zero-permission defaults, credentials injected outside the agent.
 
 The connecting idea across all four surfaces is that **identity is the primary control, and the network is how you attach it**. Every capability here – `cf.user_id` on a model call, per-user OAuth on a tool call, an Access policy on a gateway hostname – exists to answer one question: which human is accountable for what this agent just did?
 
