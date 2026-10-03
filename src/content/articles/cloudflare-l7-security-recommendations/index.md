@@ -1,7 +1,7 @@
 ---
 title: General Application Security Recommendations
 date: 2024-09-08
-modified: 2026-09-18
+modified: 2026-10-03
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Security approach with Cloudflare."
 tags: ["cybersecurity", "cloudflare", "resources", "application security"]
 type: "article"
@@ -167,7 +167,7 @@ For additional and stricter security requirements, deploy some of the following 
 - _Anomaly:Header:User-Agent - Empty_ with Rule ID _b57df4f17f7f4ea4b8db33e20a6dbbd3_.
 - _XSS, HTML Injection_ with Rule ID _882b37d6bd5f4bf2a3cdb374d503ded0_.
 - _Anomaly:URL:Path - Multiple Slashes, Relative Paths, CR, LF or NULL_ with Rule ID _6e759e70dc814d90a003f10424644cfb_.
-- _Anomaly:Body - Large_ with Rule ID _7b822fd1f5814e17888ded658480ea8f_, in order to mitigate body payloads which are higher than the [processing limit](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/http.request.body.raw/).
+- _Anomaly:Body - Large_ with Rule ID _ee922cf00077462d9f2f7330b114b839_, in order to mitigate body payloads which are higher than the [processing limit](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/http.request.body.raw/). Not to be confused with _Anomaly:Body - Large 2_ (Rule ID _7b822fd1f5814e17888ded658480ea8f_), whose default action is _Log_.
   - It is generally recommended to add [WAF exceptions](https://developers.cloudflare.com/waf/managed-rules/waf-exceptions/) for this, especially for [upload endpoints](https://developers.cloudflare.com/cache/concepts/default-cache-behavior/#upload-limits).
 - _Anomaly:Port - [Non Standard Port](https://developers.cloudflare.com/fundamentals/reference/network-ports/#how-to-block-traffic-on-additional-ports) (not 80 or 443)_ with Rule ID _8e361ee4328f4a3caf6caf3e664ed6fe_.
 - _Anomaly:Method - Unusual HTTP Method_ with Rule ID _ab53f93c9b03472ab34a5405d9bdc7d5_.
