@@ -114,6 +114,17 @@
   Cache-Control: public, max-age=36000
   X-Content-Type-Options: nosniff
 
+# AI agent playbook linked from the L7 security article. Served as text/plain (as
+# raw.githubusercontent.com does for .md) so every browser shows it inline instead of
+# downloading it; the article's download link uses the `download` attribute. Explicit
+# charset because the file contains non-ASCII characters (→, ·, –). Shorter cache than
+# other root files because the playbook is updated in place. Exact path rather than a
+# `:file` placeholder, so a 404 for any other /docs/*.md is not relabelled text/plain.
+/docs/cloudflare-waf-agent-guide.md
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff
+
 # NOTE: /cdn-cgi/* is reserved and served by Cloudflare (image transformations,
 # trace, challenge platform). It never reaches static-asset routing, so it cannot
 # and must not be targeted by rules here.

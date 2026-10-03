@@ -19,6 +19,8 @@ This guide assumes that your domain is already onboarded to Cloudflare as a [Zon
 
 > **You can find all recommendations, security rules and more in the _[Cloudflare L7 Best Practices Repository (Database)](https://db.automatic-demo.com/)_ for quick searches.**
 
+> **Using an AI agent?** Give it the _[AI Agent Playbook for WAF Reviews](#ai-agent-playbook-for-waf-reviews)_ to review and optimize your own account-level and zone-level WAF rules through the Cloudflare API.
+
 ---
 
 ## Prerequisite Knowledge
@@ -35,6 +37,7 @@ Practical implications:
 - A [Skip](https://developers.cloudflare.com/waf/custom-rules/skip/) action only skips the products or phases you explicitly select. It is not a global _"allow everything"_, and it cannot undo a phase that already executed.
 - Within a phase, rules are evaluated top to bottom and the first terminating action wins. Order matters: narrow Skip / Allow rules at the top, broader mitigations below.
 - **Response** phases (Custom Errors, Managed Transforms, Response Header Transform Rules, Compression Rules, and Rate Limiting Rules that use response information) only run after the origin has responded.
+- Some security features run outside the Ruleset Engine: [IP Access Rules](https://developers.cloudflare.com/waf/tools/ip-access-rules/), [Zone Lockdown](https://developers.cloudflare.com/waf/tools/zone-lockdown/), [User Agent Blocking](https://developers.cloudflare.com/waf/tools/user-agent-blocking/), Browser Integrity Check, Hotlink Protection, and Security Level. IP Access Rules are evaluated _before_ WAF Custom Rules, and an IP or ASN _Allow_ entry bypasses Custom Rules, Rate Limiting Rules, and WAF Managed Rules without appearing in the Security Events. A phase [Skip](https://developers.cloudflare.com/waf/custom-rules/skip/options/) does not skip these features; use the _products_ skip option instead. Cloudflare recommends replacing them with Custom Rules and [Lists](https://developers.cloudflare.com/waf/tools/lists/custom-lists/). See [Rule phase interactions](https://developers.cloudflare.com/waf/troubleshooting/phase-interactions/).
 
 Reference: [Phases list](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/) and [WAF phases](https://developers.cloudflare.com/waf/reference/phases/).
 
@@ -115,6 +118,7 @@ Why this matters for security:
 - Consult the [Troubleshooting section](https://developers.cloudflare.com/support/troubleshooting/).
 - [Gather necessary information](https://developers.cloudflare.com/support/troubleshooting/general-troubleshooting/) and contact [Cloudflare Support](https://developers.cloudflare.com/support/contacting-cloudflare-support/#methods-of-contacting-cloudflare-support).
 - Use [Trace](https://developers.cloudflare.com/rules/trace-request/) to understand the impact of your Cloudflare configurations on specific requests.
+- Use [Cloudflare Traces](https://developers.cloudflare.com/observability/traces/) (open beta) to see how _real_ production requests moved through Cloudflare. Trace only simulates a request. Cloudflare Traces records [spans](https://developers.cloudflare.com/observability/traces/spans/) for WAF Custom Rules and Managed Rules (including which rule blocked or challenged a request), Transform Rules, cache, Workers, and the origin connection. Look up a single request by its Ray ID, and use trace rules to sample 100% of requests from a test client while keeping a low baseline sample rate. Persisted traces count toward [Cloudflare Observability pricing](https://developers.cloudflare.com/observability/pricing/) from December 1, 2026. Reference: [Introducing Cloudflare Traces](https://blog.cloudflare.com/cloudflare-tracing/).
 
 ## Recommendations
 
@@ -927,6 +931,45 @@ Review all the [fields reference](https://developers.cloudflare.com/ruleset-engi
 
 ---
 
+### **AI Agent Playbook for WAF Reviews**
+
+The recommendations above are easiest to apply to a new zone. Reviewing an existing configuration is harder: dozens of rules across an account and its zones, written by different people over the years. An AI agent with access to the [Cloudflare API](https://developers.cloudflare.com/api/) can help here. It can read every rule, compare it with your analytics and propose a cleanup.
+
+The **Cloudflare WAF Review Playbook for AI Agents** is a Markdown instruction file for agents such as Claude Code, Codex, Cursor or OpenCode. It guides the agent through reviewing, improving and optimizing account-level and zone-level WAF Custom Rules, Rate Limiting Rules and Managed Rules:
+
+- **Preflight checks** come first. The agent checks the required MCP servers, its API permissions, the plan of every zone and the available add-ons (Bot Management, Advanced Rate Limiting, WAF Attack Score). Account-level WAF is only used on Enterprise. On other plans, the agent works zone by zone and falls back to the fields and actions each plan supports.
+- **The review is read-only.** The agent takes an inventory and pulls 28 days of analytics before proposing anything, and changes nothing until you approve a written plan.
+- **Every write is [dry-run](#validate-rules-before-deploying-dry-run) first.** Rules are patched one at a time, never replaced wholesale, and nothing is deleted without your explicit approval.
+- **It includes what reviews have taught**: verified gotchas, common misconfigurations found in real reviews, a reference baseline and naming conventions.
+
+<p><a href="/docs/cloudflare-waf-agent-guide.md" target="_blank" rel="noopener">View the playbook</a> · <a href="/docs/cloudflare-waf-agent-guide.md" download="cloudflare-waf-agent-guide.md">Download it (.md)</a></p>
+
+Before you start, add the [Cloudflare API MCP server](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/) and the Cloudflare Documentation MCP server to your agent. On first connection, you authorize the agent and choose which permissions to grant; read-only permissions are enough for the review. The [agent setup guides](https://developers.cloudflare.com/agent-setup/) show the exact steps per agent:
+
+```json
+{
+  "mcpServers": {
+    "cloudflare-api": { "url": "https://mcp.cloudflare.com/mcp" },
+    "cloudflare-docs": { "url": "https://docs.mcp.cloudflare.com/mcp" }
+  }
+}
+```
+
+Then point your agent to the playbook, either by URL or as a downloaded file in your project:
+
+```text
+Follow the playbook at https://davidtofan.com/docs/cloudflare-waf-agent-guide.md.
+Scope: account "Example Corp", zone example.com.
+Run the preflight checks, then a read-only review.
+Do not change anything until I approve a written plan.
+```
+
+> _**Note**: the agent proposes and you decide. Review every change in the plan, keep new broad rules in Log mode where your plan allows it, and keep the ruleset versions the agent reports for rollback. Adapt the playbook's conventions (rule naming, ordering, block responses) to your own._
+
+> _**Disclaimer**: the playbook is provided "as is", without warranty of any kind, for general educational purposes only. It is not affiliated with, endorsed by, or representative of Cloudflare or any other organization, and it is not professional security advice. AI agents can misread instructions, invent fields or values, and act on stale or incomplete data, so every change must be reviewed and approved by a qualified person who understands its impact on your traffic. By using the playbook, directly or through an AI agent, you accept full responsibility for any configuration applied to your Cloudflare account and for its consequences, including blocked legitimate traffic, outages, security gaps, data loss, and costs. The author accepts no liability for any damage, loss, or misconfiguration resulting from its use. Test changes on non-critical zones first. See also the [Disclaimer](#disclaimer) below._
+
+---
+
 ### **Turnstile**
 
 Cloudflare's [Turnstile](https://developers.cloudflare.com/turnstile/) is a privacy-preserving CAPTCHA alternative that allows [challenges](https://developers.cloudflare.com/cloudflare-challenges/) anywhere on your site. It runs in standard browsers, including mobile – even [native mobile apps](https://developers.cloudflare.com/turnstile/get-started/mobile-implementation/) – when using _WebView_. [Implicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#implicit-rendering) auto-loads on static pages, while [explicit rendering](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#explicit-rendering) offers control over when and where it appears, ideal for dynamic content or Single-Page Applications (SPAs). Learn more about the differences [here](https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/).
@@ -1038,6 +1081,7 @@ Automate deployments, configuration changes, and rollbacks using these tools:
   - If you're planning to change from Dashboard UI to Terraform, use [cf-terraforming](https://github.com/cloudflare/cf-terraforming).
   - Validate the intended rules with a [Rulesets API dry run](#validate-rules-before-deploying-dry-run) in CI before `terraform apply`.
 - [Pulumi](https://developers.cloudflare.com/pulumi/)
+- AI agents with the [Cloudflare API MCP server](https://developers.cloudflare.com/agents/model-context-protocol/cloudflare/servers-for-cloudflare/), for example to review existing WAF rules with the [AI Agent Playbook for WAF Reviews](#ai-agent-playbook-for-waf-reviews).
 
 > Note the [API rate limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/).
 
@@ -1275,7 +1319,7 @@ The images used in this article primarily consist of screenshots from the Cloudf
 
 The guidelines provided in this post are intended for general educational purposes. They should be customized to fit your specific use cases and traffic patterns. You are responsible for configuring settings according to your unique requirements, and it is important to understand their potential impact. Familiarity with Cloudflare concepts such as [WAF Phases](https://developers.cloudflare.com/waf/reference/phases/), [Proxy Status](https://developers.cloudflare.com/dns/proxy-status/), and other relevant features is recommended.
 
-The author of this post is not responsible for any misconfigurations, errors, or unintended consequences that may arise from implementing the guidelines or recommendations discussed herein. You assume full responsibility for any actions taken based on this content and for ensuring that configurations are appropriate for your specific environment.
+The author of this post is not responsible for any misconfigurations, errors, or unintended consequences that may arise from implementing the guidelines or recommendations discussed herein. You assume full responsibility for any actions taken based on this content and for ensuring that configurations are appropriate for your specific environment. This applies equally to the [AI Agent Playbook for WAF Reviews](#ai-agent-playbook-for-waf-reviews) and to any action an AI agent takes based on it.
 
 For additional learning resources, explore the following:
 
