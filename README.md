@@ -286,7 +286,7 @@ The current implementation follows Cloudflare's `search-modal-snippet` Component
 ```ts
 export const aiSearchConfig = {
   enabled: true,
-  apiUrl: 'https://<id>.search.ai.cloudflare.com/',
+  apiUrl: 'https://ai-search.davidtofan.com/',
   snippetVersion: 'v0.0.36',
   placeholder: "Search David's articles, projects, certificates, and Cloudflare guides...",
   shortcut: 'k',
@@ -298,7 +298,7 @@ export const aiSearchConfig = {
 ```
 
 - **Enable / disable the feature**: set `enabled` to `true` or `false`.
-- **Change the Cloudflare AI Search ID**: update the `apiUrl` value. The current ID is the UUID in `https://<id>.search.ai.cloudflare.com/`.
+- **Endpoint host**: `apiUrl` is the custom domain `ai-search.davidtofan.com`, a proxied CNAME to the instance's public endpoint (`https://<id>.search.ai.cloudflare.com/`). Being in the zone, it gets the zone's WAF and its own rate limiting rule. The snippet script (`/assets/<snippetVersion>/search-snippet.es.js`), the `/search` API and the `/mcp` endpoint (advertised in the agent note) are all served from it. To point the site at another AI Search instance, change the CNAME target, not `apiUrl`.
 - **Change the search prompt text**: update `placeholder` to better match the site's content focus.
 - **Change result count**: update `maxResults`.
 - **Show content dates**: set `showDate` to `true` or `false`.
@@ -1052,8 +1052,19 @@ machines instead, through three channels that all point at the same terms:
 - `Link: <…>; rel="describedby"` and `rel="license"` response headers (`public/_headers`), mirrored
   as `<link>` tags in `BaseLayout.astro`
 - the `License:` directive and `Content-Signal: search=yes, ai-input=yes, ai-train=no` declaration in
-  `public/robots.txt`
+  `public/robots.txt`, repeated as a `Content-Signal` response header on every HTML page (`public/_headers`,
+  mirrored in `src/pages/index.astro`). Cloudflare's Markdown for Agents keeps that origin header on the
+  converted Markdown; without it, the Markdown would carry its default `ai-train=yes`
 - `public/rsl.xml` — the [RSL 1.0](https://rslstandard.org/rsl) machine-readable license document
+
+Every indexable page also carries a short **"Note for AI agents"** at the top of `<body>` in
+`BaseLayout.astro`: canonical URL, Markdown URL, the AI Search MCP endpoint, the Content Signals and a
+request to attribute and link. It is visually hidden and `aria-hidden` (the pattern Cloudflare's docs
+use), so humans and screen readers never meet it, but HTML-to-Markdown conversion keeps it as a quote at
+the top of the Markdown copy (`/…/index.md` or `Accept: text/markdown`, both converted at the edge, not
+in this repo). A `<link rel="alternate" type="text/markdown">` in `<head>` advertises the same URL. The
+note states facts and preferences only; keep it that way, since anything that tells an agent what to say
+is a prompt injection. If the Content Signals change, update `CONTENT_SIGNAL` there too.
 
 ### Editing the legal pages
 

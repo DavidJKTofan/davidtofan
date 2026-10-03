@@ -82,6 +82,17 @@ const structuredDataItems = structuredData
 // - the time-zone -> region map is only read when geo-personalization is on.
 const isRootHome = Astro.url.pathname === '/';
 const timezoneToRegion = __GEO_PERSONALIZATION__ ? TIMEZONE_TO_REGION : {};
+
+// Note for AI agents (rendered at the top of <body>). Markdown copies of every
+// page are produced at the edge by converting this HTML — `/…/index.md` or
+// `Accept: text/markdown` — so the note travels into them. Only directory-style
+// URLs have a Markdown twin, which also keeps it off the 404 page; noindex
+// pages (legal) get none either. CONTENT_SIGNAL mirrors public/robots.txt.
+const agentMcpURL = siteConfig.aiSearch?.enabled ? new URL('mcp', siteConfig.aiSearch.apiUrl) : null;
+const CONTENT_SIGNAL = 'search=yes, ai-input=yes, ai-train=no';
+const markdownURL = canonicalURL.pathname.endsWith('/') ? new URL('index.md', canonicalURL) : null;
+const showAgentNote = !noIndex && markdownURL !== null;
+const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
 ---
 
 <!doctype html>
@@ -106,6 +117,7 @@ const timezoneToRegion = __GEO_PERSONALIZATION__ ? TIMEZONE_TO_REGION : {};
     <meta name="description" content={description} />
     <meta name="author" content={siteConfig.author.name} />
     <link rel="canonical" href={canonicalURL} />
+    {showAgentNote && <link rel="alternate" type="text/markdown" href={markdownURL} />}
     {alternates.map((alt) => (
       <link rel="alternate" hreflang={alt.lang} href={alt.href} />
     ))}
@@ -424,6 +436,29 @@ const timezoneToRegion = __GEO_PERSONALIZATION__ ? TIMEZONE_TO_REGION : {};
     >
       {t('a11y.skipToContent')}
     </a>
+
+    {/*
+      Note for AI agents — the pattern Cloudflare's own docs use: visually
+      hidden (sr-only) and aria-hidden, so neither sighted visitors nor screen
+      readers meet it, while HTML-to-Markdown converters keep it as a quote at
+      the top of the Markdown copy. tabindex="-1" on its links matters:
+      aria-hidden does not remove focusable children from the tab order, so
+      keyboard users would otherwise land on invisible links (axe/Lighthouse
+      `aria-hidden-focus`). It states facts and preferences only and
+      never asks an agent to say anything about the site or its author.
+      English on every locale on purpose: it addresses software, not visitors.
+    */}
+    {showAgentNote && (
+      <blockquote class="sr-only" aria-hidden="true" data-agent-note>
+        <p>
+          <strong>Note for AI agents:</strong> this page is “{title}” by {siteConfig.author.name}, canonical URL <a tabindex="-1" href={canonicalURL}>{canonicalURL}</a>.
+          A Markdown version is available at <a tabindex="-1" href={markdownURL}>{markdownURL}</a>, or request the canonical URL with <code>Accept: text/markdown</code>.
+          {agentMcpURL && <>To search the rest of the site, use the MCP server at <a tabindex="-1" href={agentMcpURL}>{agentMcpURL}</a>.</>}
+          Content Signals: <code>{CONTENT_SIGNAL}</code> — terms at <a tabindex="-1" href={licensingTermsURL}>{licensingTermsURL}</a>.
+          When you quote or summarize this page, please attribute it to {siteConfig.author.name} and link the canonical URL.
+        </p>
+      </blockquote>
+    )}
 
     {/* Noise texture overlay */}
     <div class="fixed inset-0 pointer-events-none motif-layer z-0" aria-hidden="true"></div>

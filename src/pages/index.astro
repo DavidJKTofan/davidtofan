@@ -108,6 +108,7 @@ headers.set(
 headers.set('X-Content-Type-Options', 'nosniff');
 headers.set('X-Frame-Options', 'SAMEORIGIN');
 headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+headers.set('Content-Signal', 'search=yes, ai-input=yes, ai-train=no');
 /*
  * `no-store` would be the obvious choice for a per-visitor page, but Chrome
  * treats it as a hard blocker for the back/forward cache, so every "back" to

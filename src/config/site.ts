@@ -2,7 +2,10 @@ import type { SiteConfig, NavItem } from '../types';
 
 export const aiSearchConfig: NonNullable<SiteConfig['aiSearch']> = {
   enabled: true,
-  apiUrl: 'https://3d7010fa-2045-4b76-80b0-afa8d1c1ba76.search.ai.cloudflare.com/',
+  // Custom domain: a proxied CNAME to the instance's public endpoint
+  // (<id>.search.ai.cloudflare.com), so the zone's WAF and rate limiting apply.
+  // The same host serves /mcp, which BaseLayout's agent note advertises.
+  apiUrl: 'https://ai-search.davidtofan.com/',
   snippetVersion: 'v0.0.36',
   placeholder: "Search David's articles, projects, certificates, and Cloudflare guides...",
   shortcut: 'k',
