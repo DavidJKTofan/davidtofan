@@ -2,7 +2,7 @@
 title: Setting Up a New macOS
 date: 2024-01-06
 description: "Guide for Setting up macOS Development Environment: Essential Software, Tools, and Browsers with Enhanced Privacy and Security Settings."
-tags: ["cybersecurity", "developers", "privacy", "resources"]
+tags: ["developers", "privacy"]
 type: "article"
 ---
 

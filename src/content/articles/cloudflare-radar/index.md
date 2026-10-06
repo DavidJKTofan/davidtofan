@@ -2,7 +2,7 @@
 title: Cloudflare Radar
 date: 2022-01-24
 description: "Cloudflare Radar is a hub that showcases global Internet traffic, attack, and technology trends and insights."
-tags: ["cybersecurity", "data", "cloudflare"]
+tags: ["observability", "cloudflare"]
 type: 'article'
 ---
 

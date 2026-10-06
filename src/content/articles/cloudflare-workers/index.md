@@ -2,7 +2,7 @@
 title: Intro to Cloudflare Workers
 date: 2021-08-02
 description: "Start building global serverless applications with Cloudflare Workers."
-tags: ["cybersecurity", "developers", "cloudflare"]
+tags: ["developers", "cloudflare"]
 type: 'article'
 ---
 

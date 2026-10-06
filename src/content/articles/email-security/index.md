@@ -2,7 +2,7 @@
 title: Intro to Email Security
 date: 2021-02-28
 description: "How to improve email security and reliability."
-tags: ["cybersecurity", "email"]
+tags: ["email security"]
 type: 'article'
 ---
 

@@ -2,7 +2,7 @@
 title: Cloudflare's Impact, Commitments, Privacy-preserving Products, Research, and more
 date: 2023-04-20
 description: "Explore how Cloudflare is creating an Impact on the Internet."
-tags: ["cybersecurity", "privacy", "cloudflare"]
+tags: ["privacy", "cloudflare"]
 type: 'article'
 ---
 

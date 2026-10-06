@@ -2,7 +2,7 @@
 title: Cloudflare Logpush
 date: 2022-02-03
 description: "Overview of Log and Analytics products at Cloudflare."
-tags: ["cybersecurity", "data", "cloudflare"]
+tags: ["observability", "cloudflare"]
 type: 'article'
 ---
 

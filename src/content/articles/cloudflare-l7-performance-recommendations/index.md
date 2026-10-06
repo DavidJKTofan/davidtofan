@@ -3,13 +3,7 @@ title: General Application Performance Recommendations
 date: 2025-11-15
 modified: 2026-09-01
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Performance approach with Cloudflare."
-tags:
-  [
-    "cybersecurity",
-    "cloudflare",
-    "resources",
-    "performance",
-  ]
+tags: ["performance", "cloudflare"]
 type: "article"
 ---
 

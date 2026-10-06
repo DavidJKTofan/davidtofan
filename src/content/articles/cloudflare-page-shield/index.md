@@ -2,7 +2,7 @@
 title: Cloudflare Page Shield
 date: 2021-12-12
 description: "Page Shield protects website clients from client-side attacks that target third-party JavaScript dependencies."
-tags: ["cybersecurity", "cloudflare"]
+tags: ["application security", "cloudflare"]
 type: 'article'
 draft: true
 ---

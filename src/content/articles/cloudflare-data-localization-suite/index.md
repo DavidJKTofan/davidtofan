@@ -2,7 +2,7 @@
 title: Cloudflare Data Localization Suite
 date: 2021-11-11
 description: "The Data Localization Suite (DLS) is a set of features offered by Cloudflare that enable enterprise customers to manage and control the location of their data, including private TLS keys, traffic decryption, and metadata handling."
-tags: ["cybersecurity", "privacy", "cloudflare"]
+tags: ["privacy", "cloudflare"]
 type: 'article'
 ---
 

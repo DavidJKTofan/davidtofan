@@ -3,7 +3,7 @@ title: General Application Security Recommendations
 date: 2024-09-08
 modified: 2026-10-03
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Security approach with Cloudflare."
-tags: ["cybersecurity", "cloudflare", "resources", "application security"]
+tags: ["application security", "cloudflare"]
 type: "article"
 ---
 

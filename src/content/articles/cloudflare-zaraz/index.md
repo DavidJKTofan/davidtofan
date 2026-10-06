@@ -2,7 +2,7 @@
 title: Cloudflare Zaraz
 date: 2022-08-14
 description: "Zaraz is a third-party tool manager built for speed, privacy, and security."
-tags: ["cybersecurity", "privacy", "developers", "cloudflare"]
+tags: ["privacy", "performance", "developers", "cloudflare"]
 type: 'article'
 ---
 

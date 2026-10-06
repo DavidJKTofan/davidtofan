@@ -2,7 +2,7 @@
 title: Cloudflare Cyber Readiness Guide
 date: 2022-03-14
 description: "Get Started with the Cyber Readiness Guide for better cybersecurity."
-tags: ["cybersecurity", "privacy", "resources"]
+tags: ["email security", "cloudflare"]
 type: 'article'
 ---
 

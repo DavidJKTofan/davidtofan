@@ -4,12 +4,11 @@ date: 2026-03-30
 description: "Practical Cloudflare implementations for securing and accelerating hospitality platforms."
 tags:
   [
-    "cybersecurity",
-    "cloudflare",
-    "hospitality",
-    "travel",
-    "zero trust",
+    "travel & hospitality",
+    "application security",
     "performance",
+    "zero trust",
+    "cloudflare",
   ]
 type: "article"
 ---

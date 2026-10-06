@@ -2,7 +2,7 @@
 title: Introducing Cloudflare
 date: 2021-04-18
 description: "Get to know the global cybersecurity provider Cloudflare."
-tags: ["cybersecurity", "cloudflare"]
+tags: ["cloudflare"]
 type: 'article'
 ---
 

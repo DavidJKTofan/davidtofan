@@ -2,7 +2,7 @@
 title: Cloudflare Free Services Only
 date: 2024-05-24
 description: "Explore free Cloudflare services to launch and secure your website or application with ease. From hosting to security, get started without breaking the bank!"
-tags: ["cybersecurity", "cloudflare", "resources"]
+tags: ["developers", "application security", "cloudflare"]
 type: "article"
 ---
 

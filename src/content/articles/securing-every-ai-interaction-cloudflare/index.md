@@ -3,16 +3,7 @@ title: "Securing Every AI and MCP Interaction with Cloudflare"
 date: 2026-08-31
 modified: 2026-09-27
 description: "How to gain visibility into and control every AI interaction – workforce browsers and IDEs, agents and MCP clients, public AI apps, and SaaS AI providers – and keep credentials out of agents' reach, using Cloudflare One and the Developer Platform."
-tags:
-  [
-    "cybersecurity",
-    "cloudflare",
-    "artificial intelligence",
-    "agents",
-    "mcp",
-    "zero trust",
-    "developers",
-  ]
+tags: ["artificial intelligence", "zero trust", "developers", "cloudflare"]
 type: "article"
 ---
 

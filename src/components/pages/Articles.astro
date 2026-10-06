@@ -300,11 +300,15 @@ const blogJsonLd = {
       });
     }
 
-    // Check for tag in URL query parameter on page load
+    // Check for tag in URL query parameter on page load. A topic that no longer
+    // exists (an old link to a merged topic) shows all articles and drops the
+    // stale parameter instead of an empty list.
     const urlParams = new URLSearchParams(window.location.search);
     const tagFromUrl = urlParams.get('tag');
     if (tagFromUrl) {
-      filterArticles(tagFromUrl, false);
+      const isKnownTag = Array.from(filtersRoot.querySelectorAll('.tag-filter'))
+        .some((filter) => filter.getAttribute('data-tag') === tagFromUrl);
+      filterArticles(isKnownTag ? tagFromUrl : '', !isKnownTag);
     }
   }
 

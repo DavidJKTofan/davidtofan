@@ -2,7 +2,7 @@
 title: Cloudflare Zero Trust
 date: 2021-05-26
 description: "Cloudflare Zero Trust, formerly Cloudflare For Teams, helps secure hybrid work, defend against threats, protect data, and simplify any-to-any connectivity on your path to consolidation."
-tags: ["cybersecurity", "zero trust", "cloudflare"]
+tags: ["zero trust", "cloudflare"]
 type: 'article'
 ---
 

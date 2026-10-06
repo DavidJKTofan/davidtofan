@@ -2,7 +2,7 @@
 title: "Cloudflare Observability: Where to Find What"
 date: 2026-10-05
 description: "A practical map of Cloudflare analytics, logs and traces: where to find post-quantum usage, CDN requests and data transfer and how they relate to billed usage, how to correlate Ray IDs and Gateway logs, troubleshoot Cloudflare One Client issues with DEX, and debug Workers with AI agents."
-tags: ["cloudflare", "observability", "resources", "developers"]
+tags: ["observability", "developers", "cloudflare"]
 type: "article"
 ---
 
@@ -54,6 +54,7 @@ LIMIT 10
 ```
 
 ![Observability Logs running a SQL query on http_requests that groups requests by ClientTLSKeyExchangeGroup, with X25519MLKEM768 as the largest group](img/observability-logs-http_requests-sql-pqc.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: `http_requests` grouped by `ClientTLSKeyExchangeGroup`.</small>_
 
 The dashboard's time picker sets the time range, and the chart shows the dataset's event volume over it; the query result is the table below the chart. Through the API, add a `date` filter, as in the `curl` example further below.
 
@@ -66,6 +67,7 @@ Add `ClientRequestUserAgent` to the `GROUP BY` and filter out `X25519MLKEM768` t
 For trends, Domain > **Analytics** > **Requests** is enough.
 
 ![Zone Analytics Requests tab showing total requests, data transfer, cache hit rate and 5xx error rate for the last 24 hours](img/zone-analytics-requests.png)
+_<small>Cloudflare dashboard, domain **Analytics** > **Requests** tab (sampled).</small>_
 
 For more exact numbers, query the unsampled `http_requests` dataset in Log Explorer:
 
@@ -80,6 +82,7 @@ WHERE clientrequestsource = 'eyeball'
 ```
 
 ![Observability Logs running the CDN usage SQL query on http_requests, returning total requests and data transfer in bytes, GiB and MiB](img/observability-logs-http_requests-sql-cdn.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: CDN usage query on `http_requests`, end-user traffic only (unsampled).</small>_
 
 Or run it through the [Log Explorer API](https://developers.cloudflare.com/log-explorer/api/):
 
@@ -115,6 +118,7 @@ ORDER BY requests DESC
 ```
 
 ![Observability Logs running the Cache Effectiveness SQL query on http_requests](img/observability-logs-http_requests-sql-cache.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: requests, bytes and average TTFB per cache status.</small>_
 
 Top URIs by data transfer. Divide by `1024.0`, not `1024`, or the result is truncated to whole MiB:
 
@@ -131,6 +135,7 @@ LIMIT 10
 ```
 
 ![Observability Logs running the Top URIs by Data Transfer SQL query on http_requests](img/observability-logs-http_requests-sql-data_transfer.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: top URIs by data transfer, in MiB.</small>_
 
 Slowest paths. `HAVING` stops paths with one or two slow requests from topping the list:
 
@@ -149,6 +154,7 @@ LIMIT 10
 ```
 
 ![Observability Logs running the Slowest Paths SQL query on http_requests](img/observability-logs-http_requests-sql-slowest.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: slowest paths with at least 100 requests.</small>_
 
 ---
 
@@ -248,6 +254,7 @@ query AccountWeeklyUsage(
 ```
 
 ![Cloudflare GraphQL API Explorer running the account-wide weekly totals query, showing per-zone data transfer, the weekly DNS query count and Workers requests and CPU time](img/graphql-api-explorer-account-wide-weekly-totals.png)
+_<small>Cloudflare GraphQL API Explorer: the account-wide weekly totals query and its result; account and zone IDs redacted.</small>_
 
 To compare several weeks in one request, repeat a field under a different alias, such as `week_2026_09_28: dnsAnalyticsAdaptiveGroups(...)` and `week_2026_09_21: dnsAnalyticsAdaptiveGroups(...)`. To split a week by day or by zone, group by the `date` or `zoneTag` dimension. `cpuTimeUs` is in microseconds; divide by 1,000 to compare it with CPU milliseconds.
 
@@ -317,6 +324,7 @@ LIMIT 1
 ```
 
 ![Observability Logs running the Ray ID query on http_requests](img/observability-logs-http_requests-sql-rayid.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: one request in `http_requests`, looked up by Ray ID.</small>_
 
 Then pivot with the same Ray ID. `firewall_events` lists every security rule that acted on the request and what it did: here, two `skip` rules; for a blocked request, the rule that blocked it.
 
@@ -328,6 +336,7 @@ LIMIT 5
 ```
 
 ![Observability Logs running the Ray ID query on firewall_events, returning two skip rules that matched the request](img/observability-logs-firewall_requests-sql-rayid.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: the same Ray ID in `firewall_events`, with the rules that acted on it.</small>_
 
 ### Gateway HTTP and Your Zone
 
@@ -369,6 +378,7 @@ LIMIT 100
 `Action != 'bypass'` drops Do Not Inspect traffic, which Gateway logs without a URL or request ID and cannot stamp with headers.
 
 ![Observability Logs running the Device ID SQL query on gateway_http](img/observability-logs-gateway_http-sql-deviceid.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: `gateway_http` events for one device; device ID and email redacted.</small>_
 
 ```sql
 SELECT EdgeStartTimestamp, RequestHeaders, RayID, ClientRequestHost, ClientRequestPath, EdgeResponseStatus, SecurityAction
@@ -378,6 +388,7 @@ LIMIT 100
 ```
 
 ![Observability Logs running the Device ID Request Headers SQL query on http_requests](img/observability-logs-http_requests-sql-gateway-deviceid.png)
+_<small>Cloudflare dashboard, **Observability** > **Logs**: the same request in the zone's `http_requests`, matched on the `x-gateway-device` header; IDs redacted.</small>_
 
 `DeviceID` is empty for traffic that does not come through the Cloudflare One Client, such as clientless Browser Isolation. For that traffic, use the `x-gateway-user` header (the user's Cloudflare identity UUID) and compare it with the UUID in `UserID`.
 

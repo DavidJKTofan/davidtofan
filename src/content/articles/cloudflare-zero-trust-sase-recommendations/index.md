@@ -2,7 +2,7 @@
 title: General Zero Trust & SASE Recommendations
 date: 2025-02-14
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive Zero Trust & SASE approach with Cloudflare."
-tags: ["cybersecurity", "cloudflare", "resources", "zero trust", "sase"]
+tags: ["zero trust", "cloudflare"]
 type: "article"
 draft: true
 ---

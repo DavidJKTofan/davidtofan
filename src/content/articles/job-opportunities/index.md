@@ -2,7 +2,7 @@
 title: Finding a Job in 2021
 date: 2021-04-18
 description: "Finding open positions and jobs in the 21st century."
-tags: ["opportunities", "resources"]
+tags: ["opportunities"]
 type: 'article'
 ---
 

@@ -2,7 +2,7 @@
 title: Cybersecurity in Hospitality
 date: 2022-11-01
 description: "Helping the travel and tourist industries become safer."
-tags: ["cybersecurity", "privacy", "travel", "hospitality"]
+tags: ["travel & hospitality", "application security", "privacy"]
 type: "article"
 ---
 

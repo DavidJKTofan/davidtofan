@@ -2,7 +2,7 @@
 title: DDoS Attacks & Protections
 date: 2021-11-20
 description: "Helping the travel and tourist industries become safer."
-tags: ["cybersecurity"]
+tags: ["application security"]
 type: 'article'
 draft: true
 ---

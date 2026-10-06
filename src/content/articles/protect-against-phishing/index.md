@@ -2,7 +2,7 @@
 title: Protect yourself from Phishing
 date: 2021-04-02
 description: "Learning about phishing and how to protect oneself."
-tags: ["cybersecurity", "email"]
+tags: ["email security"]
 type: "article"
 ---
 

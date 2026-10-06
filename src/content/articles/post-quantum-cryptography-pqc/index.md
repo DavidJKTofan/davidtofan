@@ -2,14 +2,7 @@
 title: Post-Quantum Cryptography (PQC)
 date: 2025-06-15
 description: "Discover why Post-Quantum Cryptography (PQC) matters now — with Cloudflare-led insights, real-time adoption data, and tools to easily implement PQC in your infrastructure."
-tags:
-  [
-    "cybersecurity",
-    "cloudflare",
-    "zero trust",
-    "application security",
-    "cryptography",
-  ]
+tags: ["application security", "cloudflare"]
 type: "article"
 ---
 

@@ -325,7 +325,7 @@ title: Article Title
 date: 2024-01-15
 modified: 2024-01-16
 description: Brief description for SEO.
-tags: ["tag1", "tag2"]
+tags: ["application security", "cloudflare"]
 ---
 
 Content here...
@@ -333,6 +333,19 @@ Content here...
 
 Omit `modified` on a brand-new article; add it on the first substantive edit — see
 [Updating existing content](#updating-existing-content).
+
+`tags` are the **Filter by topic** buttons on `/articles/`, so they come from a closed list,
+`ARTICLE_TOPICS` in `src/content.config.ts`, and the build fails on anything else:
+
+- **Reuse before adding.** Pick 1–4 existing topics. Add a new one only when several articles
+  would share it — a topic with a single article is a filter button that finds one post.
+- **Subjects, not formats or products.** "resources" describes a format and "workers" a
+  product; file the article under the subject it covers (`developers`) and let the title and
+  body carry the rest.
+- **Order matters.** Most specific topic first, `cloudflare` last: cards show the first three
+  tags and the article header the first four.
+- **Renaming or merging a topic** breaks old `/articles/?tag=` links softly — an unknown topic
+  shows all articles — so no redirect is needed.
 
 Add images to the same folder and reference with `![Alt](img/image.png)`. Add `featured.png` beside `index.md` when you want an automatic og:image / twitter:image fallback.
 
@@ -421,7 +434,7 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 | `date`        | date     | Yes      | Publication date         |
 | `modified`    | date     | No       | Last substantial update; used for `dateModified` and sitemap freshness |
 | `description` | string   | Yes      | SEO description          |
-| `tags`        | string[] | No       | Topic tags               |
+| `tags`        | string[] | No       | Topics from `ARTICLE_TOPICS`, most specific first ([details](#article)) |
 | `draft`       | boolean  | No       | Hide from production     |
 | `featured`    | boolean  | No       | Show on homepage         |
 | `image`       | string   | No       | Explicit social/share image override |
@@ -482,7 +495,7 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 - Sticky table of contents with scroll highlighting (desktop) — pure CSS `position: sticky`, so
   it causes no layout shift. This depends on `overflow-x: clip` (never `hidden`) on `html`/`body`;
   see `src/styles/global.css`
-- Tag filtering
+- Topic filtering, deep-linkable as `/articles/?tag=<topic>`
 
 ### Content
 - External links open in new tab with proper rel attributes

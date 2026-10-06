@@ -2,13 +2,7 @@
 title: Tenant-Aware Security for SaaS and Platform Providers
 date: 2025-10-26
 description: "Comprehensive blueprint for securing SaaS and multi-tenant platforms on Cloudflare."
-tags:
-  [
-    "cybersecurity",
-    "cloudflare",
-    "multitenancy",
-    "saas",
-  ]
+tags: ["application security", "cloudflare"]
 type: "article"
 ---
 

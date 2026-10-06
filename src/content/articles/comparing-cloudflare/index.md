@@ -2,7 +2,7 @@
 title: Comparing Cloudflare
 date: 2022-06-30
 description: "A comparison of cybersecurity features and solutions."
-tags: ["cybersecurity", "cloudflare"]
+tags: ["zero trust", "cloudflare"]
 type: 'article'
 draf: true
 ---

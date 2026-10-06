@@ -2,7 +2,7 @@
 title: Cloudflare Full Stack
 date: 2021-11-20
 description: "Build and deliver serverless applications with the Cloudflare Developer Platform."
-tags: ["cybersecurity", "developers", "cloudflare"]
+tags: ["developers", "cloudflare"]
 type: 'article'
 draft: true
 ---

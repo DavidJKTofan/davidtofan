@@ -2,7 +2,7 @@
 title: The Ultimate Traveler's Guide
 date: 2023-08-04
 description: "A collection of travel technologies and recommendations to explore responsibly and safely across the globe."
-tags: ["travel", "privacy", "resources"]
+tags: ["travel & hospitality", "privacy"]
 type: 'article'
 ---
 

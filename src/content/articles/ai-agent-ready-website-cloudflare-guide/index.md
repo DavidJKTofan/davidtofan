@@ -2,7 +2,7 @@
 title: "Preparing Your Website for the AI Agentic Internet"
 date: 2026-04-19
 description: "A practitioner's interactive walkthrough on making any website agent-ready — discoverability, markdown, content signals, MCP, commerce, and security — with Cloudflare."
-tags: ["cybersecurity", "cloudflare", "artificial intelligence", "agents", "mcp", "web standards"]
+tags: ["artificial intelligence", "developers", "cloudflare"]
 type: "article"
 showTableOfContents: true
 readingTime: 14

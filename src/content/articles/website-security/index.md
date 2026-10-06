@@ -2,7 +2,7 @@
 title: Intro to Website Security
 date: 2021-02-28
 description: "Exploring website security, best practices and standards."
-tags: ["cybersecurity", "developers"]
+tags: ["application security", "developers"]
 type: 'article'
 ---
 

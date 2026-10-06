@@ -2,7 +2,7 @@
 title: Protecting OSI layers
 date: 2023-12-26
 description: "Discover strategies to safeguard web applications (Layer 7), TCP/UDP applications (Layer 4), and entire networks (Layer 3), addressing key security considerations across the OSI model."
-tags: ["cybersecurity", "cloudflare", "resources"]
+tags: ["application security", "cloudflare"]
 type: "article"
 ---
 

@@ -2,7 +2,7 @@
 title: Migrating to Cloudflare
 date: 2021-04-19
 description: "Migrating from Netlify to Cloudflare Pages and doing some improvements."
-tags: ["cybersecurity", "cloudflare"]
+tags: ["developers", "performance", "cloudflare"]
 type: 'article'
 ---
 

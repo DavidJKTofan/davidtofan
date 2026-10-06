@@ -2,7 +2,7 @@
 title: A Journey into Digital Privacy & CyberSec
 date: 2020-11-27
 description: "Learn about digital privacy and cybersecurity."
-tags: ["cybersecurity", "privacy"]
+tags: ["privacy"]
 type: 'article'
 ---
 

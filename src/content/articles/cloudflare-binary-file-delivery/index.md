@@ -2,7 +2,7 @@
 title: Delivering Binary Files with Cloudflare
 date: 2026-09-06
 description: "How to host, cache, and deliver large binary files – installers, game clients, firmware, SDKs – with Cloudflare, for both public and authenticated (gated) downloads."
-tags: ["cloudflare", "performance", "cdn", "developers", "resources"]
+tags: ["performance", "developers", "cloudflare"]
 type: "article"
 ---
 
