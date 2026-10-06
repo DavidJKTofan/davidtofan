@@ -197,8 +197,6 @@ httpRequestsAdaptiveGroups(filter: $filter, limit: 1) {
 }
 ```
 
-On a demo zone, a week of unsampled Log Explorer totals fell inside this interval.
-
 ### Account-Wide Weekly Totals
 
 One GraphQL request returns end-user CDN traffic trends per zone, total [account-level DNS queries](https://developers.cloudflare.com/changelog/post/2025-06-23-account-level-dns-analytics-api/) across all zones, and Workers requests and CPU time:
@@ -257,7 +255,7 @@ To compare several weeks in one request, repeat a field under a different alias,
 
 All of these run on the Cloudflare API, so the [standard API rate limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/) apply: 1,200 requests per five minutes per user, counted across the dashboard, API keys and API tokens. Above that, API calls return HTTP `429` for the next five minutes. On top of that:
 
-- **GraphQL** [limits](https://developers.cloudflare.com/analytics/graphql-api/limits/): 300 queries per five minutes per user by default, up to 10 zones or 1 account per query, and per-dataset limits on time range, fields and rows. [Account-based rate limiting](https://developers.cloudflare.com/analytics/graphql-api/account-based-rate-limiting/) helps when you query many zones or accounts.
+- **GraphQL** [limits](https://developers.cloudflare.com/analytics/graphql-api/limits/): 300 queries per five minutes per user by default (cost-based, so heavy queries use the budget faster; the error reads `Rate limiter budget depleted`), up to 10 zones or 1 account per query, and per-dataset limits on time range, fields and rows. [Account-based rate limiting](https://developers.cloudflare.com/analytics/graphql-api/account-based-rate-limiting/) helps when you query many zones or accounts.
 - **SQL API** [limits](https://developers.cloudflare.com/analytics/sql-api/limits/): one statement per request, `ORDER BY` needs `LIMIT`, and HTTP `429`, `503` or `507` when a query exceeds rate or resource limits. Honor `Retry-After`.
 
 Agents and notebooks hit these limits quickly: combine questions into one GraphQL request with aliases, narrow time ranges, and back off on `429`. Enterprise customers can ask Cloudflare Support to raise the API and GraphQL limits.
@@ -455,6 +453,19 @@ Most people find it easier to ask "which paths returned the most 5xx errors sinc
 | Can I alert on my own query? | [Custom Alerts](https://developers.cloudflare.com/notifications/notification-available/#custom-alerts-beta) (beta) run a SQL API query on a schedule: threshold, anomaly or SLO. Email and webhooks on all plans, PagerDuty from Business. |
 | One dashboard for CDN, WAF and Workers? | [Custom Dashboards](https://developers.cloudflare.com/analytics/custom-dashboards/) combine analytics, Log Explorer and Workers Observability logs and traces; up to 100 per account. |
 | Can my app show its own analytics? | The [Analytics SQL binding](https://developers.cloudflare.com/analytics/sql-api/workers-binding/) (`ANALYTICS_SQL`, Wrangler 4.145.0+) queries the SQL API from a Worker without an API token. Log Explorer datasets are not supported through it. |
-| Logs into my SIEM? | [Logpush](https://developers.cloudflare.com/logs/logpush/pricing/) on all plans. [Transformers](https://developers.cloudflare.com/logs/logpush/transformers/) filter, reshape and redact with SQL. Logpush [cannot backfill](https://developers.cloudflare.com/logs/logpush/logpush-health/), so subscribe to the **Failing Logpush Job Disabled** [alert](https://developers.cloudflare.com/logs/logpush/alerts-and-analytics/) and query job health with `logpushHealthAdaptiveGroups` in GraphQL. |
-| Usage for DNS, Images or Stream? | DNS: `dnsAnalyticsAdaptiveGroups` in GraphQL, per account or zone (see [Account-Wide Weekly Totals](#account-wide-weekly-totals)). Images: the [usage statistics API](https://developers.cloudflare.com/api/resources/images/subresources/v1/subresources/stats/methods/get/), or `/cdn-cgi/image/` paths in HTTP analytics. Stream: the [storage usage API](https://developers.cloudflare.com/api/resources/stream/subresources/videos/methods/storage_usage/). |
+| Logs into my SIEM? | [Logpush](https://developers.cloudflare.com/logs/logpush/pricing/) on all plans. [Transformers](https://developers.cloudflare.com/logs/logpush/transformers/) filter, reshape and redact with SQL. Logpush [cannot backfill](https://developers.cloudflare.com/logs/logpush/logpush-health/), so subscribe to the **Failing Logpush Job Disabled** [alert](https://developers.cloudflare.com/logs/logpush/alerts-and-analytics/) and query job health with `logpushHealthAdaptiveGroups` in GraphQL. The billed volume (uncompressed bytes delivered) is `billableBytes` in the account-level `logpushUsageAdaptiveGroups`. |
+| Usage for DNS, Images or Stream? | DNS: `dnsAnalyticsAdaptiveGroups` in GraphQL, per account or zone (see [Account-Wide Weekly Totals](#account-wide-weekly-totals)). Images: self-serve plans bill [unique transformations](https://developers.cloudflare.com/images/pricing/) per month, plus images stored and delivered; `imagesTransformationsAdaptiveGroups` and `imagesUniqueTransformationsAccumulatedSinceStartOfMonth` in GraphQL estimate them. The Images [usage statistics API](https://developers.cloudflare.com/api/resources/images/subresources/v1/subresources/stats/methods/get/) only counts stored images. Stream: minutes stored from the [storage usage API](https://developers.cloudflare.com/api/resources/stream/subresources/videos/methods/storage_usage/), minutes viewed from `streamMinutesViewedAdaptiveGroups`. |
+| Usage for R2, D1 or KV? | Account-level GraphQL datasets: `r2StorageAdaptiveGroups` and `r2OperationsAdaptiveGroups` (group by `actionType` to split [Class A and B](https://developers.cloudflare.com/r2/pricing/)), `d1AnalyticsAdaptiveGroups` (`rowsRead`, `rowsWritten`) and `kvOperationsAdaptiveGroups`. Add them as aliases to the [weekly totals](#account-wide-weekly-totals) query. |
 | Is Cloudflare having an incident? | [Cloudflare Status](https://www.cloudflarestatus.com/), and the [Cloudflare Status notification](https://developers.cloudflare.com/notifications/notification-available/#cloudflare-status) for email or webhook alerts. |
+
+---
+
+## Disclaimer
+
+For informational purposes only. Features, availability and pricing change; the [Cloudflare documentation](https://developers.cloudflare.com/) is the reference.
+
+Numbers from analytics, logs and the queries in this post help with monitoring and planning, but they are not billing records. Discuss billing questions directly with your Cloudflare account team or [Cloudflare Support](https://developers.cloudflare.com/support/contacting-cloudflare-support/): your invoice and Cloudflare's billing systems are authoritative.
+
+This blog post is independent and not affiliated with, endorsed by, or necessarily reflective of the opinions of Cloudflare or any other entities mentioned. Screenshots are taken from the Cloudflare Dashboard of my own account.
+
+This blog post was partially drafted and refined with AI assistance.
