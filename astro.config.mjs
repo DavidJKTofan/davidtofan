@@ -166,10 +166,10 @@ export default defineConfig({
   // the trailing slash; scripts/update-deps.sh checks the build for any that
   // don't.
   //
-  // `trailingSlash` itself is deliberately left at its default ('ignore').
-  // With 'always', the Cloudflare adapter writes only slashed redirect sources
-  // to _redirects (`/world/`, `/sitemap.xml/`), so the bare `/world` and
-  // `/sitemap.xml` that people and crawlers actually request would 404.
+  // `trailingSlash` itself is left at its default ('ignore'). Redirects live in
+  // public/_redirects, which lists every alias with and without its slash, so
+  // they do not depend on it.
+  //
   // Language layer. Regional *styling* deliberately does NOT live in the URL —
   // it is an <html data-region> attribute, so Madrid and Mexico City share the
   // /es/ routes but not the palette. See src/i18n/regions.ts.
@@ -194,20 +194,9 @@ export default defineConfig({
     prefetchAll: true,
     defaultStrategy: 'hover',
   },
-  // Redirects for content aliases (Hugo compatibility). Destinations carry the
-  // trailing slash so each alias is a single 301, not a 301 followed by the
-  // platform's 307 to the slashed URL.
-  redirects: {
-    // Projects aliases
-    '/world': '/projects/world-of-opportunities/',
-    '/travel': '/projects/google-travel-lists/',
-    '/webinars': '/projects/webinars/',
-    '/referrals': '/projects/referrals/',
-    '/promotions': '/projects/referrals/',
-    '/perks': '/projects/referrals/',
-    // Sitemap redirect (Astro generates sitemap-index.xml, but crawlers may look for sitemap.xml)
-    '/sitemap.xml': '/sitemap-index.xml',
-  },
+  // Redirects (content aliases, /sitemap.xml, legacy /post/ URLs) live in
+  // public/_redirects, not in Astro's `redirects`: the adapter appends Astro's
+  // after that file and mangles dynamic ones. See the comment in that file.
   adapter: cloudflare({
     // Build-time 'compile' (sharp) is broken for this prerendered site, so
     // optimization is offloaded to Cloudflare's edge. This emits

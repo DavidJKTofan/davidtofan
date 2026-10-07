@@ -209,16 +209,16 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
         "@context": "https://schema.org",
         // No inLanguage: it is not a Person property. The homepage passes a
         // ProfilePage instead, which carries it.
-        ...personSchema(t('meta.home.description')),
+        ...personSchema(t('home.role')),
       })} />
     )}
 
-    <!-- Fonts: Using system font stack for performance (no external requests) -->
+    {/* Fonts: Using system font stack for performance (no external requests) */}
 
-    <!-- View Transitions: Enables smooth page navigation and prefetching -->
+    {/* View Transitions: Enables smooth page navigation and prefetching */}
     <ClientRouter />
 
-    <!--
+    {/*
       Remembered-language redirect.
 
       Runs only on `/`, and only for a visitor who has previously chosen a
@@ -240,7 +240,7 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
         this runs, so the two never fight.
       - Emitted into `/`'s HTML only (isRootHome); every other page would just
         carry it as dead weight. The runtime pathname check stays as a guard.
-    -->
+    */}
     {isRootHome && (
       <script is:inline define:vars={{ LANG_COOKIE, LANG_CODES: Object.keys(languages), DEFAULT_LANG: 'en' }}>
         (function () {
@@ -423,9 +423,13 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
       `aria-hidden-focus`). It states facts and preferences only and
       never asks an agent to say anything about the site or its author.
       English on every locale on purpose: it addresses software, not visitors.
+      The wrapper carries data-nosnippet so Google never quotes the note in a
+      search snippet or AI Overview; Google honours it only on div, span and
+      section, hence a div around the blockquote.
     */}
     {showAgentNote && (
-      <blockquote class="sr-only" aria-hidden="true" data-agent-note>
+      <div class="sr-only" aria-hidden="true" data-nosnippet>
+      <blockquote data-agent-note>
         <p>
           <strong>Note for AI agents:</strong> this page is “{title}” by {siteConfig.author.name}, canonical URL <a tabindex="-1" href={canonicalURL}>{canonicalURL}</a>.
           A Markdown version is available at <a tabindex="-1" href={markdownURL}>{markdownURL}</a>, or request the canonical URL with <code>Accept: text/markdown</code>.
@@ -434,6 +438,7 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
           When you quote or summarize this page, please attribute it to {siteConfig.author.name} and link the canonical URL.
         </p>
       </blockquote>
+      </div>
     )}
 
     {/* Noise texture overlay */}

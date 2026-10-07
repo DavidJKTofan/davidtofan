@@ -19,7 +19,7 @@
   </div>
 
   <div class="p-5 sm:p-6">
-    <!-- Swimlane header -->
+    {/* Swimlane header */}
     <div class="wba-lanes grid grid-cols-3 gap-2 mb-4 text-2xs font-mono uppercase tracking-wider">
       <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400">Bot operator</div>
       <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400">Public key directory</div>
@@ -27,7 +27,7 @@
     </div>
 
     <ol class="space-y-3">
-      <!-- Step 1: operator publishes JWKS -->
+      {/* Step 1: operator publishes JWKS */}
       <li class="wba-step" style="--i: 0">
         <div class="wba-row grid grid-cols-3 gap-2 items-stretch">
           <div class="wba-card wba-card-origin" data-lane="Bot operator">
@@ -49,7 +49,7 @@
         </div>
       </li>
 
-      <!-- Step 2: bot sends signed request -->
+      {/* Step 2: bot sends signed request */}
       <li class="wba-step" style="--i: 1">
         <div class="wba-row grid grid-cols-3 gap-2 items-stretch">
           <div class="wba-card wba-card-origin" data-lane="Bot operator">
@@ -84,7 +84,7 @@
         </div>
       </li>
 
-      <!-- Step 3: Cloudflare fetches JWKS + verifies -->
+      {/* Step 3: Cloudflare fetches JWKS + verifies */}
       <li class="wba-step" style="--i: 2">
         <div class="wba-row grid grid-cols-3 gap-2 items-stretch">
           <div class="wba-card wba-card-dim wba-card-note" data-lane="Bot operator">
@@ -107,7 +107,7 @@ verify Ed25519 sig
         </div>
       </li>
 
-      <!-- Step 4: policy decision -->
+      {/* Step 4: policy decision */}
       <li class="wba-step" style="--i: 3">
         <div class="wba-row grid grid-cols-3 gap-2 items-stretch">
           <div class="wba-card wba-card-dim wba-card-empty"></div>

@@ -100,6 +100,7 @@ Notable files outside `src/`:
 | `public/robots.txt` | Crawl rules, IETF AIPREF Content Signals, `License:` directive, sitemaps |
 | `public/rsl.xml` | RSL 1.0 machine-readable license document |
 | `public/_headers` | Cache, security, `Link`, and `X-Robots-Tag` headers for Static Assets |
+| `public/_redirects` | Content aliases, `/sitemap.xml`, and legacy Hugo `/post/<slug>/` URLs (301s) |
 | `scripts/copy-featured-images.mjs` | `prebuild` — copies `featured.png` into `public/` |
 | `scripts/update-deps.sh` | Dependency upgrade + verification harness |
 
@@ -500,7 +501,7 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 ### Content
 - External links open in new tab with proper rel attributes
-- URL aliases with automatic redirects (Hugo compatibility)
+- URL aliases and legacy Hugo `/post/<slug>/` URLs redirect with a single 301 (`public/_redirects`)
 - Image optimization via Cloudflare's edge (`imageService: 'cloudflare'`): images use `/cdn-cgi/image/onerror=redirect,.../_astro/*` URLs, optimized at the edge when [Image Transformations](https://developers.cloudflare.com/images/transform-images/) are enabled on the zone, and transparently falling back to the original image when they are not
 - Custom 404 page with site branding
 - Accent colour is a CSS-variable ramp (`--accent-50` … `--accent-950`), blue by default and
@@ -524,7 +525,8 @@ All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 - **Articles**: `BlogPosting` schema with headline, description, author, mainEntityOfPage, datePublished, and dateModified
 - **Projects**: `CreativeWork` with `mainEntityOfPage` set to the project's page on this site; its external website and repository go in `sameAs` (`codeRepository` is only valid on `SoftwareSourceCode`)
 - **Listings and special pages**: page-specific JSON-LD where needed (`Blog`, `CollectionPage`, `BreadcrumbList`, `WebPage`, etc.). Certificate dates are converted to ISO 8601 (`2026-02`) because schema.org dates must be ISO
-- **One author entity**: `src/lib/structuredData.ts` defines the author once, with `@id` `https://davidtofan.com/#person` and one set of `sameAs` profile URLs; every `author` field and the homepage `Person` use it, so they all resolve to the same entity
+- **One author entity**: `src/lib/structuredData.ts` defines the author once, with `@id` `https://davidtofan.com/#person` and one set of `sameAs` profile URLs; every `author` field and the homepage `Person` use it, so they all declare the same entity. The `#person` / `#website` fragments are JSON-LD node identifiers, not links — they name the person and the site as distinct from the page at `/`, are never fetched, and follow the pattern of Google's own ProfilePage example (`"@id": "#main-author"`)
+- **Person details**: `image` is the avatar (`src/assets/img/profile.png`) and `description` the localized role byline (`home.role`), as Google's ProfilePage guidelines ask — not the site's share banner, since a default image should not be used
 - **Fallback**: `BaseLayout.astro` emits a default `Person` schema (now only on the 404 page), or accepts page-specific `structuredData` payloads when a route needs more precise semantics
 
 ### Sitemap & Robots
@@ -591,7 +593,7 @@ with no Worker script at all.
 **Key points:**
 - Every page is prerendered and served as a static file — [free and unlimited](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
 - The deployed Worker is Wrangler's `no-op-worker.js` (0.31 KiB); it exists only so the assets router has something to fall back to, and never runs in practice
-- Astro's configured `redirects` are compiled to a `_redirects` file and served by Static Assets — no Worker invocation. `wrangler dev` reports `Parsed 14 valid redirect rules`
+- Redirects live in `public/_redirects` and are served by Static Assets — no Worker invocation. `wrangler dev` reports `Parsed 15 valid redirect rules`. They are not in Astro's `redirects` config: the adapter appends those *after* `public/_redirects` (Wrangler then warns that the static rules sit below a splat) and compiles a dynamic route such as `/post/[...slug]` into an invalid `/articles/*/index.html` destination. `astro dev` therefore does not follow them; `wrangler dev` and production do
 - File storage is free; only Worker invocations are billed, and in the default state there are none
 - The multilingual site is entirely static: `/es/`, `/de/`, `/it/`, `/zh/`, the language picker and the hreflang graph cost nothing
 - Flipping `GEO_PERSONALIZATION` to `"TRUE"` makes `/` on-demand so it can read `request.cf`. That is the only route that would ever invoke a Worker, and it also requires uncommenting `run_worker_first: ["/"]` — the documented opt-out of asset-first routing, kept commented out precisely because this site depends on asset-first. See [Feature flag](#feature-flag-geo_personalization) for why, and what it costs
@@ -889,17 +891,17 @@ The picker, the hreflang graph, the 404's embedded strings and `LANGS` all deriv
 `dist/client/` locale folders should both match the new list exactly.
 
 > **Removing a language that has been indexed** leaves its URLs returning 404. If `/fr/` was ever
-> crawled, consider a redirect to `/` in `astro.config.mjs` rather than letting it 404.
+> crawled, consider a redirect to `/` in `public/_redirects` rather than letting it 404.
 
 #### Astro 7 / Cloudflare Notes
 
-- Astro 7 requires Node `22.12.0+` and builds on Vite 8
+- Astro 7 requires Node `22.12.0+` and builds on Vite 8. `.nvmrc` pins Workers Builds to Node `24` — the build image's default, preinstalled. A `22.12.0` pin made the build install that version on every run and print `EBADENGINE` for `undici@8` (pulled in by Astro's font provider `unifont`), which needs Node `22.19.0+`
 - **Trailing slashes**: pages are built as `<route>/index.html`, and Workers Static Assets
   (`html_handling: "auto-trailing-slash"`) answers the slash-less URL with a `307`. Internal links
   and redirect destinations therefore always end in `/`; `npm run deps:update` warns if the build
-  contains one that doesn't. `trailingSlash` itself stays at Astro's default (`'ignore'`): with
-  `'always'`, the adapter writes only slashed sources to `_redirects` (`/world/`, `/sitemap.xml/`),
-  so the bare `/world` and `/sitemap.xml` would 404
+  contains one that doesn't. `trailingSlash` itself stays at Astro's default (`'ignore'`); the
+  redirects in `public/_redirects` list every alias with and without its slash, so they do not
+  depend on it
 - **Inline scripts**: every `<script define:vars>` is inlined into — and re-sent with — every HTML
   page. Only scripts that must run before first paint (theme, region, the `/`-only language
   redirect) stay inline; the rest are processed `<script>` modules that import from `src/i18n/`
@@ -1084,6 +1086,10 @@ request to attribute and link. It is visually hidden and `aria-hidden` (the patt
 use), so humans and screen readers never meet it, but HTML-to-Markdown conversion keeps it as a quote at
 the top of the Markdown copy (`/…/index.md` or `Accept: text/markdown`, both converted at the edge, not
 in this repo). A `<link rel="alternate" type="text/markdown">` in `<head>` advertises the same URL. The
+note sits in a `<div data-nosnippet>` so Google never quotes it in a search snippet or AI Overview
+(Google honours the attribute only on `div`, `span` and `section`). Each Markdown copy is served with a
+`Link: <…/>; rel="canonical"` header pointing at its HTML page (a zone response-header Transform Rule,
+not in this repo), so search engines treat it as a duplicate of the HTML rather than a page of its own. The
 note states facts and preferences only; keep it that way, since anything that tells an agent what to say
 is a prompt injection. If the Content Signals change, update `CONTENT_SIGNAL` there too.
 

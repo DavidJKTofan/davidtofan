@@ -20,7 +20,7 @@
   </div>
 
   <div class="p-5 sm:p-6">
-    <!-- Swimlanes header -->
+    {/* Swimlanes header */}
     <div class="perf-lanes grid grid-cols-4 gap-2 mb-4 text-2xs font-mono uppercase tracking-wider">
       <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400 truncate">User (eyeball)</div>
       <div class="text-center py-2 rounded-md bg-accent-500/10 border border-accent-500/30 text-accent-700 dark:text-accent-400 truncate">Cloudflare edge</div>
@@ -28,10 +28,10 @@
       <div class="text-center py-2 rounded-md bg-surface-100/70 dark:bg-surface-900/60 border border-surface-200 dark:border-surface-800 text-surface-600 dark:text-surface-400 truncate">Origin</div>
     </div>
 
-    <!-- Feature groups stacked vertically, each row = pipeline stage -->
+    {/* Feature groups stacked vertically, each row = pipeline stage */}
     <div class="space-y-3">
 
-      <!-- Row 1: User connects, DNS + TLS + transport -->
+      {/* Row 1: User connects, DNS + TLS + transport */}
       <div class="perf-row" style="--i: 0">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-user" data-lane="User (eyeball)">
@@ -55,7 +55,7 @@
         </div>
       </div>
 
-      <!-- Row 2: Anycast / CDN footprint -->
+      {/* Row 2: Anycast / CDN footprint */}
       <div class="perf-row" style="--i: 1">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <!-- Row 3: URL & traffic handling -->
+      {/* Row 3: URL & traffic handling */}
       <div class="perf-row" style="--i: 2">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -89,7 +89,7 @@
         </div>
       </div>
 
-      <!-- Row 4: Edge processing + cache decision -->
+      {/* Row 4: Edge processing + cache decision */}
       <div class="perf-row" style="--i: 3">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <!-- Row 5: Cache HIT path -->
+      {/* Row 5: Cache HIT path */}
       <div class="perf-row" style="--i: 4">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <!-- Row 6: Cache MISS path to origin -->
+      {/* Row 6: Cache MISS path to origin */}
       <div class="perf-row" style="--i: 5">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -150,7 +150,7 @@
         </div>
       </div>
 
-      <!-- Row 7: Reduce size on return trip -->
+      {/* Row 7: Reduce size on return trip */}
       <div class="perf-row" style="--i: 6">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-dim perf-lane-empty"></div>
@@ -169,7 +169,7 @@
         </div>
       </div>
 
-      <!-- Row 8: Response to user -->
+      {/* Row 8: Response to user */}
       <div class="perf-row" style="--i: 7">
         <div class="perf-row-grid grid grid-cols-4 gap-2 items-stretch">
           <div class="perf-lane perf-lane-user" data-lane="User (eyeball)">

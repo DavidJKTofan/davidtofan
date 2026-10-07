@@ -1,11 +1,17 @@
 import { siteConfig } from '../config/site';
 import { HTML_LANG } from '../i18n/utils';
+import profileImage from '../assets/img/profile.png';
 
 /**
  * Shared schema.org nodes. Every block that names the author uses the same
  * `@id`, so Google and agents can join the author of each article, project and
  * listing to the Person on the homepage's ProfilePage, instead of seeing
  * unrelated "David Tofan"s with slightly different profile URLs.
+ *
+ * The `#person` / `#website` fragments are JSON-LD node identifiers, not links:
+ * they name the thing described (a person, a site) as distinct from the page
+ * at https://davidtofan.com/ itself, and are never fetched. Google's own
+ * ProfilePage example uses the same pattern ("@id": "#main-author").
  */
 const homeURL = `${siteConfig.url}/`;
 const PERSON_ID = `${homeURL}#person`;
@@ -28,12 +34,17 @@ export const authorSchema = {
   ],
 };
 
-/** The full Person, for the homepage's ProfilePage and the layout fallback. */
-export function personSchema(description: string) {
+/**
+ * The full Person, for the homepage's ProfilePage and the layout fallback.
+ * Per Google's ProfilePage guidelines, `description` is the person's byline
+ * and `image` their profile picture — not the site's share banner, since
+ * "if there are no images, don't include a default image".
+ */
+export function personSchema(byline: string) {
   return {
     ...authorSchema,
-    description,
-    image: new URL(siteConfig.ogImage, siteConfig.url).toString(),
+    description: byline,
+    image: new URL(profileImage.src, siteConfig.url).toString(),
     knowsAbout: [
       'Cybersecurity',
       'Cloud Computing',
@@ -78,10 +89,11 @@ export const websiteSchema = {
  * `inLanguage` lives here rather than on the Person, where it is not a valid
  * property.
  */
-export function profilePageSchema({ url, name, description, lang }: {
+export function profilePageSchema({ url, name, description, byline, lang }: {
   url: string;
   name: string;
   description: string;
+  byline: string;
   lang: string;
 }) {
   return {
@@ -92,6 +104,6 @@ export function profilePageSchema({ url, name, description, lang }: {
     description,
     inLanguage: lang,
     isPartOf: { '@id': WEBSITE_ID },
-    mainEntity: personSchema(description),
+    mainEntity: personSchema(byline),
   };
 }

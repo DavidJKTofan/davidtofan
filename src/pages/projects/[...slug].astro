@@ -45,10 +45,10 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
   noPersonSchema={true}
 >
   <ScrollToTop />
-  <!-- max-w-4xl on lg, max-w-5xl on xl+ — keeps content comfortably narrow while
-       centring properly on large monitors without appearing lost on wide screens -->
+  {/* max-w-4xl on lg, max-w-5xl on xl+ — keeps content comfortably narrow while
+       centring properly on large monitors without appearing lost on wide screens */}
   <div class="max-w-4xl xl:max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-    <!-- Back link -->
+    {/* Back link */}
     <a
       href="/projects/"
       class="inline-flex items-center gap-1.5 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-accent-600 dark:hover:text-accent-400 transition-colors mb-8 group"
@@ -59,9 +59,9 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
       Back to projects
     </a>
 
-    <!-- Project header -->
+    {/* Project header */}
     <header class="mb-10">
-      <!-- Status and meta -->
+      {/* Status and meta */}
       <div class="flex flex-wrap items-center gap-3 mb-4">
         <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusColors[project.data.status]}`}>
           {project.data.status === 'active' && (
@@ -74,17 +74,17 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
         )}
       </div>
 
-      <!-- Title -->
+      {/* Title */}
       <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 leading-tight mb-4 text-balance">
         {project.data.title}
       </h1>
 
-      <!-- Description -->
+      {/* Description */}
       <p class="text-lg text-surface-600 dark:text-surface-400 mb-6">
         {project.data.description}
       </p>
 
-      <!-- Meta info -->
+      {/* Meta info */}
       <div class="flex flex-wrap items-center gap-4 text-surface-500 dark:text-surface-400 text-sm">
         <span class="flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -95,7 +95,7 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
         </span>
       </div>
 
-      <!-- Action buttons -->
+      {/* Action buttons */}
       <div class="flex flex-wrap items-center gap-3 mt-6">
         {project.data.website && (
           <a
@@ -126,12 +126,12 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
       </div>
     </header>
 
-    <!-- Project content -->
+    {/* Project content */}
     <article class="prose prose-lg dark:prose-invert max-w-none">
       <Content />
     </article>
 
-    <!-- Tags footer -->
+    {/* Tags footer */}
     {project.data.tags.length > 0 && (
       <footer class="mt-12 pt-8 border-t border-surface-200 dark:border-surface-800">
         <h3 class="text-sm font-semibold text-surface-700 dark:text-surface-300 uppercase tracking-wide mb-3">
@@ -148,7 +148,7 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
     )}
   </div>
 
-<!-- JSON-LD Project Structured Data -->
+{/* JSON-LD Project Structured Data */}
 <script type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
   "@type": "CreativeWork",
@@ -170,7 +170,7 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
   ...(project.data.status && { "creativeWorkStatus": project.data.status }),
 })} />
 
-<!-- JSON-LD BreadcrumbList -->
+{/* JSON-LD BreadcrumbList */}
 <script type="application/ld+json" set:html={JSON.stringify({
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",

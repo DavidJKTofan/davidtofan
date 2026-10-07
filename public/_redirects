@@ -1,0 +1,33 @@
+# Redirects, served by Workers Static Assets before any asset or Worker runs.
+# https://developers.cloudflare.com/workers/static-assets/redirects/
+#
+# Kept here rather than in astro.config.mjs `redirects`: the adapter appends
+# Astro's aliases *after* this file, and it compiles a dynamic route into an
+# invalid destination (`/articles/*/index.html`). Static rules must come before
+# splats, or Wrangler reports them as slower to match.
+#
+# Each alias is listed with and without its trailing slash: nothing exists at
+# either path, so html_handling never gets to add the slash itself. Every
+# destination ends in `/` so the redirect lands in one hop, not 301 + 307.
+
+# Content aliases (Hugo compatibility)
+/world          /projects/world-of-opportunities/  301
+/world/         /projects/world-of-opportunities/  301
+/travel         /projects/google-travel-lists/     301
+/travel/        /projects/google-travel-lists/     301
+/webinars       /projects/webinars/                301
+/webinars/      /projects/webinars/                301
+/referrals      /projects/referrals/               301
+/referrals/     /projects/referrals/               301
+/promotions     /projects/referrals/               301
+/promotions/    /projects/referrals/               301
+/perks          /projects/referrals/               301
+/perks/         /projects/referrals/               301
+
+# Astro generates sitemap-index.xml, but crawlers also try /sitemap.xml
+/sitemap.xml    /sitemap-index.xml                 301
+/sitemap.xml/   /sitemap-index.xml                 301
+
+# Legacy Hugo article URLs (/post/<slug>/) are still requested and linked from
+# elsewhere; the slugs carried over unchanged to /articles/<slug>/.
+/post/*         /articles/:splat                   301

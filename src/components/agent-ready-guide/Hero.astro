@@ -10,7 +10,7 @@ const milestones = [
 
 <div class="walk-hero mb-12" data-walk-hero>
   <div class="relative overflow-hidden rounded-2xl border border-surface-200 dark:border-surface-800 bg-gradient-to-br from-surface-50 via-surface-50 to-accent-50/40 dark:from-surface-900 dark:via-surface-950 dark:to-accent-950/40 p-6 sm:p-10 md:p-12">
-    <!-- Grid pattern background -->
+    {/* Grid pattern background */}
     <div class="pointer-events-none absolute inset-0 opacity-[0.04] dark:opacity-[0.06]" aria-hidden="true">
       <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -28,7 +28,7 @@ const milestones = [
         The Internet's next historic phase
       </p>
 
-      <!-- Timeline -->
+      {/* Timeline */}
       <ol class="hero-timeline relative grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-0 mb-6" aria-label="Evolution of the Internet — click a milestone to read its blurb">
         {milestones.map((m, i) => (
           <li
@@ -56,16 +56,16 @@ const milestones = [
             <span id={`hero-milestone-${i}-description`} class="sr-only">{m.blurb}</span>
           </li>
         ))}
-        <!-- Connecting line (desktop only) -->
+        {/* Connecting line (desktop only) */}
         <span class="hidden md:block absolute top-4 left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-surface-300 via-surface-300 to-accent-500 dark:from-surface-700 dark:via-surface-700 dark:to-accent-500 -z-0" aria-hidden="true"></span>
       </ol>
 
-      <!-- Rotating blurb caption -->
+      {/* Rotating blurb caption */}
       <div class="min-h-[1.75rem] mb-8 text-sm sm:text-base text-surface-600 dark:text-surface-400 text-balance" aria-live="polite">
         <span data-hero-blurb class="hero-blurb transition-opacity duration-500 opacity-0">&nbsp;</span>
       </div>
 
-      <!-- Quote reveal -->
+      {/* Quote reveal */}
       <blockquote class="hero-quote relative pl-5 border-l-2 border-accent-500/60 max-w-3xl mb-8">
         <p class="text-lg sm:text-xl md:text-2xl font-display font-medium text-surface-800 dark:text-surface-100 leading-snug text-balance">
           <i>The web has always had to adapt to new standards. It learned to speak to web browsers, and then it learned to speak to search engines. Now, it needs to speak to AI agents.</i>

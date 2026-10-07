@@ -67,7 +67,7 @@ const collectionJsonLd = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(collectionJsonLd)} />
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-    <!-- Page Header -->
+    {/* Page Header */}
     <div class="max-w-2xl mb-12">
       <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 mb-4">
         {t('projects.title')}
@@ -77,7 +77,7 @@ const collectionJsonLd = {
       </p>
     </div>
 
-    <!-- Active Projects -->
+    {/* Active Projects */}
     {activeProjects.length > 0 && (
       <section class="mb-16">
         <div class="flex items-center gap-2 mb-6">
@@ -106,7 +106,7 @@ const collectionJsonLd = {
       </section>
     )}
 
-    <!-- Completed Projects -->
+    {/* Completed Projects */}
     {completedProjects.length > 0 && (
       <section class="mb-16">
         <div class="flex items-center gap-2 mb-6">
@@ -135,7 +135,7 @@ const collectionJsonLd = {
       </section>
     )}
 
-    <!-- Archived Projects -->
+    {/* Archived Projects */}
     {archivedProjects.length > 0 && (
       <section>
         <div class="flex items-center gap-2 mb-6">
@@ -164,7 +164,7 @@ const collectionJsonLd = {
       </section>
     )}
 
-    <!-- CTA -->
+    {/* CTA */}
     <div class="mt-16 p-8 rounded-2xl bg-gradient-to-br from-surface-100 to-surface-50 dark:from-surface-800 dark:to-surface-900 border border-surface-200 dark:border-surface-700 text-center">
       <h3 class="font-display font-semibold text-xl text-surface-900 dark:text-surface-100 mb-2">
         {t('projects.cta.title')}

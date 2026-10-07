@@ -57,7 +57,7 @@ const blogJsonLd = {
 >
   <script type="application/ld+json" set:html={JSON.stringify(blogJsonLd)} />
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-    <!-- Page Header -->
+    {/* Page Header */}
     <div class="max-w-2xl mb-12">
       <h1 class="font-display font-bold text-3xl sm:text-4xl md:text-5xl text-surface-900 dark:text-surface-100 mb-4">
         {t('articles.title')}
@@ -67,7 +67,7 @@ const blogJsonLd = {
       </p>
     </div>
 
-    <!-- Tag Filter -->
+    {/* Tag Filter */}
     <div class="mb-10" x-data="{ selectedTag: '' }">
       <div class="flex items-center gap-2 mb-4">
         <svg class="w-4 h-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -99,7 +99,7 @@ const blogJsonLd = {
       </div>
     </div>
 
-    <!-- Featured Articles -->
+    {/* Featured Articles */}
     {featuredArticles.length > 0 && (
       <div class="mb-12" id="featured-section">
         <h2 class="text-lg font-semibold text-surface-800 dark:text-surface-200 mb-6 flex items-center gap-2">
@@ -126,7 +126,7 @@ const blogJsonLd = {
       </div>
     )}
 
-    <!-- All Articles -->
+    {/* All Articles */}
     <div id="articles-section">
       <h2 class="text-lg font-semibold text-surface-800 dark:text-surface-200 mb-6">
         {t('articles.all')}
@@ -150,7 +150,7 @@ const blogJsonLd = {
         ))}
       </div>
 
-      <!-- Empty state -->
+      {/* Empty state */}
       <div id="empty-state" class="hidden py-16 text-center">
         <svg class="w-16 h-16 mx-auto text-surface-300 dark:text-surface-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
           <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
