@@ -1,5 +1,5 @@
 ---
-title: Where the Cloud lives – an Interactive Map of Data Center Locations of Top Cloud Providers
+title: "Where the Cloud Lives: A Map of Cloud Data Center Locations"
 date: 2023-01-30
 description: "Explore the datacenter distribution and visualization of major Zero Trust providers across the globe."
 tags: ["zero trust", "developers"]

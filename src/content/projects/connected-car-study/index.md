@@ -1,7 +1,7 @@
 ---
 title: Connected Car Study 2020
 date: 2020-02-01
-description: Visualization of the results of a Connected Car online survey of more than 3,000 drivers from Germany, UK, Italy and Spain, showcasing consumer expectations, opportunities and challenges for the industry. Retired in 2022.
+description: "Results of a Connected Car survey of 3,000+ drivers in Germany, the UK, Italy and Spain: expectations, opportunities and challenges. Retired in 2022."
 website: "https://connected-car.pages.dev/"
 showTableOfContents: false
 status: archived

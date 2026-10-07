@@ -432,10 +432,10 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 | Field         | Type     | Required | Description              |
 |:--------------|:---------|:---------|:-------------------------|
-| `title`       | string   | Yes      | Article title            |
+| `title`       | string   | Yes      | Article title, 60 characters or fewer (the `<title>` gets " \| David Tofan" only while it still fits) |
 | `date`        | date     | Yes      | Publication date         |
 | `modified`    | date     | No       | Last substantial update; used for `dateModified` and sitemap freshness |
-| `description` | string   | Yes      | SEO description          |
+| `description` | string   | Yes      | SEO description, unique per page and 155 characters or fewer (Google truncates longer ones) |
 | `tags`        | string[] | No       | Topics from `ARTICLE_TOPICS`, most specific first ([details](#article)) |
 | `draft`       | boolean  | No       | Hide from production     |
 | `featured`    | boolean  | No       | Show on homepage         |
@@ -449,10 +449,10 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 | Field         | Type     | Required | Description                         |
 |:--------------|:---------|:---------|:------------------------------------|
-| `title`       | string   | Yes      | Project name                        |
+| `title`       | string   | Yes      | Project name, 60 characters or fewer |
 | `date`        | date     | Yes      | Start date                          |
 | `modified`    | date     | No       | Last substantial update; used for `dateModified` and sitemap freshness |
-| `description` | string   | Yes      | Brief description                   |
+| `description` | string   | Yes      | Brief description, unique and 155 characters or fewer; also shown under the project title |
 | `website`     | string   | No       | Live URL                            |
 | `github`      | string   | No       | Repository URL                      |
 | `image`       | string   | No       | Explicit social/share image override |
@@ -513,7 +513,7 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 
-- **Primary**: `<title>`, `<meta name="description">`, canonical URL (omitted on `noIndex` pages — see [Robots & Indexing](#robots--indexing))
+- **Primary**: `<title>`, `<meta name="description">`, canonical URL (omitted on `noIndex` pages — see [Robots & Indexing](#robots--indexing)). The `<title>` gets ` | David Tofan` only when the result is 60 characters or fewer: Google cuts longer title links off and already shows the site name (from the `WebSite` markup) with each result
 - **Open Graph**: `og:type`, `og:title`, `og:description`, `og:image`, `og:site_name`, `og:locale`
 - **Twitter Cards**: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:creator` — as `<meta name>`, which is what X specifies (Open Graph uses `property`)
 - **Article-specific**: `article:published_time`, `article:modified_time`, `article:tag`
@@ -594,6 +594,7 @@ with no Worker script at all.
 - Every page is prerendered and served as a static file — [free and unlimited](https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/)
 - The deployed Worker is Wrangler's `no-op-worker.js` (0.31 KiB); it exists only so the assets router has something to fall back to, and never runs in practice
 - Redirects live in `public/_redirects` and are served by Static Assets — no Worker invocation. `wrangler dev` reports `Parsed 15 valid redirect rules`. They are not in Astro's `redirects` config: the adapter appends those *after* `public/_redirects` (Wrangler then warns that the static rules sit below a splat) and compiles a dynamic route such as `/post/[...slug]` into an invalid `/articles/*/index.html` destination. `astro dev` therefore does not follow them; `wrangler dev` and production do
+- Host and scheme are normalized at the zone, before `_redirects` runs: a Single Redirect sends `www.davidtofan.com` (http and https) to `https://davidtofan.com` with the path and query, and **Always Use HTTPS** upgrades plain-http apex requests. Single Redirects run before Always Use HTTPS, so every variant reaches the canonical URL in one hop. Keep the www rule's target on the apex over https — pointing it at a host or scheme it also matches would loop
 - File storage is free; only Worker invocations are billed, and in the default state there are none
 - The multilingual site is entirely static: `/es/`, `/de/`, `/it/`, `/zh/`, the language picker and the hreflang graph cost nothing
 - Flipping `GEO_PERSONALIZATION` to `"TRUE"` makes `/` on-demand so it can read `request.cf`. That is the only route that would ever invoke a Worker, and it also requires uncommenting `run_worker_first: ["/"]` — the documented opt-out of asset-first routing, kept commented out precisely because this site depends on asset-first. See [Feature flag](#feature-flag-geo_personalization) for why, and what it costs

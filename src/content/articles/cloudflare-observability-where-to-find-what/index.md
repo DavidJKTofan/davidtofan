@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare Observability: Where to Find What"
 date: 2026-10-05
-description: "A practical map of Cloudflare analytics, logs and traces: where to find post-quantum usage, CDN requests and data transfer and how they relate to billed usage, how to correlate Ray IDs and Gateway logs, troubleshoot Cloudflare One Client issues with DEX, and debug Workers with AI agents."
+description: "Where to find Cloudflare analytics, logs and traces: post-quantum usage, CDN vs. billed usage, Ray ID and Gateway logs, DEX, and debugging Workers."
 tags: ["observability", "developers", "cloudflare"]
 type: "article"
 ---

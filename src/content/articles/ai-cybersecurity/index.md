@@ -1,7 +1,7 @@
 ---
 title: Cybersecurity and Artificial Intelligence (AI)
 date: 2023-12-01
-description: "When interacting with Artificial Intelligence (AI), we recommend a Zero Trust approach, as well as taking advantage of Edge Developer solutions from Clouflare."
+description: "When interacting with Artificial Intelligence (AI), we recommend a Zero Trust approach and Cloudflare's edge developer solutions."
 tags: ["artificial intelligence", "zero trust", "developers", "cloudflare"]
 type: 'article'
 ---

@@ -1,7 +1,7 @@
 ---
 title: World of Opportunities
 date: 2021-12-01
-description: Free resource platform for entrepreneurs and students who are eager to discover useful links, gaining access to resources, tools and opportunities to reach their goals.
+description: "A free resource platform for entrepreneurs and students to discover useful links, resources, tools and opportunities to reach their goals."
 website: ""
 showTableOfContents: false
 aliases:

@@ -1,7 +1,7 @@
 ---
 title: SASE Cloud Map
 date: 2023-08-19
-description: The SASE Cloud Map allows users to easily find and explore the approximate locations of data centers or Point of Presence (PoP) of major Secure Access Service Edge (SASE) or Zero Trust providers, offering the entire suite or part of those solutions. It provides a visual representation of their service locations and geographic distribution.
+description: "An interactive map of the approximate data center and Point of Presence (PoP) locations of major SASE and Zero Trust providers."
 website: "https://sasecloudmap.com/"
 showTableOfContents: false
 status: active

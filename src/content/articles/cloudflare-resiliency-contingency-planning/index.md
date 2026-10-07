@@ -1,7 +1,7 @@
 ---
-title: Designing for High Availability – Resiliency & Contingency Planning
+title: "High Availability: Resiliency & Contingency Planning"
 date: 2025-11-23
-description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Performance approach with Cloudflare."
+description: "When vendor contingency planning matters, how resilient Cloudflare already is, and failover plans for application services and SASE, with an action plan."
 tags: ["performance", "application security", "zero trust", "cloudflare"]
 type: "article"
 ---

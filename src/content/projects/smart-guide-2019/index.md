@@ -1,7 +1,7 @@
 ---
 title: Smart Guide 2019
 date: 2019-03-28
-description: A collection of different smart use cases – ranging from Business Innovation Architecture to Hybrid Cloud –, serving as references for innovations based on platforms for corporate applications and related services.
+description: "A collection of smart use cases – from Business Innovation Architecture to Hybrid Cloud – as references for platform-based corporate innovation."
 website: "/docs/Smart-Guide-2019.pdf"
 showTableOfContents: false
 status: archived

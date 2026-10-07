@@ -72,7 +72,13 @@ const ogImageURL = new URL(image, Astro.site);
 // working once the homepage title became per-locale, so compare against every
 // locale's homepage title instead.
 const homeTitles = new Set(LANGS.map((code) => useTranslations(code)('meta.home.title')));
-const pageTitle = homeTitles.has(title) ? title : `${title} | ${siteConfig.name}`;
+// Google cuts title links off at roughly 60 characters and already shows the
+// site name (from the homepage's WebSite markup) with each result, so the
+// suffix is only added while the whole title still fits. Keep frontmatter
+// titles at 60 characters or fewer.
+const TITLE_MAX = 60;
+const suffixedTitle = `${title} | ${siteConfig.name}`;
+const pageTitle = homeTitles.has(title) || suffixedTitle.length > TITLE_MAX ? title : suffixedTitle;
 const structuredDataItems = structuredData
   ? (Array.isArray(structuredData) ? structuredData : [structuredData])
   : [];

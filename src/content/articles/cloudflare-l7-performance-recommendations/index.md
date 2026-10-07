@@ -2,7 +2,7 @@
 title: General Application Performance Recommendations
 date: 2025-11-15
 modified: 2026-09-01
-description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Performance approach with Cloudflare."
+description: "Best practices for Layer 7 application performance with Cloudflare: client, edge, tiered cache and origin, plus the metrics and tools to measure it."
 tags: ["performance", "cloudflare"]
 type: "article"
 ---

@@ -1,7 +1,7 @@
 ---
-title: "The CISO's Guide to Securing AI: Practical Strategies with Cloudflare"
+title: "The CISO's Guide to Securing AI with Cloudflare"
 date: 2025-08-27
-description: "A practical guide for CISOs to secure AI tools, models, and APIs using Cloudflare's Zero Trust and Developer Platform, addressing real-world threats like data leaks, agent governance, and model abuse."
+description: "A practical CISO guide to securing AI tools, models, and APIs with Cloudflare Zero Trust and the Developer Platform: data leaks, agents, and model abuse."
 tags: ["artificial intelligence", "zero trust", "developers", "cloudflare"]
 type: "article"
 ---
