@@ -6,6 +6,13 @@
  */
 declare const __GEO_PERSONALIZATION__: boolean;
 
+/**
+ * Build-time literal injected by the `define` block in astro.config.mjs: the
+ * public paths of every featured.png that exists (e.g.
+ * `/articles/<slug>/featured.png`). See getContentImagePath().
+ */
+declare const __FEATURED_IMAGES__: string[];
+
 type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
 
 declare namespace App {

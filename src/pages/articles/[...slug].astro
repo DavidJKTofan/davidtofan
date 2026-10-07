@@ -36,8 +36,9 @@ const formattedDate = new Intl.DateTimeFormat('en-US', {
 const readingTime = article.data.readingTime
   ?? parseInt(calculateReadingTime(article.body), 10);
 
-// Use article's image if set, otherwise use featured.png from article folder
-const articleImage = getContentImagePath('articles', article.id, article.data.image);
+// Use article's image if set, otherwise featured.png from the article folder,
+// otherwise the site thumbnail
+const articleImage = getContentImagePath('articles', article.id, article.data.image, siteConfig.ogImage);
 const articleUpdatedAt = getEffectiveModifiedTime(article.data);
 ---
 

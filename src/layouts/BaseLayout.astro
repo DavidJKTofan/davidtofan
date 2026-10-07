@@ -8,6 +8,7 @@ import Footer from '../components/Footer.astro';
 import { localeFrom, useTranslations, HTML_LANG, OG_LOCALE, LANGS } from '../i18n/utils';
 import { TIMEZONE_TO_REGION, REGION_CODES, REGION_COOKIE, LANG_COOKIE, NEUTRAL_REGION } from '../i18n/regions';
 import { languages } from '../i18n/ui';
+import { authorSchema, personSchema } from '../lib/structuredData';
 
 type StructuredData = Record<string, unknown>;
 
@@ -116,7 +117,9 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
     <meta name="title" content={pageTitle} />
     <meta name="description" content={description} />
     <meta name="author" content={siteConfig.author.name} />
-    <link rel="canonical" href={canonicalURL} />
+    {/* noindex pages get no canonical: "index this URL" and "do not index"
+         are contradicting signals, and the 404 page's own URL redirects. */}
+    {!noIndex && <link rel="canonical" href={canonicalURL} />}
     {showAgentNote && <link rel="alternate" type="text/markdown" href={markdownURL} />}
     {alternates.map((alt) => (
       <link rel="alternate" hreflang={alt.lang} href={alt.href} />
@@ -168,13 +171,13 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
       <meta property="article:tag" content={tag} />
     ))}
 
-    {/* Twitter */}
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content={canonicalURL} />
-    <meta property="twitter:title" content={pageTitle} />
-    <meta property="twitter:description" content={description} />
-    <meta property="twitter:image" content={ogImageURL} />
-    <meta property="twitter:creator" content={siteConfig.author.twitter} />
+    {/* Twitter / X — Cards use `name`, unlike Open Graph's `property` */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL} />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+    <meta name="twitter:creator" content={siteConfig.author.twitter} />
 
     {/* JSON-LD Structured Data */}
     {structuredDataItems.length > 0 ? (
@@ -190,17 +193,7 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
         "image": ogImageURL.toString(),
         "datePublished": publishedTime?.toISOString(),
         "dateModified": modifiedTime?.toISOString() || publishedTime?.toISOString(),
-        "author": {
-          "@type": "Person",
-          "name": siteConfig.author.name,
-          "url": siteConfig.url,
-          "jobTitle": "Senior Customer Engineer",
-          "sameAs": [
-            `https://github.com/${siteConfig.author.github}`,
-            `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
-            `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
-          ],
-        },
+        "author": authorSchema,
         "mainEntityOfPage": {
           "@type": "WebPage",
           "@id": canonicalURL.toString(),
@@ -214,26 +207,9 @@ const licensingTermsURL = new URL('/ai-licensing-terms/', siteConfig.url);
     ) : !noPersonSchema && (
       <script type="application/ld+json" set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "Person",
-        "name": siteConfig.author.name,
-        "url": siteConfig.url,
-        "jobTitle": "Senior Customer Engineer",
-        "description": t('meta.home.description'),
-        "inLanguage": HTML_LANG[lang],
-        "image": new URL("/website-thumbnail.png", siteConfig.url).toString(),
-        "sameAs": [
-          `https://github.com/${siteConfig.author.github}`,
-          `https://www.linkedin.com/in/${siteConfig.author.linkedin}/`,
-          `https://x.com/${siteConfig.author.twitter?.replace('@', '')}`,
-        ],
-        "knowsAbout": [
-          "Cybersecurity",
-          "Cloud Computing",
-          "Cloudflare",
-          "Data Science",
-          "Web Security",
-          "Infrastructure Security",
-        ],
+        // No inLanguage: it is not a Person property. The homepage passes a
+        // ProfilePage instead, which carries it.
+        ...personSchema(t('meta.home.description')),
       })} />
     )}
 

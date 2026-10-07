@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ScrollToTop from '../../components/ScrollToTop.astro';
 import { siteConfig } from '../../config/site';
 import { getContentImagePath, getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
+import { authorSchema, projectSameAs } from '../../lib/structuredData';
 
 export async function getStaticPaths() {
   // Only generate pages for non-draft projects
@@ -28,8 +29,9 @@ const statusColors = {
   archived: 'bg-surface-100 dark:bg-surface-800 text-surface-600 dark:text-surface-400 border-surface-200 dark:border-surface-700',
 };
 
-// Use project's image if set, otherwise use featured.png from project folder
-const projectImage = getContentImagePath('projects', project.id, project.data.image);
+// Use project's image if set, otherwise featured.png from the project folder,
+// otherwise the site thumbnail
+const projectImage = getContentImagePath('projects', project.id, project.data.image, siteConfig.ogImage);
 const projectUpdatedAt = getEffectiveModifiedTime(project.data);
 ---
 
@@ -159,18 +161,12 @@ const projectUpdatedAt = getEffectiveModifiedTime(project.data);
   "keywords": project.data.tags?.join(", ") || undefined,
   "dateCreated": project.data.date?.toISOString(),
   "dateModified": projectUpdatedAt.toISOString(),
-  "author": {
-    "@type": "Person",
-    "name": siteConfig.author.name,
-    "url": siteConfig.url,
-    "sameAs": [
-      `https://github.com/${siteConfig.author.github}`,
-      `https://linkedin.com/in/${siteConfig.author.linkedin}`,
-      `https://twitter.com/${siteConfig.author.twitter?.replace('@', '')}`,
-    ],
+  "author": authorSchema,
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": `${siteConfig.url}/projects/${project.id}/`,
   },
-  ...(project.data.website && { "mainEntityOfPage": project.data.website }),
-  ...(project.data.github && { "codeRepository": project.data.github }),
+  "sameAs": projectSameAs(project.data.website, project.data.github),
   ...(project.data.status && { "creativeWorkStatus": project.data.status }),
 })} />
 

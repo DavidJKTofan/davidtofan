@@ -60,7 +60,8 @@ src/
 ├── lib/
 │   ├── certificates.ts     # Certificate utilities
 │   ├── contentMetadata.js  # Sitemap lastmod map, static page metadata, noindex routes
-│   └── readingTime.ts      # Reading time estimation
+│   ├── readingTime.ts      # Reading time estimation
+│   └── structuredData.ts   # Shared JSON-LD nodes (author, WebSite, ProfilePage)
 ├── pages/
 │   ├── 404.astro
 │   ├── index.astro               # Prerendered by default; the only route that
@@ -347,7 +348,7 @@ Omit `modified` on a brand-new article; add it on the first substantive edit —
 - **Renaming or merging a topic** breaks old `/articles/?tag=` links softly — an unknown topic
   shows all articles — so no redirect is needed.
 
-Add images to the same folder and reference with `![Alt](img/image.png)`. Add `featured.png` beside `index.md` when you want an automatic og:image / twitter:image fallback.
+Add images to the same folder and reference with `![Alt](img/image.png)`. Add `featured.png` beside `index.md` when you want an automatic og:image / twitter:image fallback; without one, the site thumbnail is used.
 
 ### Project
 
@@ -511,17 +512,20 @@ Static pages under `src/pages/` have no frontmatter; bump their `lastModified` i
 
 All pages include comprehensive SEO metatags via `BaseLayout.astro`:
 
-- **Primary**: `<title>`, `<meta name="description">`, canonical URL
+- **Primary**: `<title>`, `<meta name="description">`, canonical URL (omitted on `noIndex` pages — see [Robots & Indexing](#robots--indexing))
 - **Open Graph**: `og:type`, `og:title`, `og:description`, `og:image`, `og:site_name`, `og:locale`
-- **Twitter Cards**: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:creator`
+- **Twitter Cards**: `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`, `twitter:creator` — as `<meta name>`, which is what X specifies (Open Graph uses `property`)
 - **Article-specific**: `article:published_time`, `article:modified_time`, `article:tag`
 - **Keywords**: Generated from article tags
 
 ### Structured Data (JSON-LD)
 
+- **Homepage** (every locale): a [`ProfilePage`](https://developers.google.com/search/docs/appearance/structured-data/profile-page) whose `mainEntity` is the author's `Person`, plus a `WebSite` node — Google reads `WebSite.name` on the root homepage to pick the [site name](https://developers.google.com/search/docs/appearance/site-names) shown in results
 - **Articles**: `BlogPosting` schema with headline, description, author, mainEntityOfPage, datePublished, and dateModified
-- **Listings and special pages**: page-specific JSON-LD where needed (`Blog`, `CollectionPage`, `BreadcrumbList`, `WebPage`, etc.)
-- **Fallback**: `BaseLayout.astro` can emit a default `Person` schema, or accept page-specific `structuredData` payloads when a route needs more precise semantics
+- **Projects**: `CreativeWork` with `mainEntityOfPage` set to the project's page on this site; its external website and repository go in `sameAs` (`codeRepository` is only valid on `SoftwareSourceCode`)
+- **Listings and special pages**: page-specific JSON-LD where needed (`Blog`, `CollectionPage`, `BreadcrumbList`, `WebPage`, etc.). Certificate dates are converted to ISO 8601 (`2026-02`) because schema.org dates must be ISO
+- **One author entity**: `src/lib/structuredData.ts` defines the author once, with `@id` `https://davidtofan.com/#person` and one set of `sameAs` profile URLs; every `author` field and the homepage `Person` use it, so they all resolve to the same entity
+- **Fallback**: `BaseLayout.astro` emits a default `Person` schema (now only on the 404 page), or accepts page-specific `structuredData` payloads when a route needs more precise semantics
 
 ### Sitemap & Robots
 
@@ -530,8 +534,11 @@ All pages include comprehensive SEO metatags via `BaseLayout.astro`:
   - **Articles / projects** — frontmatter `modified` when set, otherwise the original `date`
   - **Listing pages** (`/`, `/articles/`, `/projects/`, `/certificates/`) — derived from the newest entry each one lists, so they stay fresh automatically as content is added
   - **Static pages** — the explicit `lastModified` in `sitePageMetadata`; bump it by hand when editing one
+  - **Drafts** are skipped, so an unpublished entry never makes a listing page look fresher than it is
+- **Only `lastmod`**: no `changefreq` or `priority` — Google and Bing ignore both. Only the `xhtml` namespace (for the hreflang alternates) is declared; the plugin's default `image`, `news` and `video` namespaces are switched off
 - **Exclusions**: the `filter` in `astro.config.mjs` drops every route in `noIndexRoutes` (the legal pages), so the sitemap never advertises a URL that is served `noindex`
-- **robots.txt**: `public/robots.txt` — carries the crawl rules, the IETF AIPREF **Content Signals** declaration, the `License:` directive pointing at `/rsl.xml`, and the sitemap references
+- **robots.txt**: `public/robots.txt` — carries the crawl rules, the IETF AIPREF **Content Signals** declaration, the `License:` directive pointing at `/rsl.xml`, and a single `Sitemap:` line for the index (which lists every sitemap file)
+- **Viewing it in a browser**: Chrome shows the sitemap as run-together text, because the hreflang `xhtml:link` elements switch off Chrome's XML tree view. Crawlers read the raw XML and are unaffected; use View Source to read it. Don't add an XSL stylesheet for this — [Chrome removes XSLT in Chrome 155](https://developer.chrome.com/docs/web-platform/deprecating-xslt) (17 Nov 2026)
 - **Sitemap link**: Added to `<head>` for discovery
 
 ### Featured Thumbnail Images
@@ -550,6 +557,8 @@ src/content/projects/my-project/
 ```
 
 The `prebuild` script (`scripts/copy-featured-images.mjs`) copies these to `public/articles/` and `public/projects/` during build. These folders are gitignored since the images are regenerated.
+
+An entry **without** a `featured.png` (and no `image` in its frontmatter) falls back to the site thumbnail, `/website-thumbnail.png`, so it never advertises a 404 as its og:image or JSON-LD image. Pages are prerendered in `workerd`, which cannot read the filesystem, so `astro.config.mjs` lists the existing images in Node and injects them as `__FEATURED_IMAGES__` for `getContentImagePath()`. The build prints a `[featured-images]` warning naming every published entry that is using the fallback.
 
 ### Code Syntax Highlighting
 
@@ -781,7 +790,7 @@ requests are diverted to asset serving and hit `404.html` instead.
 
 - **Two independent layers.** Language lives in the URL (`/es/…`) and is resolved by Astro's i18n routing; the regional accent lives in `<html data-region>` and never touches the URL. Madrid and Mexico City therefore share `/es/` but not the palette
 - **hreflang** is emitted on the five localized landing routes only — each cluster is bidirectional, self-referencing, and carries a single `x-default` pointing at `/`. Pages with no translation (articles, projects, legal) advertise no alternates, because claiming a `/es/` copy that does not exist is worse than staying silent. The language picker's own links and the sitemap's `xhtml:link` alternates use the same BCP-47 tags as the alternate graph (`en`, `es`, `de`, `it`, `zh-Hans` — `HTML_LANG` in `src/i18n/utils.ts`), so none of them disagree
-- **`inLanguage`** is set on every JSON-LD block so the structured data agrees with the hreflang cluster it sits in
+- **`inLanguage`** is set on every page-level JSON-LD block so the structured data agrees with the hreflang cluster it sits in. On the homepage it sits on the `ProfilePage`, not the `Person`, where it is not a valid property
 - **Locale-sticky navigation**: pages without a localized variant are served from English URLs, so a visitor who followed the footer out of `/zh/` would otherwise find every nav link pointing back into the English tree. A small script re-points `a[data-nav-path]` hrefs — never labels, so nothing flashes and the page is not mislabelled. Crawlers have no preference cookie and always receive the plain English URLs; the HTML is byte-identical for everyone
 - **When the flag is on**, `/` is served `private, no-cache, must-revalidate` — deliberately not `no-store`, which is a hard back/forward-cache blocker in Chrome and would make every "back" to the homepage pay a full round trip. `no-cache` still keeps the personalized response out of shared caches, and `Vary: Accept-Language, Cookie` records what it varies on. In the default state `/` is an ordinary static asset and gets the same `public, max-age=0, must-revalidate` as every other page
 
@@ -871,7 +880,7 @@ their own copies:
 | `src/i18n/ui.ts` | add/remove the entry in `languages` and its block in `ui` |
 | `src/i18n/utils.ts` | add/remove the `HTML_LANG` and `OG_LOCALE` entries |
 | `src/i18n/regions.ts` | `LANG_HOME_REGION`, and point that language's countries somewhere in `COUNTRY_TO_LANG` |
-| `astro.config.mjs` | `i18n.locales` **and** the sitemap integration's `i18n.locales` |
+| `astro.config.mjs` | the `locales` array (feeds `i18n.locales` and the localized sitemap `lastmod`s) **and** the sitemap integration's `i18n.locales` |
 | `src/pages/<code>/` | the four three-line route files |
 | `public/_headers` | the `/<code>/*` block |
 
@@ -900,7 +909,6 @@ The picker, the hreflang graph, the 404's embedded strings and `LANGS` all deriv
 - **`wrangler.jsonc` still does not need `main` or `assets.directory`.** The adapter (via `@cloudflare/vite-plugin`) resolves both and writes `dist/client/wrangler.json` when the build is assets-only, or `dist/server/wrangler.json` when a Worker entry exists; `.wrangler/deploy/config.json` redirects Wrangler to whichever applies. Wrangler prints `Using redirected Wrangler configuration` to confirm
 - **Markdown**: Astro 7 makes [Sätteri](https://satteri.bruits.org/) the default processor and no longer bundles `@astrojs/markdown-remark`. This site keeps the `unified()` pipeline for `rehype-external-links`, so `@astrojs/markdown-remark` is now an **explicit dependency** in `package.json`
 - The adapter's `platformProxy` option no longer exists in v14 (the Cloudflare Vite plugin provides the real `workerd` runtime in dev) and has been removed from `astro.config.mjs`
-- `astro.config.mjs` imports `ChangeFreqEnum` from `@astrojs/sitemap` rather than reaching into the transitive `sitemap` package, so every import resolves to a declared dependency
 - `npm run dev` runs against Cloudflare's local `workerd` runtime, so development behavior is closer to production than in older Astro versions
 - Tailwind is wired through the `@tailwindcss/vite` plugin in `astro.config.mjs`; this project no longer uses the deprecated `@astrojs/tailwind` integration
 - Tailwind's CSS entrypoint is `src/styles/global.css`, which uses `@import "tailwindcss"` and explicitly loads `tailwind.config.mjs` with `@config`
@@ -1035,7 +1043,7 @@ single value.
 ### Robots & Indexing
 
 - **Default**: All pages have `<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">` for full search engine indexing
-- **noIndex option**: Pages passing `noIndex={true}` to `BaseLayout` get `noindex, nofollow` instead
+- **noIndex option**: Pages passing `noIndex={true}` to `BaseLayout` get `noindex, nofollow` instead, and no `<link rel="canonical">` — a canonical says "index this URL", which contradicts `noindex` (and the 404 page's own URL redirects)
 - **Legal pages**: `/ai-licensing-terms/`, `/disclaimer/`, and `/imprint/` are kept out of search results by three agreeing mechanisms — the `noIndex` prop, an `X-Robots-Tag: noindex, nofollow` header in `public/_headers`, and exclusion from the sitemap
 - **Preview URLs**: no `X-Robots-Tag` rule is active; see **Static Asset Headers** above for why, and for the two ways to close it
 

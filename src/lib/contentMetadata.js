@@ -30,15 +30,26 @@ export const noIndexRoutes = new Set([
 ]);
 
 /**
- * Return the explicit image when provided, otherwise use the conventional
- * featured image path copied into public/ during prebuild.
+ * Return the explicit image when provided, otherwise the conventional featured
+ * image copied into public/ during prebuild — but only if that file exists.
+ * Without the check, an entry with no featured.png advertises a 404 as its
+ * og:image, twitter:image and JSON-LD image, so `fallbackImage` is used instead.
+ *
+ * Pages are prerendered in workerd, which cannot read the filesystem, so the
+ * existing images are injected at build time as `__FEATURED_IMAGES__` by
+ * astro.config.mjs (from `listFeaturedImages()` below).
  *
  * @param {ContentKind} contentKind
  * @param {string} slug
  * @param {string | undefined} explicitImage
+ * @param {string} fallbackImage
  */
-export function getContentImagePath(contentKind, slug, explicitImage) {
-  return explicitImage || `/${contentKind}/${slug}/featured.png`;
+export function getContentImagePath(contentKind, slug, explicitImage, fallbackImage) {
+  if (explicitImage) {
+    return explicitImage;
+  }
+  const featuredImage = `/${contentKind}/${slug}/featured.png`;
+  return __FEATURED_IMAGES__.includes(featuredImage) ? featuredImage : fallbackImage;
 }
 
 /**
@@ -52,6 +63,23 @@ export function getEffectiveModifiedTime(entryData) {
 }
 
 /**
+ * Featured images that exist on disk, as the public paths the prebuild script
+ * copies them to, plus the published entries that have none. Node-only;
+ * astro.config.mjs injects `paths` as `__FEATURED_IMAGES__` and logs `missing`.
+ */
+export async function listFeaturedImages() {
+  const { entries } = await readContentEntries();
+  return {
+    paths: entries
+      .filter((entry) => entry.hasFeaturedImage)
+      .map((entry) => `/${entry.contentKind}/${entry.slug}/featured.png`),
+    missing: entries
+      .filter((entry) => !entry.hasFeaturedImage && !entry.draft)
+      .map((entry) => `${entry.contentKind}/${entry.slug}`),
+  };
+}
+
+/**
  * Build a URL -> lastmod map for sitemap serialization using content
  * frontmatter and explicitly versioned static pages.
  *
@@ -59,49 +87,27 @@ export function getEffectiveModifiedTime(entryData) {
  * dependencies so page-level imports of this module stay runtime-safe.
  *
  * @param {string} siteUrl
+ * @param {{ locales: string[], defaultLocale: string }} i18n
  */
-export async function buildSitemapLastmodMap(siteUrl) {
-  const [{ existsSync, readdirSync, readFileSync }, { join }, { fileURLToPath }] = await Promise.all([
-    import('node:fs'),
-    import('node:path'),
-    import('node:url'),
-  ]);
-
-  const projectRoot = fileURLToPath(new URL('../..', import.meta.url));
-  const contentRoot = join(projectRoot, 'src', 'content');
+export async function buildSitemapLastmodMap(siteUrl, { locales, defaultLocale }) {
+  const { entries, projectRoot, existsSync, readFileSync, join } = await readContentEntries();
   const lastmodMap = new Map();
   /** @type {Map<ContentKind, Date>} */
   const newestByKind = new Map();
 
-  for (const contentKind of /** @type {ContentKind[]} */ (['articles', 'projects'])) {
-    const contentDir = join(contentRoot, contentKind);
-    if (!existsSync(contentDir)) {
+  for (const { contentKind, slug, date, modified, draft } of entries) {
+    // Drafts are never built, so they must not set a listing page's freshness.
+    if (draft || !date) {
       continue;
     }
 
-    const slugs = readdirSync(contentDir, { withFileTypes: true })
-      .filter((dirent) => dirent.isDirectory())
-      .map((dirent) => dirent.name);
+    const effectiveDate = getEffectiveModifiedTime({ date, modified });
+    const route = `/${contentKind}/${slug}/`;
+    lastmodMap.set(new URL(route, siteUrl).toString(), effectiveDate.toISOString());
 
-    for (const slug of slugs) {
-      const indexFile = getContentIndexFile(join, contentDir, slug, existsSync);
-      if (!indexFile) {
-        continue;
-      }
-
-      const dates = readFrontmatterDates(readFileSync, indexFile);
-      if (!dates.date) {
-        continue;
-      }
-
-      const effectiveDate = getEffectiveModifiedTime(dates);
-      const route = `/${contentKind}/${slug}/`;
-      lastmodMap.set(new URL(route, siteUrl).toString(), effectiveDate.toISOString());
-
-      const currentNewest = newestByKind.get(contentKind);
-      if (!currentNewest || effectiveDate > currentNewest) {
-        newestByKind.set(contentKind, effectiveDate);
-      }
+    const currentNewest = newestByKind.get(contentKind);
+    if (!currentNewest || effectiveDate > currentNewest) {
+      newestByKind.set(contentKind, effectiveDate);
     }
   }
 
@@ -120,7 +126,7 @@ export async function buildSitemapLastmodMap(siteUrl) {
   // Localized copies of the listing pages are the same content in another
   // language, so they share their English original's freshness. Without this
   // the localized routes ship with no `lastmod` at all.
-  const localePrefixes = ['', '/es', '/de', '/fr', '/pt', '/it', '/zh'];
+  const localePrefixes = locales.map((code) => (code === defaultLocale ? '' : `/${code}`));
 
   for (const [route, lastmod] of listingLastmods) {
     if (!lastmod) {
@@ -144,6 +150,53 @@ export async function buildSitemapLastmodMap(siteUrl) {
 }
 
 /**
+ * Every article and project as its frontmatter on disk. Node-only: the
+ * filesystem modules are imported lazily so page-level imports of this module
+ * stay runtime-safe.
+ */
+async function readContentEntries() {
+  const [{ existsSync, readdirSync, readFileSync }, { join }, { fileURLToPath }] = await Promise.all([
+    import('node:fs'),
+    import('node:path'),
+    import('node:url'),
+  ]);
+
+  const projectRoot = fileURLToPath(new URL('../..', import.meta.url));
+  const contentRoot = join(projectRoot, 'src', 'content');
+  const entries = [];
+
+  for (const contentKind of /** @type {ContentKind[]} */ (['articles', 'projects'])) {
+    const contentDir = join(contentRoot, contentKind);
+    if (!existsSync(contentDir)) {
+      continue;
+    }
+
+    const slugs = readdirSync(contentDir, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
+
+    for (const slug of slugs) {
+      const indexFile = getContentIndexFile(join, contentDir, slug, existsSync);
+      if (!indexFile) {
+        continue;
+      }
+
+      const frontmatter = readFrontmatter(readFileSync, indexFile);
+      entries.push({
+        contentKind,
+        slug,
+        date: parseFrontmatterDate(frontmatter, 'date'),
+        modified: parseFrontmatterDate(frontmatter, 'modified'),
+        draft: /^draft:\s*true\b/m.test(frontmatter),
+        hasFeaturedImage: existsSync(join(contentDir, slug, 'featured.png')),
+      });
+    }
+  }
+
+  return { entries, projectRoot, existsSync, readFileSync, join };
+}
+
+/**
  * @param {(a: string, b: string) => string} join
  * @param {string} contentDir
  * @param {string} slug
@@ -161,18 +214,6 @@ function getContentIndexFile(join, contentDir, slug, existsSync) {
   }
 
   return undefined;
-}
-
-/**
- * @param {(path: string, encoding: string) => string} readFileSync
- * @param {string} filePath
- */
-function readFrontmatterDates(readFileSync, filePath) {
-  const frontmatter = readFrontmatter(readFileSync, filePath);
-  return {
-    date: parseFrontmatterDate(frontmatter, 'date'),
-    modified: parseFrontmatterDate(frontmatter, 'modified'),
-  };
 }
 
 /**

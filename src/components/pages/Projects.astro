@@ -4,6 +4,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ProjectCard from '../ProjectCard.astro';
 import { siteConfig } from '../../config/site';
 import { getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
+import { projectSameAs } from '../../lib/structuredData';
 import { localeFrom, useTranslations, HTML_LANG } from '../../i18n/utils';
 
 // Resolved from the URL, so it must precede any schema that reads it.
@@ -50,8 +51,7 @@ const collectionJsonLd = {
         dateCreated: p.data.date.toISOString(),
         dateModified: getEffectiveModifiedTime(p.data).toISOString(),
         ...(p.data.status && { creativeWorkStatus: p.data.status }),
-        ...(p.data.github && { codeRepository: p.data.github }),
-        ...(p.data.website && { mainEntityOfPage: p.data.website }),
+        sameAs: projectSameAs(p.data.website, p.data.github),
       },
     })),
   },

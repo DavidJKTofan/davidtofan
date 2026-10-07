@@ -2,11 +2,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
-import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
+import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeExternalLinks from 'rehype-external-links';
 import { unified } from '@astrojs/markdown-remark';
-import { buildSitemapLastmodMap, noIndexRoutes } from './src/lib/contentMetadata.js';
+import { buildSitemapLastmodMap, listFeaturedImages, noIndexRoutes } from './src/lib/contentMetadata.js';
 
 /**
  * Feature flag: geolocation-based personalization.
@@ -145,7 +145,17 @@ function rehypeScrollableTables() {
 }
 
 const siteUrl = 'https://davidtofan.com';
-const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl);
+const defaultLocale = 'en';
+const locales = ['en', 'es', 'de', 'it', 'zh'];
+const sitemapLastmodMap = await buildSitemapLastmodMap(siteUrl, { locales, defaultLocale });
+
+// Read here, in Node, because pages are prerendered in workerd and cannot
+// check the filesystem themselves. Entries without a featured.png fall back to
+// the site thumbnail for og:image and the JSON-LD image (getContentImagePath).
+const featuredImages = await listFeaturedImages();
+if (featuredImages.missing.length > 0) {
+  console.warn(`[featured-images] no featured.png, using the site thumbnail: ${featuredImages.missing.join(', ')}`);
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -168,8 +178,8 @@ export default defineConfig({
   // generate a localized copy of every article and project route in all seven
   // locales. The localized surface is the five landing routes, by design.
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es', 'de', 'it', 'zh'],
+    defaultLocale,
+    locales,
     routing: {
       prefixDefaultLocale: false,
     },
@@ -232,46 +242,22 @@ export default defineConfig({
       // treats sitemap and HTML hreflang as equivalent signals, so the two must
       // not disagree (this previously said en-US while the HTML said en).
       i18n: {
-        defaultLocale: 'en',
+        defaultLocale,
         locales: { en: 'en', es: 'es', de: 'de', it: 'it', zh: 'zh-Hans' },
       },
       // Legal pages are served with `noindex, nofollow` (meta tag + X-Robots-Tag),
       // so listing them here would tell crawlers to index what the page itself
       // forbids. Keep the sitemap and the robots directives in agreement.
       filter: (page) => !noIndexRoutes.has(new URL(page).pathname),
-      // Default change frequency for all pages
-      changefreq: ChangeFreqEnum.MONTHLY,
-      // Default priority
-      priority: 0.7,
-      // Customize individual pages
+      // Only the xhtml namespace is used (for the hreflang alternates above);
+      // the image, news and video namespaces are on by default but empty here.
+      namespaces: { news: false, image: false, video: false },
+      // Only `lastmod` is emitted. Google and Bing ignore `changefreq` and
+      // `priority`, so they are deliberately not set.
       serialize(item) {
-        const itemUrl = item.url.toString();
-        const lastmod = sitemapLastmodMap.get(itemUrl);
+        const lastmod = sitemapLastmodMap.get(item.url.toString());
         if (lastmod) {
           item.lastmod = lastmod;
-        }
-
-        // Higher priority for main pages
-        if (itemUrl === `${siteUrl}/`) {
-          item.changefreq = ChangeFreqEnum.YEARLY;
-          item.priority = 1.0;
-        }
-        // Articles section
-        if (itemUrl.includes('/articles/') && itemUrl !== `${siteUrl}/articles/`) {
-          item.changefreq = ChangeFreqEnum.MONTHLY;
-          item.priority = 0.8;
-        }
-        // Projects section
-        if (itemUrl.includes('/projects/') && itemUrl !== `${siteUrl}/projects/`) {
-          item.changefreq = ChangeFreqEnum.YEARLY;
-          item.priority = 0.6;
-        }
-        // Index pages
-        if (itemUrl === `${siteUrl}/articles/` || 
-            itemUrl === `${siteUrl}/projects/` ||
-            itemUrl === `${siteUrl}/certificates/`) {
-          item.changefreq = ChangeFreqEnum.YEARLY;
-          item.priority = 0.9;
         }
         return item;
       },
@@ -312,6 +298,7 @@ export default defineConfig({
       // Substituted as a literal, so `export const prerender = !__GEO_PERSONALIZATION__`
       // is statically analyzable and the unused branch is dropped from the bundle.
       __GEO_PERSONALIZATION__: JSON.stringify(GEO_PERSONALIZATION),
+      __FEATURED_IMAGES__: JSON.stringify(featuredImages.paths),
     },
   },
 });

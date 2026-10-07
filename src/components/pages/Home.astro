@@ -1,14 +1,15 @@
 ---
 import { getCollection } from 'astro:content';
-import { getRelativeLocaleUrl } from 'astro:i18n';
+import { getAbsoluteLocaleUrl, getRelativeLocaleUrl } from 'astro:i18n';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../ArticleCard.astro';
 import ProjectCard from '../ProjectCard.astro';
 import LocaleOffer from '../LocaleOffer.astro';
 import { siteConfig } from '../../config/site';
 import { calculateReadingTime } from '../../lib/readingTime';
-import { localeFrom, useTranslations } from '../../i18n/utils';
+import { localeFrom, useTranslations, HTML_LANG } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
+import { profilePageSchema, websiteSchema } from '../../lib/structuredData';
 
 interface Props {
   /** Language to offer switching to, rendered only on the on-demand `/`. */
@@ -34,6 +35,18 @@ const featuredProjects = projects
   .filter((p) => p.data.featured)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
+
+// JSON-LD: the homepage is a ProfilePage about the author, plus the WebSite
+// node Google reads for the site name.
+const homeStructuredData = [
+  profilePageSchema({
+    url: getAbsoluteLocaleUrl(lang, ''),
+    name: t('meta.home.title'),
+    description: t('meta.home.description'),
+    lang: HTML_LANG[lang],
+  }),
+  websiteSchema,
+];
 ---
 
 
@@ -41,6 +54,7 @@ const featuredProjects = projects
   title={t('meta.home.title')}
   description={t('meta.home.description')}
   image={siteConfig.ogImage}
+  structuredData={homeStructuredData}
 >
   {/* Rendered only when there is an offer, so its script ships only then. */}
   {offerLang && <LocaleOffer offerLang={offerLang} />}

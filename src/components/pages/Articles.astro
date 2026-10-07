@@ -6,6 +6,7 @@ import ArticleCard from '../ArticleCard.astro';
 import { calculateReadingTime } from '../../lib/readingTime';
 import { siteConfig } from '../../config/site';
 import { getEffectiveModifiedTime } from '../../lib/contentMetadata.js';
+import { authorSchema } from '../../lib/structuredData';
 
 // Resolved from the URL, so it must precede any schema that reads it.
 const lang = localeFrom(Astro.currentLocale);
@@ -34,11 +35,7 @@ const blogJsonLd = {
   name: 'Articles — David Tofan',
   description: 'Technical articles on cybersecurity, cloud architecture, and web development.',
   url: `${siteConfig.url}/articles/`,
-  author: {
-    '@type': 'Person',
-    name: siteConfig.author.name,
-    url: siteConfig.url,
-  },
+  author: authorSchema,
   blogPost: sortedArticles.map((a) => ({
     '@type': 'BlogPosting',
     headline: a.data.title,

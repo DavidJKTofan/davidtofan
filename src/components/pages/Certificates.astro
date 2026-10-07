@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import CertificateCard from '../CertificateCard.astro';
 import certificatesData from '../../data/certificates.json';
 import type { Certificate } from '../../types';
-import { groupByCategory, sortCategories, calculateYearsLearning } from '../../lib/certificates';
+import { groupByCategory, sortCategories, calculateYearsLearning, toIsoMonth } from '../../lib/certificates';
 import { siteConfig } from '../../config/site';
 import { localeFrom, useTranslations, HTML_LANG } from '../../i18n/utils';
 
@@ -37,7 +37,7 @@ const certificatesJsonLd = {
         '@type': 'EducationalOccupationalCredential',
         name: cert.name,
         url: cert.link,
-        dateCreated: cert.date,
+        dateCreated: toIsoMonth(cert.date),
         credentialCategory: cert.category,
         recognizedBy: {
           '@type': 'Organization',

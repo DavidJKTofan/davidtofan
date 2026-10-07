@@ -31,7 +31,7 @@ const description = data?.description ?? 'A practitioner\'s interactive walkthro
 const date = data?.date ?? new Date('2026-04-17');
 const modified = data?.modified;
 const tags = data?.tags ?? ['artificial intelligence', 'developers', 'cloudflare'];
-const articleImage = getContentImagePath('articles', 'ai-agent-ready-website-cloudflare-guide', data?.image);
+const articleImage = getContentImagePath('articles', 'ai-agent-ready-website-cloudflare-guide', data?.image, siteConfig.ogImage);
 const articleUpdatedAt = getEffectiveModifiedTime({ date, modified });
 
 const formattedDate = new Intl.DateTimeFormat('en-US', {

@@ -57,5 +57,5 @@ Allow: /cdn-cgi/image/
 # RSL 1.0 doc:   https://davidtofan.com/rsl.xml  (spec: https://rslstandard.org/rsl)
 License: https://davidtofan.com/rsl.xml
 
+# The index lists every sitemap file, so it is the only one declared here.
 Sitemap: https://davidtofan.com/sitemap-index.xml
-Sitemap: https://davidtofan.com/sitemap-0.xml
