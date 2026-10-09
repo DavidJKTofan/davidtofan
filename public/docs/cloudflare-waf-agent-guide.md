@@ -1,6 +1,6 @@
 # Cloudflare WAF Review Playbook for AI Agents
 
-**Version:** 2026-10-03 · **Latest:** https://davidtofan.com/docs/cloudflare-waf-agent-guide.md · **Companion article:** [General Application Security Recommendations](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/) ([Markdown](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/index.md))
+**Version:** 2026-10-09 · **Latest:** https://davidtofan.com/docs/cloudflare-waf-agent-guide.md · **Companion article:** [General Application Security Recommendations](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/) ([Markdown](https://davidtofan.com/articles/cloudflare-l7-security-recommendations/index.md))
 
 This file is for an AI agent such as Claude Code, Codex, Cursor or OpenCode. It tells the agent how to review, improve and optimize the Cloudflare WAF security rules of an account and its zones through the Cloudflare API:
 
@@ -141,8 +141,12 @@ Record each zone's plan (`plan.legacy_id`: `free`, `pro`, `business` or `enterpr
 | Bot protection without Bot Management | Bot Fight Mode (cannot be skipped) | Super Bot Fight Mode | Super Bot Fight Mode | Super Bot Fight Mode |
 | Malicious uploads detection | No | No | No | Paid add-on |
 | AI Security for Apps (`cf.llm.*`) | No | No | No | Yes |
+| Application Profiles (`cf.schema_validation.*`) | No | No | No | API Security customers, plus a closed beta for invited Enterprise customers |
+| Failed detections field (`cf.appsec.request.failed_detections`) | Yes | Yes | Yes | Yes |
 | IP Access rules: block by country | No | No | No | Yes |
 | Security Events dashboard | Sampled logs only | All features | All features | All features |
+
+The failed detections field works on every plan, but it only reports detections that the plan includes. Cloudflare's [AI-era framework post](https://blog.cloudflare.com/ai-era-framework/) (2026-09-29) says attack score is available to all customers. The attack score documentation still listed Business and Enterprise on 2026-10-09, so confirm with a dry run.
 
 Threat intelligence fields (`cf.intel.ip.*`) need an active [Cloudforce One](https://developers.cloudflare.com/security-center/cloudforce-one/) subscription.
 
@@ -219,6 +223,10 @@ Datasets and useful dimensions. Availability depends on the plan, so check `avai
 - Answer probe paths (`/wp-admin`, `.php` on non-PHP sites) with a *Block* and a 404, not a challenge.
 - Only challenge navigations. Challenges can't render on sub-resources, APIs or XHR.
 - If the rule quota is tight, merge rules that share the same action, action parameters and purpose.
+- Decide how rules handle **failed detections**. Rules built on attack score, leaked credentials, content scanning, attack signatures or AI Security for Apps only work if the detection produced a result.
+  - Log `len(cf.appsec.request.failed_detections) gt 0` first, to see how often it happens.
+  - Then, on sensitive endpoints, fail closed for the detections a rule relies on, for example `any(cf.appsec.request.failed_detections[*] in {"waf_credential_check" "waf_score"})` on login `POST`s.
+- Where Application Profiles exist, propose positive security. Review *Profile Analysis* in Security Analytics first, then enforce `cf.schema_validation.learned.violated` narrowly per host and path. Combine it with other signals if needed, for example `and cf.waf.score lt 20`.
 - Propose migrating IP Access rules, Zone Lockdown and User Agent Blocking rules to custom rules with lists, as Cloudflare recommends. Replace an IP Access *Allow* with a narrow *Skip*. Keep in mind that *Skip* bypasses less than *Allow* does.
 - Skip rules log every match to Security Events by default. For a high-volume, well-understood skip, `logging: { "enabled": false }` reduces noise, but it also removes visibility. Ask the user first.
 
@@ -251,6 +259,7 @@ Datasets and useful dimensions. Availability depends on the plan, so check `avai
 - The origin only accepts traffic from Cloudflare, so the WAF can't be bypassed by going straight to the origin IP.
 - No IP Access *Allow* entry and no broad skip rule exempts the attack traffic.
 - No managed-rule exception is broader than the false positive it was written for.
+- Rules that depend on a detection have a plan for requests where that detection failed (`cf.appsec.request.failed_detections`).
 
 ### Step 7: Change plan and approval
 
@@ -290,6 +299,24 @@ Present one table and wait for approval:
 - Run safe live tests with `curl`. Your own client may get challenged because of a low bot score, so interpret results accordingly.
 - Check Security Events. Expect a few minutes of ingestion delay.
 - Report back: what changed, the rollback versions, and follow-ups with dates. For example: "Review the Log events of rule X around YYYY-MM-DD, then switch it to Block."
+
+### After the review: investigate, respond and learn
+
+The review above is a snapshot. Cloudflare's [AI-era framework](https://blog.cloudflare.com/ai-era-framework/) ends with a continuous stage: investigate, respond and learn. It correlates sequences of events rather than judging alerts one by one, and it turns every investigation into stronger protection. When the user asks for an investigation, follow the same rules of engagement:
+
+1. **Investigate.**
+   - Pull Security Events and request analytics for the time window, with GraphQL (`firewallEventsAdaptive`, `httpRequestsAdaptiveGroups`) or the SQL API.
+   - Correlate the events by client IP, ASN, JA4, path and time, and group them into campaigns.
+   - Follow individual requests by Ray ID in Cloudflare Traces, where enabled.
+   - Add context with Radar (`GET /radar/entities/ip`, `GET /radar/entities/asns/{asn}`), and with threat intelligence fields where available.
+   - Check the audit logs (`GET /accounts/<account_id>/logs/audit`) for configuration changes in the same window.
+2. **Respond.** Propose the narrowest mitigation that works: a custom rule, rate limiting rule, managed rule override or exception, or a list entry. Include the evidence, dry-run it, and apply it only after approval, in *Log* first where the plan allows.
+3. **Learn.**
+   - Replace temporary rules with permanent ones, and add narrow exceptions for confirmed false positives.
+   - Record the lessons in the user's instructions file (`AGENTS.md`, `CLAUDE.md`) or their copy of this playbook.
+   - Agree on a date for the next review.
+
+The Radar MCP server (`https://radar.mcp.cloudflare.com/mcp`) and the Audit Logs MCP server (`https://auditlogs.mcp.cloudflare.com/mcp`) are optional alternatives to calling those APIs through `cloudflare-api`.
 
 ---
 
@@ -378,6 +405,15 @@ Check these against the [fields](https://developers.cloudflare.com/ruleset-engin
   - All fields are arrays, so use `any(...[*])`. Values are case-sensitive.
   - They reflect the last 7 days of activity for the client IP. Values from different threat events are flattened together, so combining two fields can match more broadly than expected.
   - IPs are often shared (NAT, proxies, cloud providers). Start in *Log* and combine them with other signals, such as attack score.
+- `cf.appsec.request.failed_detections` ([docs](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.appsec.request.failed_detections/index.md), 2026-10-09):
+  - It is an `Array<String>` of detection IDs that reported a failure before custom rules ran: `waf_content_scan`, `waf_score`, `waf_signature`, `waf_credential_check`, `llm_prompt_pii`, `llm_prompt_injection`, `llm_prompt_custom_topic`, `llm_prompt_unsafe_topic`.
+  - It is `[]` when nothing failed. Duplicates are removed and the order isn't guaranteed.
+  - It can be used in zone and account custom rules and rate limiting rules, and in zone Request Header Transform Rules, for example `join(cf.appsec.request.failed_detections, ",")` to tell the origin.
+  - It doesn't change how detections behave.
+- Application Profiles ([docs](https://developers.cloudflare.com/waf/detections/application-profiles/index.md)):
+  - Fields: `cf.schema_validation.learned.violated` and `cf.schema_validation.uploaded.violated` (Boolean), plus `cf.schema_validation.{learned|uploaded}.{path|query|headers|cookies|body}.violated_parameters` and `.query.undeclared_parameters` (arrays). Only custom rules can use them, and only the `violated` fields appear in Security Analytics.
+  - A profile is learned weekly for the operations you select. An operation needs at least 1,000 requests with a `2xx` response in 7 days to learn fields, and 10,000 to learn value boundaries. Bots and scanners can be part of that traffic, so review a profile before enforcing it.
+  - Not supported: multipart forms, GraphQL and XML. Requests to operations without a profile are not classified.
 - Attack Signature Detection (Early Access) records signature matches as metadata, without acting. Its signature Ref equals the corresponding managed rule ID.
 
 **Custom block responses**
@@ -555,7 +591,9 @@ These are defaults. Ask the user whether they have their own conventions, and fo
 
 **Rulesets API:** [Dry run](https://developers.cloudflare.com/ruleset-engine/rulesets-api/dry-run/index.md) · [Add rules to a ruleset](https://developers.cloudflare.com/ruleset-engine/custom-rulesets/add-rules-ruleset/index.md) · [Phases list](https://developers.cloudflare.com/ruleset-engine/reference/phases-list/index.md)
 
-**WAF overview:** [Concepts and rule execution order](https://developers.cloudflare.com/waf/concepts/index.md) · [Security features interoperability](https://developers.cloudflare.com/waf/feature-interoperability/index.md) · [Rule phase interactions](https://developers.cloudflare.com/waf/troubleshooting/phase-interactions/index.md) · [Traffic detections](https://developers.cloudflare.com/waf/detections/index.md) · [Threat intelligence](https://developers.cloudflare.com/waf/detections/threat-intelligence/index.md) · [WAF FAQ](https://developers.cloudflare.com/waf/troubleshooting/faq/index.md)
+**Framework:** [Adaptive application security for the AI era](https://blog.cloudflare.com/ai-era-framework/) · [Application Profiles (blog)](https://blog.cloudflare.com/application-profiles/) · [Failed detections (changelog)](https://developers.cloudflare.com/changelog/post/2026-10-09-failed-detections/index.md)
+
+**WAF overview:** [Concepts and rule execution order](https://developers.cloudflare.com/waf/concepts/index.md) · [Security features interoperability](https://developers.cloudflare.com/waf/feature-interoperability/index.md) · [Rule phase interactions](https://developers.cloudflare.com/waf/troubleshooting/phase-interactions/index.md) · [Traffic detections](https://developers.cloudflare.com/waf/detections/index.md) · [Application Profiles](https://developers.cloudflare.com/waf/detections/application-profiles/index.md) · [Failed detections field](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.appsec.request.failed_detections/index.md) · [Threat intelligence](https://developers.cloudflare.com/waf/detections/threat-intelligence/index.md) · [WAF FAQ](https://developers.cloudflare.com/waf/troubleshooting/faq/index.md)
 
 **Custom rules:** [Availability](https://developers.cloudflare.com/waf/custom-rules/index.md) · [Skip options](https://developers.cloudflare.com/waf/custom-rules/skip/options/index.md) · [Zone custom rulesets](https://developers.cloudflare.com/waf/custom-rules/custom-rulesets/index.md) · [Account custom rulesets](https://developers.cloudflare.com/waf/account/custom-rulesets/index.md) · [Use cases](https://developers.cloudflare.com/waf/custom-rules/use-cases/index.md)
 

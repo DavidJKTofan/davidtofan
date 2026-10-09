@@ -1,7 +1,7 @@
 ---
 title: General Application Security Recommendations
 date: 2024-09-08
-modified: 2026-10-03
+modified: 2026-10-09
 description: "This guide provides non-exhaustive recommendations and general best practices to achieve a comprehensive L7 Application Security approach with Cloudflare."
 tags: ["application security", "cloudflare"]
 type: "article"
@@ -265,6 +265,22 @@ Expression Preview:
 
 References: [Add a fallthrough rule](https://developers.cloudflare.com/api-shield/security/schema-validation/#add-a-fallthrough-rule) and [Schema Validation](https://developers.cloudflare.com/api-shield/security/schema-validation/).
 
+#### Enforce a Positive Security Model with Application Profiles
+
+[Application Profiles](https://developers.cloudflare.com/waf/detections/application-profiles/) extend positive security from APIs to web applications. Cloudflare learns the expected structure of requests to the operations you select from your own traffic: path variables, query parameters, headers, cookies, and JSON or form-encoded bodies. For each field it learns the data type and constraints such as numeric ranges, string lengths, and character classes. An always-on detection then flags requests that do not conform. It never blocks on its own: review the results under _Profile Analysis_ in [Security Analytics](https://developers.cloudflare.com/waf/analytics/security-analytics/), then enforce with a Custom Rule, scoped to the hosts and paths you are confident about.
+
+Expression Preview:
+
+```text
+(cf.schema_validation.learned.violated and http.host eq "www.example.com" and starts_with(http.request.uri.path, "/shop/"))
+```
+
+Narrow enforcement further by combining it with other signals, for example `cf.schema_validation.learned.violated and cf.waf.score lt 20`, or target specific fields with `cf.schema_validation.learned.query.violated_parameters`.
+
+> _**Note**: customers with API Security already have access, since this extends Schema Learning and Schema Validation. Other Enterprise customers can ask their account team about the closed beta. Learning runs weekly, and an operation needs at least 1,000 requests with a `2xx` response in the previous seven days to learn fields (10,000 to learn value boundaries). Those requests can include bots and scanners, so review a learned profile before enforcing it. A non-conforming request is not necessarily malicious: a new release or client can change the request structure. Multipart forms, GraphQL, and XML are not supported yet._
+
+References: [Enforce profiles with Custom Rules](https://developers.cloudflare.com/waf/detections/application-profiles/enforce-profiles-with-custom-rules/), [Application Profile fields](https://developers.cloudflare.com/waf/detections/application-profiles/fields/) and [Enforce positive security with Cloudflare Application Profiles](https://blog.cloudflare.com/application-profiles/).
+
 #### Visibility into Non-expected Request Methods
 
 In some cases, you want to be specific about what type of HTTP Request Methods are allowed on certain endpoints or coming from specific requests, or even just logging relevant methods for visibility.
@@ -300,6 +316,26 @@ Expression Preview:
 Cloudflare recommends against blocking solely based on scores below `50`: block the _Attack_ range (scores `1`–`20`, as above, or a stricter threshold such as `lt 15`) and, if desired, apply a Managed Challenge to the _Likely attack_ range (`21`–`50`) only in combination with additional conditions, such as a specific URI path or the bot score.
 
 Reference: [WAF attack score](https://developers.cloudflare.com/waf/detections/attack-score/).
+
+#### Handle Failed Detections
+
+Rules built on detections, such as WAF Attack Score, leaked credentials detection, content scanning, attack signature detection, and AI Security for Apps, only work if the detection produced a result. The [`cf.appsec.request.failed_detections`](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.appsec.request.failed_detections/) field lists the detections that reported a failure for the request, so you can decide explicitly whether to let such requests through or not.
+
+Expression Preview (start with the Log action to see how often it happens):
+
+```text
+(len(cf.appsec.request.failed_detections) gt 0)
+```
+
+On sensitive endpoints, fail closed for the detections a rule relies on, for example on login requests whose leaked credentials check or attack score failed:
+
+```text
+(http.request.uri.path eq "/login" and http.request.method eq "POST" and any(cf.appsec.request.failed_detections[*] in {"waf_credential_check" "waf_score"}))
+```
+
+> _**Note**: the field is an array of detection IDs (`waf_content_scan`, `waf_score`, `waf_signature`, `waf_credential_check`, `llm_prompt_pii`, `llm_prompt_injection`, `llm_prompt_custom_topic`, `llm_prompt_unsafe_topic`), and `[]` when nothing failed. It is available on all plans in zone and account Custom Rules and Rate Limiting Rules, and in zone Request Header Transform Rules, for example to pass `join(cf.appsec.request.failed_detections, ",")` to your origin. It does not change how detections behave, and it does not unlock detections your plan does not include. Choose an action the client can handle; see [API / AJAX / XHR Requests](#api--ajax--xhr-requests)._
+
+References: [Failed detections field](https://developers.cloudflare.com/ruleset-engine/rules-language/fields/reference/cf.appsec.request.failed_detections/) and [changelog](https://developers.cloudflare.com/changelog/post/2026-10-09-failed-detections/).
 
 #### Mitigate known Open Proxies, Anonymizers, VPNs, Malware, and Botnets
 
@@ -967,6 +1003,23 @@ Do not change anything until I approve a written plan.
 > _**Note**: the agent proposes and you decide. Review every change in the plan, keep new broad rules in Log mode where your plan allows it, and keep the ruleset versions the agent reports for rollback. Adapt the playbook's conventions (rule naming, ordering, block responses) to your own._
 
 > _**Disclaimer**: the playbook is provided "as is", without warranty of any kind, for general educational purposes only. It is not affiliated with, endorsed by, or representative of Cloudflare or any other organization, and it is not professional security advice. AI agents can misread instructions, invent fields or values, and act on stale or incomplete data, so every change must be reviewed and approved by a qualified person who understands its impact on your traffic. By using the playbook, directly or through an AI agent, you accept full responsibility for any configuration applied to your Cloudflare account and for its consequences, including blocked legitimate traffic, outages, security gaps, data loss, and costs. The author accepts no liability for any damage, loss, or misconfiguration resulting from its use. Test changes on non-critical zones first. See also the [Disclaimer](#disclaimer) below._
+
+#### Investigate, Respond and Learn with Agents
+
+Cloudflare's [adaptive application security framework](https://blog.cloudflare.com/ai-era-framework/) connects four stages: discover and prioritize risks, govern access and agent behavior, protect applications at runtime, and investigate, respond and learn. Its key point for the last stage is to correlate sequences of events instead of judging alerts one by one, and to feed every investigation back into stronger protection. Cloudflare is building automated security operations for this. In the meantime, you can run a lightweight version with your own agent and the same MCP setup as above:
+
+- **Investigate.** Pull Security Events and request analytics for the incident window (GraphQL Analytics or the [SQL API](https://developers.cloudflare.com/analytics/sql-api/)) and correlate them by IP, ASN, JA4 fingerprint, path, and time. Follow individual requests by Ray ID with [Cloudflare Traces](https://developers.cloudflare.com/observability/traces/), add context from [Radar](https://developers.cloudflare.com/radar/) IP and ASN details, and check the [audit logs](https://developers.cloudflare.com/fundamentals/account/account-security/review-audit-logs/) for recent configuration changes. The Cloudflare API MCP server reaches all of these.
+- **Respond.** The agent proposes the narrowest mitigation that works (custom rule, rate limiting rule, managed rule override or exception), [dry-runs](#validate-rules-before-deploying-dry-run) it, and applies it only after your approval, in Log mode first where your plan allows it.
+- **Learn.** Replace temporary rules with permanent ones, add narrow exceptions for confirmed false positives, and record the lessons in your agent's instructions file (`AGENTS.md`, `CLAUDE.md`) or your copy of the playbook, so the next run starts from them. Repeat the review on a schedule.
+
+```text
+Using the Cloudflare MCP servers, investigate the last 24 hours of security events
+on zone example.com. Correlate them by client IP, ASN, JA4 and path, and summarize
+any campaign you find with its evidence. Propose mitigations, dry-run them, and
+apply nothing until I approve.
+```
+
+The guardrails and the disclaimer above apply to this workflow as well.
 
 ---
 
