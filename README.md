@@ -198,7 +198,9 @@ that changes runtime behavior — see [Compatibility date](#compatibility-date) 
 
 `compatibility_date` in `wrangler.jsonc` is pinned to the date implemented by the installed
 `workerd` (the version string `1.20260826.1` maps to `2026-08-26`), so `wrangler dev` and the
-deployed Worker agree. `npm run deps:check` prints both values when they drift.
+deployed Worker agree. `npm run deps:check` prints both values when they drift. Wrangler and the
+adapter's `@cloudflare/vite-plugin` can resolve different `workerd` versions (`npm ls workerd`);
+the script reads the hoisted one, so pin to the older of the two dates.
 
 Bump it deliberately, not automatically: read the
 [compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/)
@@ -226,7 +228,8 @@ npm i -D wrangler@latest      # Update to the latest version
 ```
 
 `@astrojs/cloudflare` v14 declares a peer dependency on `wrangler ^4.125.0`, so keep Wrangler
-at or above that when upgrading the adapter.
+at or above that when upgrading the adapter. From 14.4 the adapter also requires `astro ^7.4.0`,
+so upgrade the two together.
 
 ##### Astro
 
@@ -896,7 +899,7 @@ The picker, the hreflang graph, the 404's embedded strings and `LANGS` all deriv
 
 #### Astro 7 / Cloudflare Notes
 
-- Astro 7 requires Node `22.12.0+` and builds on Vite 8. `.nvmrc` pins Workers Builds to Node `24` — the build image's default, preinstalled. A `22.12.0` pin made the build install that version on every run and print `EBADENGINE` for `undici@8` (pulled in by Astro's font provider `unifont`), which needs Node `22.19.0+`
+- Astro 7 builds on Vite 8 and, from 7.4, requires Node `22.22.0+` (`engines.node` in `package.json`). `.nvmrc` pins Workers Builds to Node `24` — the build image's default, preinstalled. A `22.12.0` pin made the build install that version on every run and print `EBADENGINE` for `undici@8` (pulled in by Astro's font provider `unifont`), which needs Node `22.19.0+`
 - **Trailing slashes**: pages are built as `<route>/index.html`, and Workers Static Assets
   (`html_handling: "auto-trailing-slash"`) answers the slash-less URL with a `307`. Internal links
   and redirect destinations therefore always end in `/`; `npm run deps:update` warns if the build

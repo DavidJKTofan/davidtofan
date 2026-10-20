@@ -12,25 +12,25 @@
 		"deps:update": "bash scripts/update-deps.sh --apply"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "^14.3.3",
-		"@astrojs/markdown-remark": "^7.3.1",
+		"@astrojs/cloudflare": "^14.4.1",
+		"@astrojs/markdown-remark": "^7.3.3",
 		"@astrojs/sitemap": "^3.7.4",
 		"@tailwindcss/typography": "^0.5.20",
-		"astro": "^7.3.5",
+		"astro": "^7.4.1",
 		"rehype-external-links": "^3.0.0",
 		"tailwindcss": "^4.3.3"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.3.3",
-		"@types/node": "^26.6.2",
-		"wrangler": "^4.127.0"
+		"@types/node": "^26.6.5",
+		"wrangler": "^4.151.3"
 	},
 	"engines": {
-		"node": ">=22.12.0"
+		"node": ">=22.22.0"
 	},
 	"allowScripts": {
 		"esbuild@0.28.2": true,
-		"esbuild@0.28.1": true,
-		"workerd@1.20260923.1": true
+		"workerd@1.20261012.1": true,
+		"workerd@1.20261019.1": true
 	}
 }

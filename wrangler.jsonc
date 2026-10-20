@@ -12,10 +12,10 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "davidtofan-astro",
 	// Pinned to the compatibility date implemented by the installed workerd
-	// (node_modules/workerd -> 1.20260826.1), so `wrangler dev` locally and the
+	// (node_modules/workerd -> 1.20261012.1), so `wrangler dev` locally and the
 	// deployed Worker agree on runtime behavior. Bump this alongside Wrangler:
 	// `npm run deps:check` reports the newest date the installed runtime supports.
-	"compatibility_date": "2026-08-26",
+	"compatibility_date": "2026-10-12",
 	"compatibility_flags": [
 		// Redundant for compatibility dates >= 2026-08-04 (Workers enables
 		// nodejs_compat + nodejs_compat_v2 by default from that date; the tooling
