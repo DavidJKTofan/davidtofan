@@ -25,31 +25,25 @@ Discover some of my go-to services for everyday use and travel. Each one offers 
 
 ### Learning
 
-- **[Hack The Box (HTB)](https://referral.hackthebox.com/mzAeY4E)**: Hone your cybersecurity skills through interactive challenges and labs designed to simulate real-world hacking scenarios.
-
-- **[Coursera](https://fbuy.io/coursera/nydm7xgr)**: Access top-tier courses from leading universities and companies. Get your first month of Coursera Plus for just $1 (or equivalent) when signing up through this link (US, UK, and Canada only).
+- **[Hack The Box (HTB) Academy](https://referral.hackthebox.com/mzX8Huq)**: Hone your cybersecurity skills through interactive challenges and labs designed to simulate real-world hacking scenarios.
 
 ### Travel Must-Haves
 
-- **[Airalo](https://ref.airalo.com/BcKd)**: Stay connected on the go with affordable eSIM data packs available for nearly every country.
+- **[Airalo](https://airalo.go.link/dOg3x)**: Stay connected on the go with affordable eSIM data packs available for nearly every country.
 
 - **[Cabify](https://cabify.com/i/dwrnt5)**: Reliable transportation in Spain and select Latin American countries.
 
-- **[Uber](https://referrals.uber.com/refer?id=717xv3sbs966)**: Get rides on demand in major cities worldwide.
+- **[Uber](https://referrals.uber.com/refer?id=3u2f5zxtaaqx)**: Get rides on demand in major cities worldwide.
 
 - **[FREENOW](https://m.free-now.com/JGMc/lamvv2vh)**: Book taxis easily in top capitals.
 
-- **[Grab](https://r.grab.com/r/davd38bv)**: Transportation and food delivery at your fingertips across Southeast Asia.
-
 ### Finance Tools
 
-- **[Wise](https://wise.com/invite/in/davidt1417)**: Seamless international currency exchange and fast, affordable global payments.
+- **[Wise](https://wise.com/invite/ilpn/davidt1417)**: Seamless international currency exchange and fast, affordable global payments.
 
-- **[Revolut](https://revolut.com/referral/?referral-code=davidlsb!AUG1-23-AR-H1)**: Manage temporary payment cards for added security and convenience.
+- **[Revolut](https://revolut.com/referral/?referral-code=davidlsb!OCT1-26-VR-ES&geo-redirect)**: Manage temporary payment cards for added security and convenience.
 
-- **[PayPal](https://py.pl/2A6dJb)**: Fast, easy transfers between friends and family, no matter where you are.
-
-- **[Trade Republic](https://ref.trade.re/sb419ks8)**: Invest and save with one of Europe's top platforms for smart financial growth.
+- **[Trade Republic](https://refnocode.trade.re/sb419ks8)**: Invest and save with one of Europe's top platforms for smart financial growth.
 
 ---
 
